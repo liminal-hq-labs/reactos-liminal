@@ -23,14 +23,30 @@ def setup(tmp_path, fat):
 	"""A small official ISO, a recipe pinned to it, and an image that holds the licence files. Returns (recipe, work, image, iso)."""
 	source = tmp_path / "source"
 	(source / "i386").mkdir(parents=True)
-	(source / "i386" / "FIRST.TXT").write_bytes(b"first session\n" * 500)
+	(source / "i386" / "first.txt").write_bytes(b"first session\n" * 500)
 	(source / "readme.txt").write_text("official\n")
 	(source / "loader").mkdir()
 	(source / "loader" / "isoboot.bin").write_bytes(b"\x90" * 2048)
 	iso = tmp_path / "work" / "dl" / "TEST.iso"
 	iso.parent.mkdir(parents=True)
 	subprocess.run(
-		["xorriso", "-as", "mkisofs", "-V", "REACTOS", "-b", "loader/isoboot.bin", "-no-emul-boot", "-o", str(iso), str(source)],
+		[
+			"xorriso",
+			"-as",
+			"mkisofs",
+			"-iso-level",
+			"3",
+			"-allow-lowercase",
+			"-omit-version-number",
+			"-V",
+			"REACTOS",
+			"-b",
+			"loader/isoboot.bin",
+			"-no-emul-boot",
+			"-o",
+			str(iso),
+			str(source),
+		],
 		check=True,
 		capture_output=True,
 	)
@@ -50,14 +66,14 @@ def test_the_remaster_keeps_the_first_session_and_adds_the_notices(setup, tmp_pa
 	recipe, work, image, iso = setup
 	out = tmp_path / "out" / "remaster.iso"
 	before = iso.read_bytes()
-	lba_before = find_file(iso, "/i386/FIRST.TXT")
+	lba_before = find_file(iso, "/i386/first.txt")
 	assert build_iso(recipe, work, image, out) == out
 	assert iso.read_bytes() == before  # the official ISO is only read
 	# The system area (the boot record) and the first session's file data are byte for byte where they were, so the boot loader's view of
 	# the disc is unchanged; only the volume descriptors move on to describe the second session.
 	after = out.read_bytes()
 	assert after[:32768] == before[:32768]
-	assert find_file(out, "/i386/FIRST.TXT") == lba_before
+	assert find_file(out, "/i386/first.txt") == lba_before
 	start, size = lba_before
 	assert after[start * 2048 : start * 2048 + size] == before[start * 2048 : start * 2048 + size] == b"first session\n" * 500
 	boot = subprocess.run(["xorriso", "-indev", str(out), "-report_el_torito", "plain"], capture_output=True, text=True, check=True).stdout
@@ -65,6 +81,44 @@ def test_the_remaster_keeps_the_first_session_and_adds_the_notices(setup, tmp_pa
 	listing = subprocess.run(["xorriso", "-indev", str(out), "-find", "/", "-type", "f"], capture_output=True, text=True, check=True).stdout
 	for name in ("/NOTICE.txt", "/CHANGES.txt", "/LICENSES/GPL-2.0.txt", "/LICENSES/LGPL-2.1.txt", "/readme.txt"):
 		assert name in listing, name
+
+
+def directory_names(iso, folder):
+	"""The names stored in an ISO 9660 directory, as the boot loader reads them: the raw directory records of the primary volume."""
+
+	def records(handle, start, size):
+		handle.seek(start * 2048)
+		data = handle.read(size)
+		position = 0
+		while position < len(data):
+			length = data[position]
+			if length == 0:
+				position = (position // 2048 + 1) * 2048
+				continue
+			record = data[position : position + length]
+			yield (
+				record[33 : 33 + record[32]].decode("latin1"),
+				int.from_bytes(record[2:6], "little"),
+				int.from_bytes(record[10:14], "little"),
+			)
+			position += length
+
+	with open(iso, "rb") as handle:
+		handle.seek(16 * 2048 + 156)
+		root = handle.read(34)
+		entries = list(records(handle, int.from_bytes(root[2:6], "little"), int.from_bytes(root[10:14], "little")))
+		for part in folder.strip("/").split("/"):
+			start, size = next((start, size) for name, start, size in entries if name.lower() == part)
+			entries = list(records(handle, start, size))
+	return [name for name, _, _ in entries if name not in ("\x00", "\x01")]
+
+
+def test_the_first_session_keeps_its_lower_case_names_with_no_version_suffix(setup, tmp_path):
+	recipe, work, image, iso = setup
+	out = tmp_path / "out.iso"
+	build_iso(recipe, work, image, out)
+	assert directory_names(iso, "/i386") == ["first.txt"]
+	assert directory_names(out, "/i386") == ["first.txt"]
 
 
 def test_a_wrong_iso_is_refused(setup, tmp_path):

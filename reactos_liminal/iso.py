@@ -21,6 +21,7 @@ from .recipe import Recipe
 
 # The volume keeps the official label. Names go on the disc in upper case with the ISO 9660 rules, and the Joliet names keep their case.
 DISC_FOLDER = IMAGE_LICENCE_FOLDER
+COMPLIANCE = "iso_9660_level=3:lowercase:omit_version:no_force_dots:deep_paths:long_paths"
 
 
 class IsoError(Exception):
@@ -79,7 +80,15 @@ def build_iso(recipe: Recipe, work: Path, image: Path, out: Path, official_iso: 
 		# `-dev` opens the copy for appending, so the first session stays where it is; `-boot_image any keep` carries the El Torito boot
 		# entry over, which xorriso otherwise drops from the new session.
 		done = subprocess.run(
-			["xorriso", "-dev", str(out), "-boot_image", "any", "keep", "-map", str(tree), "/", "-commit"],
+			[
+				"xorriso",
+				*["-dev", str(out)],
+				*["-boot_image", "any", "keep"],
+				# The official disc stores lower-case names with no version suffix, and the boot loader opens them by those names (as
+				# `system`, not `SYSTEM.;1`), so the new session must write names the same way.
+				*["-compliance", COMPLIANCE],
+				*["-map", str(tree), "/", "-commit"],
+			],
 			capture_output=True,
 			text=True,
 			check=False,
