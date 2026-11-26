@@ -12,7 +12,7 @@ The copy was taken from the `site/try-reactos/guest/` and `site/try-reactos/tool
 
 Generic things move here: the unattended install, the trim, the golden disk, the Afterglow fetch and prepare steps, the pointer patch, the parts and manifest tools and the QEMU helpers. Quill-specific things stay in Quill and become Quill's recipe later: the emblem overlay (`quillify.py` and its wallpaper), the Quill programs and demo documents, the desktop icon builder for the Quill shortcuts, and the page and harness.
 
-The Quill demo trim is kept exactly as the `demo` trim profile. The base build is the Afterglow remaster, and the Quill demo extends it with that profile (see [RL-5](decisions.md)).
+The base build is the Afterglow remaster, and its trim is the `base` profile. Quill is a downstream consumer of it and owns its own extra trim: the six network card drivers (`e1000`, `rtl8139`, `pcnet`, `dc21x4`, `nvnet`, `netkvm`) that v86 does not emulate move to the Quill repository as a trim file named in its recipe's `[trim] extra` (see [RL-5](decisions.md) and [RL-20](decisions.md)).
 
 ## Where each file went
 
@@ -23,7 +23,7 @@ The Quill demo trim is kept exactly as the `demo` trim profile. The base build i
 | `guest/patch-iso.py` | `reactos_liminal/isopatch.py` | Moved |
 | `guest/vm/*` (`qrun.sh`, `mon.py`, `run.sh`, `typ.sh`, `shot.sh`, `wait-exit.sh`) | `reactos_liminal/vm.py` (the same operations, one class) and `reactos_liminal/ppm.py` (screenshots no longer need ImageMagick) | Moved |
 | `guest/trim.sh` | `reactos_liminal/trim.py` (`rl trim`) | Moved |
-| `guest/trim-list-1..3.txt` | `profiles/demo.txt`, the three lists joined in order and unchanged (137 entries); `profiles/base.txt` is the same minus the six network card drivers; `profiles/none.txt` removes nothing | Moved |
+| `guest/trim-list-1..3.txt` | `profiles/base.txt`, the three lists joined in order minus the six network card drivers as already built; the Quill lists move to the Quill repository as an `extra` file holding those six drivers; `profiles/none.txt` removes nothing | Moved |
 | `guest/trim-log.txt` | Not moved: a record of one run's bytes freed per item. `rl trim` reports the total | — |
 | `guest/build-image.sh` | `reactos_liminal/image.py` (`rl image`) and `reactos_liminal/settings.py`; the Quill payload steps (programs, demo documents, `QUILLDESK.ICO`, the wallpaper file) become the Quill recipe's `[[files]]` and `[[shortcuts]]` | Moved |
 | `guest/apply-settings.cmd`, `guest/polish/apply-mouse.cmd` | `guest/cmd/apply-settings.cmd.in`, one script that applies every registry file on the settings CD | Moved |
@@ -47,5 +47,5 @@ The table is updated by each change that moves a file.
 - **Part size.** The Quill build cut the disk into 1 MiB parts. The recipe key `outputs.parts.chunk_size` defaults to 8 MiB, the starting point for the measurement that picks the final size.
 - **Install.** The three QEMU runs, the answers, the in-place ISO edits and the installed `freeldr.ini` fix behave as before. The golden disk is cached under a name that carries a hash of everything that shapes it (the ISO's hash, the rendered answers, the memory and disk size, and the code that runs the install), instead of a stamp file beside one fixed path. `rl install --dry-run` prints the plan and the QEMU commands without running anything.
 - **Order.** Patchers run before the trim, and the trim never removes a patched file or a licence file ([RL-19](decisions.md)). Quill's build ran the pointer patch before the trim as well, but nothing enforced it.
-- **Profiles.** The trim lists are named profiles in `profiles/`. `demo` is Quill's trim kept exactly; `base` is the Afterglow remaster's trim and keeps the network card drivers.
+- **Profiles.** The trim lists are named profiles in `profiles/`. `base` is the Afterglow remaster's trim and keeps the network card drivers; a downstream trim such as Quill's is an `extra` file in the downstream repository.
 - **Work directory.** Large files go under `~/.cache/reactos-liminal` (or `--work`, or `$RL_WORK`) and never inside the repository; the commands refuse a work directory inside the checkout.

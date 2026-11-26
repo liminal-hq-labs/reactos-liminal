@@ -27,7 +27,7 @@ from .mtools import FatImage
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
-from .trim import LICENCE_PATHS, TrimReport, apply_profile, check_profile, load_profile
+from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile
 from .vm import PrivateVm
 
 PIPELINE = ("copy", "patchers", "trim", "files", "settings")
@@ -55,8 +55,8 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 	golden = golden or golden_path(recipe, work)
 	out = out or work / "images" / f"{recipe.name}.img"
 	patchers = recipe.section("patchers", "list")
-	profile = load_profile(recipe.section("trim", "profile"))
-	check_profile(profile, [])  # a profile that reaches a licence file stops the plan, before anything runs
+	profile = build_profile(recipe.section("trim", "profile"), recipe.section("trim", "extra"))
+	check_profile(profile, [])  # a list that reaches a licence file stops the plan, before anything runs
 	plan = ImagePlan(golden, out)
 	plan.steps.append("copy the golden disk (sparse); the golden disk is only read")
 	plan.steps.append(
@@ -66,6 +66,8 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		f"trim profile {profile.name!r}: {len(profile.entries)} entries; refuses a patched file or a licence file "
 		f"({', '.join(LICENCE_PATHS)})"
 	)
+	for name, count in profile.sources[1:]:
+		plan.steps.append(f"  extra trim list {name}: {count} entries, applied after the profile and checked the same way")
 	extras = [f"{len(recipe.data['files'])} files", f"{len(recipe.data['shortcuts'])} shortcuts"]
 	extras.append("the Afterglow style and pointers")
 	extras.append(f"{len(recipe.section('settings', 'remove_desktop_shortcuts'))} stock desktop shortcuts removed")
@@ -151,7 +153,7 @@ def build_image(
 	if out.resolve() == golden.resolve():
 		raise ImageError("the output must not be the golden disk")
 	# Cheap checks first: the trim profile must not reach a licence file.
-	profile = load_profile(recipe.section("trim", "profile"))
+	profile = build_profile(recipe.section("trim", "profile"), recipe.section("trim", "extra"))
 	check_profile(profile, [])
 	out.parent.mkdir(parents=True, exist_ok=True)
 	patcher_names = recipe.section("patchers", "list")
@@ -176,6 +178,8 @@ def build_image(
 
 		log("image", f"3. trim profile {profile.name}")
 		report: TrimReport = apply_profile(disk, profile, patched_paths)
+		for name, count in report.sources[1:]:
+			log("image", f"   extra trim list {name}: {count} entries")
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
@@ -203,5 +207,5 @@ def trim_image(
 	"""Trim a working copy of a disk in place. Refuses a disk in the work directory's golden folder."""
 	if (work / "golden") in image.resolve().parents:
 		raise ImageError("refusing to trim a golden disk; trim a copy (rl image makes one)")
-	profile = load_profile(profile_name or recipe.section("trim", "profile"))
+	profile = build_profile(profile_name or recipe.section("trim", "profile"), recipe.section("trim", "extra"))
 	return apply_profile(FatImage(image), profile, patched_paths or [])

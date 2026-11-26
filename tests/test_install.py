@@ -85,7 +85,7 @@ def test_the_key_follows_what_shapes_the_disk(fake_iso_recipe, monkeypatch, tmp_
 def test_things_that_do_not_shape_the_disk_leave_the_key_alone(fake_iso_recipe):
 	recipe, _, _ = fake_iso_recipe
 	first = golden_key(recipe)
-	recipe.data["trim"] = {"profile": "demo"}
+	recipe.data["trim"] = {"profile": "base"}
 	recipe.data["outputs"]["parts"]["chunk_size"] = 1 << 20
 	recipe.data["settings"]["icon_size"] = 48
 	assert golden_key(recipe) == first

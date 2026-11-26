@@ -55,7 +55,7 @@ The remastered media is named "Afterglow for ReactOS — unofficial remaster by 
 - [SPEC.md](SPEC.md) — scope, the recipe format, the `rl` command, outputs, hash guards and release gating, each marked planned or built
 - [docs/decisions.md](docs/decisions.md) — decisions and why
 - [docs/recipes.md](docs/recipes.md) — the recipe tables and defaults
-- [docs/trim.md](docs/trim.md) — the trim profiles (`none`, `base`, `demo`) and the order rule
+- [docs/trim.md](docs/trim.md) — the trim profiles (`none`, `base`), your own `extra` lists and the order rule
 - [docs/pipeline.md](docs/pipeline.md) — the stages, the caches and the private machines
 - [docs/migration.md](docs/migration.md) — where the pipeline came from and what has moved
 - [NOTICE.md](NOTICE.md) — third-party components and licences, to be confirmed before an ISO release

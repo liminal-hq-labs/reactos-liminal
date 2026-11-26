@@ -1,5 +1,5 @@
-# Trim profile "base": the Afterglow remaster's trim. The demo trim minus the network card drivers: the drivers and the network stack stay, so the guest
-# keeps its network ability. The command-line network tools, the Gecko and Internet Explorer stubs and the other demo removals are the same.
+# Trim profile "base": the Afterglow remaster's trim. It removes the games, screensavers, wallpapers, the browser engine stubs, the DirectX
+# helper libraries and the apps and applets a kiosk does not use. The network card drivers and the network stack stay, so the guest keeps its network ability.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -7,7 +7,7 @@
 # One path per line, under the FAT32 root: "f PATH" removes a file, "d PATH" removes a folder and everything in it. A missing path is
 # logged and skipped. A profile never lists a file a patcher wrote or a licence file (rl trim refuses one that does).
 
-# Batch 1: leftovers, browser engine, wallpapers, games, screensavers, DirectX helper libraries, tools a demo does not use.
+# Batch 1: leftovers, browser engine, wallpapers, games, screensavers, DirectX helper libraries, tools a kiosk does not use.
 d ReactOS/Installer
 d ReactOS/system32/gecko
 d Program Files/Internet Explorer
@@ -94,7 +94,7 @@ f ReactOS/Web/Wallpaper/Polarlicht.jpg
 f ReactOS/Web/Wallpaper/README.txt
 f ReactOS/Web/Wallpaper/Silhouette Dark.png
 f ReactOS/Web/Wallpaper/Silhouette.png
-# Batch 2: fonts the demo does not use (Arial, Times New Roman, Courier New, Tahoma, Marlett, Symbol, Wingdings, MS Sans Serif, FreeSans and the console font stay), filesystem drivers and network drivers v86 does not emulate.
+# Batch 2: fonts a kiosk does not use (Arial, Times New Roman, Courier New, Tahoma, Marlett, Symbol, Wingdings, MS Sans Serif, FreeSans and the console font stay), filesystem drivers and drivers for hardware a virtual machine does not have.
 f ReactOS/Fonts/comicbd.ttf
 f ReactOS/Fonts/comic.ttf
 f ReactOS/Fonts/framdit.ttf

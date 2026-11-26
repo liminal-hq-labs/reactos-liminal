@@ -40,7 +40,8 @@ page_file = "64 64"
 icon_size = 32
 reg_files = ["display", "quiet", "watermark-off"]
 
-# Which files the trim removes: none, base (keeps the network drivers and stack) or demo (the browser demo's trim).
+# Which files the trim removes: none, or base (the Afterglow remaster's trim; keeps the network drivers and stack). A downstream
+# recipe adds its own removals with `extra`, a list of trim files beside that recipe.
 [trim]
 profile = "base"
 

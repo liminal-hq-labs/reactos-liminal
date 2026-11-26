@@ -150,7 +150,7 @@ assets/        hero banner
 docs/          decisions and project notes
 reactos_liminal/  the `rl` package (Python, standard library only); `rl` is its shim
 recipes/       recipes; `afterglow.toml` is the base
-profiles/      trim profiles (`none`, `base`, `demo`)
+profiles/      trim profiles (`none`, `base`); a downstream project keeps its own removals in an `extra` list in its own repository
 guest/         files that go to the guest: answers template, registry files, the settings script
 tests/         pytest tests (synthetic fixtures only)
 patches/       GPL-2.0-or-later source patches against ReactOS (licence note only so far)

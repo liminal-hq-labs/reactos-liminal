@@ -89,6 +89,8 @@ def _cmd_trim(args: argparse.Namespace) -> int:
 	work = resolve_work(args.work)
 	report = trim_image(recipe, work, Path(args.image), args.profile)
 	print(f"removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed} bytes")
+	for name, count in report.sources[1:]:
+		print(f"extra trim list {name}: {count} entries")
 	for entry in report.missing:
 		print(f"missing: {entry.kind} {entry.path}", file=sys.stderr)
 	return 0
@@ -140,7 +142,7 @@ def build_parser() -> argparse.ArgumentParser:
 	sub = commands.add_parser("trim", help=f"trim a working copy of a disk with a profile ({', '.join(profile_names())})")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the default profile)")
 	sub.add_argument("image", help="the disk image to trim in place; never a golden disk")
-	sub.add_argument("--profile", help="profile name, instead of the recipe's")
+	sub.add_argument("--profile", help="built-in profile name, instead of the recipe's (its extra lists still apply)")
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_trim)
 	return parser

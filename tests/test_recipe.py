@@ -97,13 +97,13 @@ def test_extends_merges_tables_key_by_key(base_recipe_path, tmp_path):
 	child = write(
 		tmp_path,
 		"child.toml",
-		MINIMAL + '\n[install]\ncomputer_name = "QUILLDEMO"\n\n[trim]\nprofile = "demo"\n\n[patchers]\nlist = ["afterglow.pointers"]\n',
+		MINIMAL + '\n[install]\ncomputer_name = "QUILLDEMO"\n\n[trim]\nprofile = "none"\n\n[patchers]\nlist = ["afterglow.pointers"]\n',
 	)
 	recipe = load(child)
 	assert recipe.name == "child"
 	assert recipe.section("install", "computer_name") == "QUILLDEMO"
 	assert recipe.section("install", "owner_name") == "ReactOS user"
-	assert recipe.section("trim", "profile") == "demo"
+	assert recipe.section("trim", "profile") == "none"
 	assert recipe.section("patchers", "list") == ["afterglow.pointers"]
 	assert recipe.section("inputs", "reactos_iso")["name"] == "ReactOS-0.4.16-i386.iso"
 	assert [path.name for path in recipe.chain] == ["child.toml", "base.toml"]

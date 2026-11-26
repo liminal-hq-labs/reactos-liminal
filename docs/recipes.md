@@ -13,7 +13,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `["display", "quiet", "watermark-off"]`, none |
 | `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
-| `[trim]` | `profile`: `none`, `base` or `demo` | `none` |
+| `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
 | `[patchers]` | `list`: `afterglow.pointers` | `[]` (the base recipe lists the pointer patcher) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
@@ -33,7 +33,12 @@ extends = "rl:recipes/afterglow.toml"
 
 [install]
 computer_name = "MYDEMO"
+
+[trim]
+extra = ["my-demo-trim.txt"]
 ```
+
+`my-demo-trim.txt` sits beside this recipe and holds `f PATH` and `d PATH` lines ([trim.md](trim.md#adding-your-own-removals)). A recipe that extends another keeps the extra lists of the recipes it extends and adds its own after them; every other list replaces.
 
 ## Work directory
 

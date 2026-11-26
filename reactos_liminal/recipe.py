@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 # A recipe chooses and parameterizes steps; it cannot add a new kind of write. `extends` layers one recipe on another: tables merge
-# key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends.
+# key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends. The one exception is
+# `trim.extra`: each recipe's own list, resolved against that recipe's folder, is added after the lists of the recipes it extends.
 import copy
 import re
 import tomllib
@@ -26,7 +27,7 @@ MIN_CHUNK_SIZE = 64 * 1024
 
 PATCHERS = ("afterglow.pointers",)
 REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons")
-TRIM_PROFILES = ("none", "demo", "base")
+TRIM_PROFILES = ("none", "base")
 
 
 class RecipeError(Exception):
@@ -209,6 +210,7 @@ SCHEMA: dict[str, Any] = {
 	},
 	"trim": {
 		"profile": (_choice(*TRIM_PROFILES), "none"),
+		"extra": (_str_list, []),
 	},
 	"patchers": {
 		"list": (_name_list(PATCHERS), []),
@@ -282,12 +284,22 @@ def _read(path: Path) -> dict:
 		raise RecipeError(f"{path}: {error}") from None
 
 
+def _own_extra(raw: dict, path: Path) -> list | None:
+	"""The recipe's own `trim.extra` with each string made absolute against this recipe's folder, or None when it sets none. A value
+	that is not a list of strings is left as it is for the validator to name."""
+	table = raw.get("trim")
+	if not isinstance(table, dict) or not isinstance(table.get("extra"), list):
+		return None
+	return [str(path.parent / item) if isinstance(item, str) and item else item for item in table["extra"]]
+
+
 def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 	path = path.resolve()
 	if path in seen:
 		raise RecipeError(f"{path}: extends itself through {' -> '.join(str(p) for p in seen)}")
 	raw = _read(path)
 	chain = [path]
+	own_extra = _own_extra(raw, path)
 	parent = raw.get("recipe", {}).get("extends") if isinstance(raw.get("recipe"), dict) else None
 	if parent:
 		if not isinstance(parent, str):
@@ -295,8 +307,13 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 		# `rl:` names a recipe inside this repository; any other value is a path beside the extending recipe.
 		ppath = REPO / parent[3:] if parent.startswith("rl:") else path.parent / parent
 		base, base_chain = _resolve(ppath, (*seen, path))
+		inherited = base.get("trim", {}).get("extra") if isinstance(base.get("trim"), dict) else None
 		raw = _merge(base, raw)
 		chain = chain + base_chain
+		if own_extra is not None:
+			raw["trim"]["extra"] = [*(inherited if isinstance(inherited, list) else []), *own_extra]
+	elif own_extra is not None:
+		raw["trim"]["extra"] = own_extra
 	return raw, chain
 
 
