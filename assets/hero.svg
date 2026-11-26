@@ -101,7 +101,10 @@
 			<path d="M-4.2 0.2L-1.2 3.2L4.4 -3" fill="none" stroke="#123a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 		</g>
 		<clipPath id="frame"><rect width="1200" height="320" rx="18"/></clipPath>
-		<clipPath id="desktop-clip"><rect x="832" y="58" width="326" height="164" rx="2"/></clipPath>
+		<clipPath id="desktop-clip"><path d="M831 59H1159V213A11 11 0 0 1 1148 223H842A11 11 0 0 1 831 213Z"/></clipPath>
+		<filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="130%">
+			<feGaussianBlur stdDeviation="6"/>
+		</filter>
 		<clipPath id="above-horizon"><rect x="832" y="58" width="326" height="118"/></clipPath>
 	</defs>
 
@@ -200,11 +203,14 @@
 		<text data-for="recipe" class="mono" x="628" y="266" font-size="10" fill="#c9b3d9">every input sha256-pinned</text>
 
 		<!-- The window: an Afterglow desktop at dusk -->
-		<rect x="834" y="40" width="330" height="188" rx="10" fill="#000000" opacity="0.3"/>
-		<rect x="830" y="36" width="330" height="188" rx="10" fill="#160b26" stroke="#4a2470" stroke-width="1.5"/>
-		<circle cx="846" cy="47" r="4" fill="#ffc94d"/>
-		<circle cx="860" cy="47" r="4" fill="#e8657c"/>
-		<circle cx="874" cy="47" r="4" fill="#8b5cf6"/>
+		<rect x="830" y="40" width="330" height="188" rx="12" fill="#000000" opacity="0.45" filter="url(#soft-shadow)"/>
+		<rect x="830" y="36" width="330" height="188" rx="12" fill="#160b26"/>
+		<!-- GNOME-style header bar: flat, a shade lighter, centred title, close button at the right -->
+		<path d="M830 59V48A12 12 0 0 1 842 36H1148A12 12 0 0 1 1160 48V59Z" fill="#26153d"/>
+		<rect x="830" y="58" width="330" height="1" fill="#0c0616"/>
+		<text class="ui" x="995" y="51.5" font-size="10.5" font-weight="500" text-anchor="middle" fill="#f1e6f5">Afterglow desktop</text>
+		<circle cx="1146" cy="47.5" r="7" fill="#3a2552"/>
+		<path d="M1143.2 44.7L1148.8 50.3M1148.8 44.7L1143.2 50.3" stroke="#f1e6f5" stroke-width="1.4" stroke-linecap="round"/>
 		<g clip-path="url(#desktop-clip)">
 			<rect x="832" y="58" width="326" height="118" fill="url(#sky)"/>
 			<rect x="832" y="176" width="326" height="46" fill="url(#ground)"/>
@@ -248,6 +254,8 @@
 				</rect>
 			</g>
 		</g>
+
+		<rect x="830" y="36" width="330" height="188" rx="12" fill="none" stroke="#4a2470" stroke-width="1.5"/>
 
 		<!-- The FreeLoader menu: the minimal gold bar -->
 		<rect id="boot-menu" data-box="" x="830" y="236" width="330" height="52" rx="6" fill="#000000" stroke="#4a2470" stroke-width="1.5"/>
