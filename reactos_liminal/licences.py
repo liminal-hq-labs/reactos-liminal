@@ -13,7 +13,7 @@ from pathlib import Path
 from .fetch import sha256_file
 from .mtools import FatImage
 from .paths import REPO
-from .recipe import Recipe
+from .recipe import Recipe, is_reg_path
 from .trim import TrimReport
 
 PRODUCT = "Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs"
@@ -287,7 +287,7 @@ def changes_text(recipe: Recipe, record: ChangeRecord) -> bytes:
 		lines += [
 			f"  display mode {settings['display_width']} x {settings['display_height']}, page file {settings['page_file']} MB, "
 			f"desktop icon size {settings['icon_size']}.",
-			"  registry files: " + ", ".join(settings["reg_files"]) + ".",
+			"  registry files: " + ", ".join(Path(name).name if is_reg_path(name) else name for name in settings["reg_files"]) + ".",
 		]
 		if settings.get("wallpaper"):
 			lines.append(f"  wallpaper {settings['wallpaper']}.")

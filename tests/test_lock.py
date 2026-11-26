@@ -148,3 +148,15 @@ def test_the_cache_keys_name_the_pins_and_the_golden_disk(base_recipe_path, tmp_
 	assert keys["golden_path"].startswith(str(work / "golden")) and keys["golden_key"][:16] in keys["golden_path"]
 	assert keys["iso_path"] == str(work / "dl" / "ReactOS-0.4.16-i386.iso")
 	assert not work.exists()  # printing keys writes nothing
+
+
+def test_the_lock_records_a_recipes_own_reg_file_by_relative_path(fake_iso_recipe):
+	recipe, _, _ = fake_iso_recipe
+	folder = recipe.chain[0].parent
+	reg_file = folder / "own.reg"
+	reg_file.write_text("Windows Registry Editor Version 5.00\n")
+	recipe.data["settings"]["reg_files"] = [*recipe.data["settings"]["reg_files"], str(reg_file)]
+	lock = build_lock(recipe)
+	assert list(lock["reg_files"]) == ["reg:own.reg"]
+	reg_file.write_text("Windows Registry Editor Version 5.00\n; changed\n")
+	assert build_lock(recipe) != lock

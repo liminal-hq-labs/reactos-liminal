@@ -138,3 +138,56 @@ def test_missing_and_malformed_files_are_reported(tmp_path):
 		load(tmp_path / "nope.toml")
 	with pytest.raises(RecipeError, match="bad.toml"):
 		load(write(tmp_path, "bad.toml", "this is = = not toml"))
+
+
+REG_TEXT = 'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\Test]\n"Value"="one"\n'
+
+
+def test_a_reg_path_is_resolved_beside_the_recipe_that_lists_it(base_recipe_path, tmp_path):
+	child_folder = tmp_path / "child"
+	child_folder.mkdir()
+	write(child_folder, "extra.reg", REG_TEXT)
+	child = write(
+		child_folder, "child.toml", f'[recipe]\nname = "child"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["extra.reg"]\n'
+	)
+	listed = load(child).section("settings", "reg_files")
+	assert listed[:-1] == ["display", "quiet", "watermark-off", "afterglow-logon"]
+	assert listed[-1] == str(child_folder / "extra.reg")
+
+
+def test_the_named_files_come_first_and_each_recipe_adds_its_own_paths(base_recipe_path, tmp_path):
+	write(tmp_path, "middle.reg", REG_TEXT)
+	write(tmp_path, "top.reg", REG_TEXT)
+	middle = write(
+		tmp_path,
+		"middle.toml",
+		f'[recipe]\nname = "middle"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["middle.reg", "display"]\n',
+	)
+	top = write(tmp_path, "top.toml", '[recipe]\nname = "top"\nextends = "middle.toml"\n[settings]\nreg_files = ["top.reg"]\n')
+	assert load(middle).section("settings", "reg_files") == ["display", str(tmp_path / "middle.reg")]
+	assert load(top).section("settings", "reg_files") == ["display", str(tmp_path / "middle.reg"), str(tmp_path / "top.reg")]
+
+
+def test_a_missing_or_headerless_reg_file_is_refused(base_recipe_path, tmp_path):
+	missing = write(
+		tmp_path, "missing.toml", f'[recipe]\nname = "missing"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["nope.reg"]\n'
+	)
+	with pytest.raises(RecipeError, match=r"settings.reg_files.*nope.reg is not a file"):
+		load(missing)
+	write(tmp_path, "bad.reg", "[HKEY_CURRENT_USER\\Software\\Test]\n")
+	headerless = write(
+		tmp_path, "headerless.toml", f'[recipe]\nname = "headerless"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["bad.reg"]\n'
+	)
+	with pytest.raises(RecipeError, match="must start with the line"):
+		load(headerless)
+
+
+def test_a_duplicate_reg_path_is_refused(base_recipe_path, tmp_path):
+	write(tmp_path, "extra.reg", REG_TEXT)
+	twice = write(
+		tmp_path,
+		"twice.toml",
+		f'[recipe]\nname = "twice"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["extra.reg", "extra.reg"]\n',
+	)
+	with pytest.raises(RecipeError, match="duplicate"):
+		load(twice)

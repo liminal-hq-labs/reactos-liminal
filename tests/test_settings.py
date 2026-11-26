@@ -118,3 +118,16 @@ def test_the_start_patcher_selects_its_shell(base_recipe_path):
 	assert 'Wallpaper"="C:\\\\ReactOS\\\\afterglow-wallpaper.bmp"' in files["appearance"]
 	recipe.data["patchers"]["list"] = ["afterglow.pointers", "afterglow.logon"]
 	assert "shell-agexplorer" not in settings.settings_files(recipe)
+
+
+def test_a_recipes_own_reg_file_is_applied_after_the_named_files(base_recipe_path, tmp_path):
+	(tmp_path / "quill.reg").write_text(
+		'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\Quill]\n"On"=dword:00000001\n'
+	)
+	child = tmp_path / "child.toml"
+	child.write_text(f'[recipe]\nname = "child"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["quill.reg"]\n')
+	files = settings.settings_files(load(child))
+	names = list(files)
+	assert names.index("quill") > names.index("afterglow-logon")
+	assert '"On"=dword:00000001' in files["quill"]
+	assert "quill.reg" not in "".join(settings.write_settings_cd_tree(load(child), tmp_path / "cd"))
