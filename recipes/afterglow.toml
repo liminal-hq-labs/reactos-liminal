@@ -16,8 +16,9 @@ url = "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-
 zip_sha256 = "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a"
 sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 
-# The Afterglow source, by commit. The sums are of the uncompressed tar GitHub serves for that commit (GitHub may recompress an
-# archive) and of the default build of the visual style (classic scroll bars).
+# The Afterglow source, by commit; it carries the logon and boot art as well as the style and pointers. The sums are of the
+# uncompressed tar GitHub serves for that commit (GitHub may recompress an archive) and of the default build of the visual style
+# (classic scroll bars).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
 commit = "c0be85912a66c366974086d8d83c58de5884ab45"
@@ -45,7 +46,7 @@ page_file = "64 64"
 icon_size = 32
 wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
 wallpaper_style = "stretch"
-reg_files = ["display", "quiet", "watermark-off"]
+reg_files = ["display", "quiet", "watermark-off", "afterglow-logon"]
 
 # Which files the trim removes: none, or base (the Afterglow remaster's trim; keeps the network drivers and stack). A downstream
 # recipe adds its own removals with `extra`, a list of trim files beside that recipe.
@@ -54,10 +55,21 @@ profile = "base"
 
 # Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
 # pointers (it patches a copy of user32.dll). The Start patch writes agexplorer.exe, a copy of explorer.exe with the Afterglow Start orb
-# and menu banner, and the settings step makes it the Winlogon shell. The icon patch puts the Afterglow icon set in a copy of
-# shell32.dll.
+# and menu banner, and the settings step makes it the Winlogon shell. The icon patchers put the Afterglow icon set in copies of shell32.dll,
+# the Control Panel applets and the programs, and write the Explorer toolbar cells in place. The logon patch writes agmsgina.dll with the Afterglow banner and bar, and the
+# afterglow-logon registry file above selects it (delete that one value for the stock logon). The boot patch writes agntoskr.exe with
+# the Afterglow boot logo and a boot menu whose first entry, "Afterglow for ReactOS", starts it; the stock entry stays as the fallback.
 [patchers]
-list = ["afterglow.pointers", "afterglow.start", "afterglow.icons", "afterglow.cpl-icons", "afterglow.program-icons", "afterglow.toolbar-bitmaps"]
+list = [
+	"afterglow.pointers",
+	"afterglow.start",
+	"afterglow.icons",
+	"afterglow.cpl-icons",
+	"afterglow.program-icons",
+	"afterglow.toolbar-bitmaps",
+	"afterglow.logon",
+	"afterglow.boot",
+]
 
 [outputs.disk]
 zero_free = true

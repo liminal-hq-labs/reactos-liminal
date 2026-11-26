@@ -32,8 +32,10 @@ PATCHERS = (
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.toolbar-bitmaps",
+	"afterglow.logon",
+	"afterglow.boot",
 )
-REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons")
+REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons", "afterglow-logon")
 TRIM_PROFILES = ("none", "base")
 
 

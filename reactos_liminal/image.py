@@ -195,7 +195,11 @@ def build_image(
 		log("image", f"2. patchers: {', '.join(patcher_names) or 'none'}")
 		patched = run_patchers(patcher_names, FatImage(golden), source_tree, afterglow_files, scratch)
 		for item in patched:
+			if item.attributes:  # a hidden, system or read-only file (freeldr.ini) is unlocked for the write and locked again after
+				disk.set_attributes(item.image_path, "-r -h -s")
 			disk.copy_in(item.local_file, item.image_path)
+			if item.attributes:
+				disk.set_attributes(item.image_path, item.attributes)
 		patched_paths = [item.image_path for item in patched]
 
 		log("image", f"3. trim profile {profile.name}")

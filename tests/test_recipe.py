@@ -33,6 +33,8 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
 		"afterglow.toolbar-bitmaps",
+		"afterglow.logon",
+		"afterglow.boot",
 	]
 	assert recipe.section("trim", "profile") == "base"
 
@@ -85,7 +87,7 @@ def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
 	text = base_recipe_path.read_text().replace(
-		'list = ["afterglow.pointers", "afterglow.start", "afterglow.icons", "afterglow.cpl-icons", "afterglow.program-icons", "afterglow.toolbar-bitmaps"]',
+		'list = [\n\t"afterglow.pointers",\n\t"afterglow.start",\n\t"afterglow.icons",\n\t"afterglow.cpl-icons",\n\t"afterglow.program-icons",\n\t"afterglow.toolbar-bitmaps",\n\t"afterglow.logon",\n\t"afterglow.boot",\n]',
 		'list = ["made.up"]',
 	)
 	with pytest.raises(RecipeError, match="patchers.list"):

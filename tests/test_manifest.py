@@ -54,6 +54,8 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
 		"afterglow.toolbar-bitmaps",
+		"afterglow.logon",
+		"afterglow.boot",
 	]
 	assert pin["afterglow"]["commit"].startswith("c0be8591") and pin["v86"] == "0.5.473" and pin["extra"] == {"quill_commit": "abc"}
 	assert manifest["timings_seconds"] == {"install": 150, "image": 85}

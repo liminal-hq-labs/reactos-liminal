@@ -18,8 +18,8 @@ from pathlib import Path
 from .fetch import sha256_file
 from .log import log
 from .mtools import FatImage
+from .patch_base import PatchedFile, PatchError
 from .patch_icons import _afterglow_sums, icon_set_digest, render_icons
-from .patchers import PatchedFile, PatchError
 from .pe_resources import RT_BITMAP, PeError, PeFile, read_ico
 
 STRIPS_FILE = Path(__file__).resolve().parent / "bitmap_strips.json"
