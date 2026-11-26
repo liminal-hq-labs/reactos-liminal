@@ -6,19 +6,21 @@ How a release is cut, and the one-time setup the owner does in GitHub. Agents ne
 
 A release of "Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs" attaches:
 
-- **The remastered ISO**, `afterglow-for-reactos-vX.Y.Z-unofficial-remaster.iso` (`rl iso`).
+- **The v86 disk parts**, `v86-disk-parts-vX.Y.Z.tar`: the zstd parts of the built image with their `manifest.json`. A saved v86 state is added when the build makes one.
 - **`SHA256SUMS`** covering every attached file.
 - **`build-manifest.json`**, the SHA-256 of every output, the pinned inputs, the trim profile, the patchers and the stage timings.
 - **`afterglow.lock.json`**, the lock file the build was verified against.
 - **`licences.md`**, the licences page for this build ([licences.md](licences.md) is the committed copy).
-- **The corresponding source:** `reactos-0.4.16-release-source.tar.gz` (the ReactOS source at the pinned commit, which the workflow checks), `reactos-liminal-vX.Y.Z-source.tar.gz` (this repository at the release commit, with the recipe, the tools and the patches) and `SOURCE.txt` (what each is, the WineVDM pointer and the written offer).
+- **The source:** `reactos-liminal-vX.Y.Z-source.tar.gz` (this repository at the release commit, with the recipe, the tools and the patches) and `SOURCE.txt` (the ReactOS source by tag and commit, the WineVDM pointer and the written offer).
+
+**No ISO in v0.1.0.** The owner decided on 2026-11-26 that the remastered ISO waits for a later release: today it is the stock ReactOS disc with the licence texts, notice and list of changes added, which is not worth shipping, and Setup is not themed yet. `rl iso` is built and tested, and the ISO will be published once Setup theming gives it something of its own. Until then neither workflow builds or attaches it.
 
 The release body is `docs/releases/X.Y.Z.md`, which must exist and be non-empty. Releases are not immutable (RL-11.1), but a published release's assets are never edited: a fix is a new release.
 
 ## Before you start
 
 1. The licence checklist in [SPEC.md](../SPEC.md#licence-checklist) is complete. The workflow cannot check it; approving the environment is the owner's statement that it is.
-2. `main` holds the commit to release, CI is green, and `./rl verify recipes/afterglow.toml` passes (the lock file matches the recipe; run `./rl lock recipes/afterglow.toml` after a pin changes).
+2. `main` holds the commit to release and CI is green. Run `./rl lock recipes/afterglow.toml` and commit the result before tagging, so `./rl verify recipes/afterglow.toml` passes: any pin or trim-list change since the last lock leaves it stale.
 3. `docs/releases/X.Y.Z.md` is written. Check that what it says is in the build.
 4. The WineVDM (otvdm) release that ReactOS 0.4.16 installs is identified, and `SOURCE.txt` and `NOTICE.txt` name it. The workflow points at the project but cannot know the release.
 
@@ -49,8 +51,8 @@ If the build has no KVM the release fails rather than skipping the QEMU stages: 
 
 ## What the workflows do
 
-- **`build.yml`** runs on dispatch, on a pull request that touches the pipeline paths and when `release.yml` calls it. It installs its tools with apt on the Ubuntu runner (the shared `ci-dos` image has QEMU and mtools but not xorriso, zstd, the LLVM tools or numpy and Pillow), turns on KVM, restores the caches, checks the pins, then runs `rl install`, `rl image`, `rl parts`, `rl iso`, `rl licences` and `rl manifest`, and uploads `release-files` and `v86-parts`.
-- **`release.yml`** checks the tag, calls `build.yml` with KVM required, builds the source archives, and publishes behind the `release` environment.
+- **`build.yml`** runs on dispatch, on a pull request that touches the pipeline paths and when `release.yml` calls it. It installs its tools with apt on the Ubuntu runner (the shared `ci-dos` image has QEMU and mtools but not xorriso, zstd, the LLVM tools or numpy and Pillow), turns on KVM, restores the caches, checks the pins, then runs `rl install`, `rl image`, `rl parts`, `rl licences` and `rl manifest`, and uploads `release-files` and `v86-parts`.
+- **`release.yml`** checks the tag, calls `build.yml` with KVM required, archives this repository and writes the source pointer, and publishes behind the `release` environment.
 
 ### Caches
 

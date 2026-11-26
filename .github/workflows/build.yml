@@ -1,13 +1,14 @@
-# Build the image from the official ISO: verify the pins, install unattended in QEMU, patch, trim and dress the disk, split it into v86
-# parts, write the remastered ISO and the build manifest, and upload them. Not run on every push: on dispatch, on a pull request that
-# touches the pipeline, and when release.yml calls it.
+# Build the image from the official ISO and upload it, the v86 parts, the licences page and the build manifest.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# Runs on dispatch, on a pull request that touches the pipeline, and when release.yml calls it; not on every push. The remastered ISO
+# (`rl iso`) is not built here: v0.1.0 does not publish it.
 #
 # The job runs on the plain Ubuntu runner and installs its tools with apt, rather than in a shared Liminal HQ image. `ci-dos` carries
 # QEMU and mtools but not xorriso, zstd, the LLVM resource compiler and linker or numpy and Pillow, and it is a DJGPP and Rust image
 # far larger than this job needs; a container would also need /dev/kvm passed in.
-#
-# (c) Copyright 2026 Liminal HQ, Scott Morris
-# SPDX-License-Identifier: Apache-2.0 OR MIT
 
 name: Build
 
@@ -211,15 +212,14 @@ jobs:
           ./rl parts "$RECIPE" "$RL_WORK/images/afterglow.img" --work "$RL_WORK" --out "$DIST/parts"
           echo "parts=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
 
-      - name: Write the remastered ISO, the licences page and the manifest
+      - name: Write the licences page and the manifest
         id: outputs
         if: steps.parts.outcome == 'success'
         run: |
           started=$SECONDS
-          ./rl iso "$RECIPE" --work "$RL_WORK" --image "$RL_WORK/images/afterglow.img" --out "$DIST/afterglow-remaster.iso"
           ./rl licences "$RECIPE" --out "$DIST/licences.md"
           cp "${RECIPE%.toml}.lock.json" "$DIST/"
-          echo "iso=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+          echo "outputs=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
           timings=()
           while IFS= read -r line; do timings+=(--timing "$line"); done < "$RUNNER_TEMP/timings"
           ./rl manifest "$RECIPE" "$DIST" "${timings[@]}"
@@ -243,7 +243,6 @@ jobs:
         with:
           name: release-files
           path: |
-            ${{ env.DIST }}/afterglow-remaster.iso
             ${{ env.DIST }}/build-manifest.json
             ${{ env.DIST }}/licences.md
             ${{ env.DIST }}/afterglow.lock.json

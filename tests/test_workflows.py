@@ -74,7 +74,7 @@ def test_the_caches_are_keyed_on_the_pins_and_the_pins_are_checked_after_them():
 
 
 def test_the_build_runs_every_stage_the_issue_lists_in_order():
-	order = ["rl verify", "rl install", "rl image", "rl parts", "rl iso", "rl licences", "rl manifest"]
+	order = ["rl verify", "rl install", "rl image", "rl parts", "rl licences", "rl manifest"]
 	positions = [BUILD.index("./" + name) for name in order]
 	assert positions == sorted(positions)
 
@@ -87,3 +87,10 @@ def test_the_release_names_the_reactos_source_the_licence_files_name():
 def test_the_release_notes_for_the_first_release_exist_and_say_unofficial():
 	notes = (REPO / "docs" / "releases" / "0.1.0.md").read_text()
 	assert "unofficial" in notes.lower() and "not made, endorsed or supported by the ReactOS Project" in notes
+
+
+def test_v0_1_0_publishes_no_iso():
+	assert "./rl iso" not in BUILD and "remaster.iso" not in BUILD
+	assert ".iso" not in RELEASE
+	notes = (REPO / "docs" / "releases" / "0.1.0.md").read_text()
+	assert "later release" in notes and "No install ISO yet" in notes

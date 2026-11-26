@@ -96,7 +96,7 @@ rl serve DIR                            # range-capable static server for a loca
 | Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (`rl parts`, built) |
 | v86 parts | `rl parts` (built): zstd parts of the disk named `START-END.img.zst`, each `outputs.parts.chunk_size` bytes (default 8 MiB; every chunk gets a file, all-zero ones included), with `manifest.json` (image size, chunk, counts, compressed bytes and the raw image's SHA-256) |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
-| Remastered ISO | `rl iso` (built): the official ISO with a session appended that holds `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` from the image, nothing already on the disc moved; the extra cabinet and Setup art below are planned. The finished remaster is the official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
+| Remastered ISO | `rl iso` (built, not part of v0.1.0): the official ISO with a session appended that holds `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` from the image, nothing already on the disc moved; the extra cabinet and Setup art below are planned. The finished remaster is the official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
 | Build manifest | `rl manifest` (built): every output's size and SHA-256, the pinned inputs, the trim profile and patchers, the part size and the stage timings; `rl summary` prints it as Markdown. `rl lock` (built) writes `recipes/NAME.lock.json`, the resolved inputs and their sums, and `rl verify` fails on drift |
 
 ## Image pipeline and trim profiles
@@ -152,8 +152,8 @@ rl serve DIR                            # range-capable static server for a loca
 - `build.yml` runs on `workflow_dispatch`, on pull requests that touch the pipeline paths, and when `release.yml` calls it, never on every push. `release.yml` runs on a `v*` tag the owner pushes or on `workflow_dispatch` from `main`, never on a branch push or a schedule, and builds only a commit that is on `main`. Its publishing job uses the protected `release` environment, with the owner as required reviewer. Agents never push a tag or dispatch either workflow. Setup and steps: [docs/release.md](docs/release.md).
 - The ISO is built only from the official upstream ISO named in `pins/reactos-0.4.16.toml`, downloaded and checked against both hashes (the SourceForge zip and the ISO). No upstream binary is stored in git or in a cache that outlives the run.
 - A release build remasters twice; both ISOs must be byte-identical. An unattended install from the remaster must reach an Afterglow desktop, the boot-frame guard must pass, and with cold-boot colours on, the cold-boot logon backdrop is checked.
-- Release assets: the ISO, `SHA256SUMS`, `build-manifest.json`, `afterglow.lock.json`, `licences.md`, the corresponding source (the ReactOS 0.4.16 source archive at the pinned commit, this repository at the release commit with the patches in `patches/`, and `SOURCE.txt` with the WineVDM pointer and the written offer) and release notes saying it is unofficial. `NOTICE.txt` and `CHANGES.txt` are on the ISO itself.
-- The remastered ISO may be published from v0.1.0, and only after the licence checklist below is complete. Releases are not immutable on GitHub, but a published release is never edited to change its assets: a fix is a new release.
+- Release assets for v0.1.0: the v86 disk parts, `SHA256SUMS`, `build-manifest.json`, `afterglow.lock.json`, `licences.md`, the source (this repository at the release commit with the patches in `patches/`, and `SOURCE.txt` naming the ReactOS source by tag and commit, the WineVDM pointer and the written offer) and release notes saying it is unofficial. **No ISO in v0.1.0** (owner decision, 2026-11-26): `rl iso` is built, but the ISO is a stock disc with notices until Setup is themed, so it waits for a later release. `NOTICE.txt` and `CHANGES.txt` are on the disk.
+- The remastered ISO is not published in v0.1.0; when it is, only after the licence checklist below is complete. Releases are not immutable on GitHub, but a published release is never edited to change its assets: a fix is a new release.
 
 ### Licence checklist
 
@@ -195,5 +195,5 @@ Completed by the owner before the first ISO release:
 ## Limits
 
 - Work space: the scripted build peaks at about 930 MB outside the repository.
-- GitHub release assets are limited to 2 GiB each; the remastered ISO is about 410 MB before compression.
+- GitHub release assets are limited to 2 GiB each; the remastered ISO is about 410 MB before compression and is not published in v0.1.0.
 - One ReactOS release (0.4.16) at a time.

@@ -1,5 +1,5 @@
-# Release: build the image from the official ISO, then publish a GitHub Release with the remastered ISO, its sums, the build manifest, the
-# licences page and the corresponding source. Started only by the owner, by pushing a `v*` tag or by dispatching it. Publishing is a job in
+# Release: build the image from the official ISO, then publish a GitHub Release with the v86 disk parts, the build manifest, the sums, the
+# licences page and the source pointer. v0.1.0 publishes no ISO (owner decision, 2026-11-26). Started only by the owner, by pushing a `v*` tag or by dispatching it. Publishing is a job in
 # the protected `release` environment, which waits for the owner's approval. Releases are not immutable (RL-11.1). Steps and setup are in
 # docs/release.md.
 #
@@ -32,7 +32,7 @@ defaults:
     shell: bash
 
 env:
-  # ReactOS 0.4.16, the source of the binaries on the image. A test keeps these equal to reactos_liminal/licences.py.
+  # ReactOS 0.4.16, the source of the binaries in the disk parts. A test keeps these equal to reactos_liminal/licences.py.
   REACTOS_SOURCE_URL: https://github.com/reactos/reactos.git
   REACTOS_SOURCE_TAG: 0.4.16-release
   REACTOS_SOURCE_COMMIT: 822e8647792a2c43f033e3e00ed273d59f163c7b
@@ -99,7 +99,7 @@ jobs:
       require-kvm: true
 
   source:
-    name: Corresponding source
+    name: Source pointer
     needs: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -109,32 +109,29 @@ jobs:
         with:
           persist-credentials: false
 
-      # The ReactOS source is taken from its tag and the commit is checked, so the archive is the one the pin names.
-      - name: Archive this repository and ReactOS 0.4.16
+      # The pointer names the ReactOS source by tag and commit; the tag is checked against the commit, so the pointer is true.
+      - name: Archive this repository and write the source pointer
         env:
           TAG: ${{ needs.plan.outputs.tag }}
         run: |
           mkdir -p "$RUNNER_TEMP/source"
           git archive --format=tar.gz --prefix="reactos-liminal-${TAG}/" -o "$RUNNER_TEMP/source/reactos-liminal-${TAG}-source.tar.gz" "$GITHUB_SHA"
-          git clone --quiet --depth 1 --branch "$REACTOS_SOURCE_TAG" "$REACTOS_SOURCE_URL" "$RUNNER_TEMP/reactos"
-          actual="$(git -C "$RUNNER_TEMP/reactos" rev-parse HEAD)"
+          actual="$(git ls-remote "$REACTOS_SOURCE_URL" "refs/tags/${REACTOS_SOURCE_TAG}^{}" "refs/tags/${REACTOS_SOURCE_TAG}" | tail -n 1 | cut -f1)"
           if [ "$actual" != "$REACTOS_SOURCE_COMMIT" ]; then
             echo "::error title=Wrong ReactOS source::tag $REACTOS_SOURCE_TAG is $actual, expected $REACTOS_SOURCE_COMMIT."
             exit 1
           fi
-          git -C "$RUNNER_TEMP/reactos" archive --format=tar.gz --prefix="reactos-${REACTOS_SOURCE_TAG}/" \
-            -o "$RUNNER_TEMP/source/reactos-${REACTOS_SOURCE_TAG}-source.tar.gz" HEAD
           cat > "$RUNNER_TEMP/source/SOURCE.txt" <<EOF
-          Corresponding source for ${TAG} of Afterglow for ReactOS (unofficial remaster by Liminal HQ Labs)
+          Source for ${TAG} of Afterglow for ReactOS (unofficial remaster by Liminal HQ Labs)
 
-          reactos-${REACTOS_SOURCE_TAG}-source.tar.gz
-            ReactOS 0.4.16: ${REACTOS_SOURCE_URL}, tag ${REACTOS_SOURCE_TAG}, commit ${REACTOS_SOURCE_COMMIT}.
+          ReactOS 0.4.16
+            ${REACTOS_SOURCE_URL}, tag ${REACTOS_SOURCE_TAG}, commit ${REACTOS_SOURCE_COMMIT}.
           reactos-liminal-${TAG}-source.tar.gz
             ReactOS Liminal at this release's commit ${GITHUB_SHA}: the recipe, the tools and the patches.
           WineVDM (otvdm), installed by ReactOS Setup
-            https://github.com/otya128/winevdm, the release that ReactOS 0.4.16 installs; see NOTICE.txt on the image.
+            https://github.com/otya128/winevdm, the release that ReactOS 0.4.16 installs.
 
-          Written offer: if you received this system without these archives, ask at https://github.com/liminal-hq-labs/reactos-liminal/issues.
+          Written offer: if you received this release without the source, ask at https://github.com/liminal-hq-labs/reactos-liminal/issues.
           The offer is valid for three years from the date of this release.
           EOF
 
@@ -169,6 +166,12 @@ jobs:
           name: release-files
           path: ${{ runner.temp }}/release-files
 
+      - name: Download the v86 parts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: v86-parts
+          path: ${{ runner.temp }}/v86-parts
+
       - name: Download the source
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -182,15 +185,16 @@ jobs:
         run: |
           (
             cd "$RUNNER_TEMP/release-files"
-            grep -E '  (afterglow-remaster\.iso|build-manifest\.json|licences\.md|afterglow\.lock\.json)$' SHA256SUMS > wanted.sums
-            [ "$(wc -l < wanted.sums)" -eq 4 ]
+            grep -E '  (build-manifest\.json|licences\.md|afterglow\.lock\.json)$' SHA256SUMS > wanted.sums
+            [ "$(wc -l < wanted.sums)" -eq 3 ]
             "$GITHUB_WORKSPACE/rl" hash --check wanted.sums --base .
           )
           assets="$RUNNER_TEMP/assets"
           mkdir -p "$assets"
-          cp "$RUNNER_TEMP/release-files/afterglow-remaster.iso" "$assets/afterglow-for-reactos-${TAG}-unofficial-remaster.iso"
           cp "$RUNNER_TEMP/release-files/build-manifest.json" "$RUNNER_TEMP/release-files/licences.md" "$RUNNER_TEMP/release-files/afterglow.lock.json" "$assets/"
           cp "$RUNNER_TEMP"/source/*.tar.gz "$RUNNER_TEMP/source/SOURCE.txt" "$assets/"
+          # The parts are already zstd files, so the folder is tarred without compression, with its manifest.json.
+          tar -cf "$assets/v86-disk-parts-${TAG}.tar" -C "$RUNNER_TEMP/v86-parts" .
           ./rl hash "$assets" --base "$assets" --out "$RUNNER_TEMP/SHA256SUMS"
           mv "$RUNNER_TEMP/SHA256SUMS" "$assets/SHA256SUMS"
           ./rl hash --check "$assets/SHA256SUMS" --base "$assets"
@@ -206,6 +210,6 @@ jobs:
           gh release create "$TAG" "$RUNNER_TEMP"/assets/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "Afterglow for ReactOS ${TAG} — unofficial remaster" \
+            --title "Afterglow for ReactOS ${TAG} — unofficial" \
             --notes-file "$NOTES" \
             "${prerelease[@]}"

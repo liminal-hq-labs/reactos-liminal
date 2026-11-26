@@ -15,7 +15,7 @@ Build Afterglow-dressed ReactOS install media, disk images and browser snapshots
 
 ReactOS Liminal turns the official ReactOS 0.4.16 install ISO into finished artefacts with no hand step: an unattended install, a trimmed disk image, the [Afterglow](https://github.com/liminal-hq/afterglow-themes) desktop theme with a themed logon and Setup, a remastered install ISO, and disk parts and a saved state for the v86 emulator in a browser. A build is a declarative recipe whose every input is pinned by SHA-256, so nothing lives only in a disk image and every patch refuses a file it was not written for.
 
-> **Status:** experimental. The `rl` command can check your tools, validate a recipe, fetch the pinned ISO and install ReactOS unattended into a golden disk, turn it into a patched, trimmed, themed image, and split that into v86 parts with a manifest, check every pin against a lock file, and write an ISO that is the official disc with the licence texts, notice and list of changes added. The build and release workflows are written and wait for the owner's first dispatch. The saved v86 state and the themed Setup remaster are still to come. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases, from v0.1.0, may carry the remastered ISO, published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating).
+> **Status:** experimental. The `rl` command can check your tools, validate a recipe, fetch the pinned ISO and install ReactOS unattended into a golden disk, turn it into a patched, trimmed, themed image, and split that into v86 parts with a manifest, check every pin against a lock file, and write an ISO that is the official disc with the licence texts, notice and list of changes added (not part of v0.1.0). The build and release workflows are written and wait for the owner's first dispatch. The saved v86 state and the themed Setup remaster are still to come. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases are published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating); v0.1.0 carries no ISO.
 
 ## What it's for
 
@@ -44,7 +44,7 @@ On Linux with Python 3.12 and QEMU, mtools, xorriso and zstd on the path:
 
 Large files go in `~/.cache/reactos-liminal` (`--work` or `$RL_WORK` change it), never in the repository.
 
-Releases will attach the remastered ISO with its checksums, build manifest and corresponding source, built in CI from the official ISO and published only behind an owner-approved release environment.
+Releases attach the v86 disk parts with their checksums, build manifest, licences page and source pointer, built in CI from the official ISO and published only behind an owner-approved release environment. The remastered ISO (`rl iso`) is built but planned for a later release, once Setup is themed.
 
 ## How it fits
 

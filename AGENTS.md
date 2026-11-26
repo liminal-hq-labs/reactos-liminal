@@ -117,7 +117,7 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 
 ## Licensing and releases
 
-- **Licence checklist gate.** No remastered ISO is published until the licence checklist in `SPEC.md` is complete and the owner approves the `release` environment.
+- **Licence checklist gate.** No remastered ISO is published (not in v0.1.0) until the licence checklist in `SPEC.md` is complete and the owner approves the `release` environment.
 - Releases are cut only on the owner's go: the owner pushes the tag (or dispatches `release.yml`) and approves the deployment ([docs/release.md](docs/release.md)). Agents never push a tag or dispatch `release.yml`.
 - Every release names itself unofficial, attaches the corresponding source and `NOTICE.txt`, and lists every modified file with its before and after hashes.
 - Source patches against ReactOS go in `patches/` under GPL-2.0-or-later and nowhere else.
