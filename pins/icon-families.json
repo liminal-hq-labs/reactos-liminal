@@ -16,11 +16,9 @@
 			}
 		},
 		"program-icons": {
-			"92cb33652c0027be70826972db89eaae72b8ccf0705424677016cf8e71ca6e26": {
+			"d2cca133f78285cf58db6f2aa615ce88b38f58a51414a904918d1efffe6dde21": {
 				"ReactOS/system32/cmd.exe": "cf4ba47575619416910899db4bbfba75cf70d184a9ece9082407b5aac77708f7",
 				"ReactOS/system32/notepad.exe": "b45dd27a46f75aa432a901f066e364a6e18196a88e602c48c652ea6062769bd1",
-				"ReactOS/system32/rapps.exe": "2ae3205e6892715ac8bced38a04996b06fb511013fed86d2036b2bae56159c46",
-				"Program Files/Internet Explorer/iexplore.exe": "04325208318e3eb2fb728b9180e73d0dfc2ed81698d9da57064532fce02d85d2",
 				"ReactOS/system32/cabview.dll": "9d297bf1cddbef086c5198bb6f1f21ae2a300decf87763f593f936520415371e",
 				"ReactOS/system32/shimgvw.dll": "35c396d549ac08a259d6422836485dc8661251d052725342d878e1d03551198b"
 			}

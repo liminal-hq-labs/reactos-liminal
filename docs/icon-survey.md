@@ -152,12 +152,12 @@ The desktop and Start menu programs carry their own icon groups, and a few file 
 |---|---|---|---|---|
 | `cmd.exe` | 1 | Command Prompt | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `cmd` |
 | `notepad.exe` | 521 | Notepad | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `text` |
-| `rapps.exe` | 10 | Applications Manager | `48@4 32@4 24@4 16@4 48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `appmanager` |
-| `iexplore.exe` | 1 | Internet Browser | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `browser` |
 | `cabview.dll` | 1 | Cabinet (.cab) files | `48@24 32@8 16@8 48@32 32@32 16@32` | `archive` |
 | `shimgvw.dll` | 1 | Image files: .jpg, .emf, .wmf | `16@8 24@8 32@8 48@8 16@24 24@24 32@24 48@24 16@32 24@32 32@32 48@32` | `image` |
 | `shimgvw.dll` | 2 | Image files: .bmp | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
 | `shimgvw.dll` | 5 | Image files: .gif, .png | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
+
+The Applications Manager (`rapps.exe` 10, Afterglow `appmanager`) and Internet Browser (`iexplore.exe` 1, `browser`) icons are not patched: the `base` trim profile removes `rapps.exe` and `Program Files/Internet Explorer` from the image, and the trim refuses to remove a patched file (RL-19). They are in the survey for a recipe that keeps them; the desktop shortcuts that remain show ReactOS's own fallback icon.
 
 ### What Afterglow cannot supply
 

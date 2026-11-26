@@ -198,30 +198,6 @@
 					]
 				},
 				{
-					"path": "ReactOS/system32/rapps.exe",
-					"stock_sha256": "cfa5081f68b60a4fcb11767ae5caa76294a4a80519912c561af5b34e945c8968",
-					"groups": [
-						{
-							"group": 10,
-							"afterglow": "appmanager",
-							"use": "Applications Manager",
-							"stock_frames": "48@4 32@4 24@4 16@4 48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32"
-						}
-					]
-				},
-				{
-					"path": "Program Files/Internet Explorer/iexplore.exe",
-					"stock_sha256": "175d46c9c5a6092c2615f2c0e5545569f6159208facdff3f104d45bc4373d240",
-					"groups": [
-						{
-							"group": 1,
-							"afterglow": "browser",
-							"use": "Internet Browser",
-							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
-						}
-					]
-				},
-				{
 					"path": "ReactOS/system32/cabview.dll",
 					"stock_sha256": "73dceb891465f2213c923d683e1fac2064588835c4ea3951af569529ba3a9453",
 					"groups": [

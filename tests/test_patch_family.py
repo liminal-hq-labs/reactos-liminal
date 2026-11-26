@@ -174,3 +174,12 @@ def test_the_cell_and_family_tables_are_consistent():
 	assert all(0 <= cell["index"] < 47 for cell in spec["cells"])
 	pins = json.loads(patch_family.PINS_FILE.read_text())["families"]
 	assert set(pins) == {"cpl-icons", "program-icons", "toolbar-bitmaps"}
+
+
+def test_no_patched_file_is_one_the_base_trim_removes():
+	"""The trim refuses to remove a patched file, so a family must not name a file the base profile deletes."""
+	from reactos_liminal.trim import build_profile, check_profile
+
+	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
+	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
+	check_profile(build_profile("base", []), paths)
