@@ -127,7 +127,7 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 - `bash scripts/check-headers.sh` — SPDX headers
 - `bash scripts/check-banner.sh` — hero banner rules and text fit (needs `xmllint`, `rsvg-convert`, `python3` and Chromium; `--shots DIR` writes frames to look at)
 - `docker run --rm -v "$PWD:/workdir" davidanson/markdownlint-cli2:v0.17.2 "**/*.md"` — markdown
-- `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh` — shell scripts
+- `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh tools/*.sh` — shell scripts
 - `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint` — workflows
 - `ruff format --check`, `ruff check` and `python3 -m pytest` — Python
 - `bash scripts/check-no-binaries.sh` — git holds no upstream binary or image
@@ -150,6 +150,7 @@ assets/        hero banner
 docs/          decisions and project notes
 reactos_liminal/  the `rl` package (Python, standard library only); `rl` is its shim
 recipes/       recipes; `afterglow.toml` is the base
+tools/         helper scripts (`fetch-v86.sh`)
 profiles/      trim profiles (`none`, `base`); a downstream project keeps its own removals in an `extra` list in its own repository
 guest/         files that go to the guest: answers template, registry files, the settings script
 tests/         pytest tests (synthetic fixtures only)

@@ -5,19 +5,24 @@
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 from . import __version__, doctor
 from .afterglow import fetch_afterglow
 from .fetch import FetchError, fetch_iso
+from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
 from .install import InstallError, plan_install, run_install
+from .manifest import ManifestError, build_manifest, job_summary, parse_pairs, write_manifest
+from .parts import PartsError, make_parts
 from .patchers import PatchError
 from .paths import WorkDirError, resolve_work
-from .recipe import RecipeError, load
+from .recipe import RecipeError, load, parse_size
 from .settings import SettingsError
 from .trim import TrimError, profile_names
 from .vm import VmError
+from .zerofree import ZeroFreeError, dig_holes, zero_free_clusters
 
 DESCRIPTION = """Build Afterglow-dressed ReactOS disk images from a recipe. Unofficial: not made, endorsed or supported by the ReactOS
 project. Large files go in the work directory (--work, $RL_WORK, default ~/.cache/reactos-liminal), never inside the repository."""
@@ -96,6 +101,85 @@ def _cmd_trim(args: argparse.Namespace) -> int:
 	return 0
 
 
+def _cmd_parts(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	work = resolve_work(args.work)
+	image = Path(args.image)
+	if (work / "golden") in image.resolve().parents:
+		raise PartsError("refusing to change a golden disk; make an image with `rl image` first")
+	zero = recipe.section("outputs", "disk", "zero_free") if args.zero_free is None else args.zero_free
+	if zero:
+		result = zero_free_clusters(image)
+		holes = dig_holes(image)
+		print(
+			f"zero-free: {result.zeroed_clusters} of {result.free_clusters} free clusters held data and were zeroed "
+			f"({result.zeroed_mib:.1f} MiB); holes {'punched' if holes else 'not punched (fallocate is not installed)'}",
+			file=sys.stderr,
+		)
+	chunk = parse_size(args.chunk_size, "--chunk-size") if args.chunk_size else recipe.chunk_size
+	level = args.level or recipe.section("outputs", "parts", "zstd_level")
+	out = Path(args.out) if args.out else work / "dist" / "parts"
+	started = time.monotonic()
+	parts = make_parts(image, out, chunk, level)
+	print(
+		json.dumps(
+			{
+				"out": str(out),
+				"size": parts.size,
+				"chunk": parts.chunk,
+				"parts": parts.parts,
+				"zeroParts": parts.zero_parts,
+				"compressedBytes": parts.compressed_bytes,
+				"sha256": parts.sha256,
+				"seconds": int(time.monotonic() - started),
+			}
+		)
+	)
+	return 0
+
+
+def _cmd_manifest(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	dist = Path(args.dist)
+	out = Path(args.out) if args.out else dist / "build-manifest.json"
+	document = build_manifest(
+		recipe,
+		dist,
+		out.name if out.parent == dist else "build-manifest.json",
+		timings=parse_pairs(",".join(args.timing or [])),
+		hashes=parse_pairs(",".join(args.input or [])),
+		v86_version=args.v86_version or "",
+		extra=parse_pairs(",".join(args.extra or [])),
+		peak_disk_mb=args.peak_disk_mb or 0,
+		built=args.built,
+	)
+	write_manifest(document, out)
+	print(out)
+	return 0
+
+
+def _cmd_summary(args: argparse.Namespace) -> int:
+	print(job_summary(json.loads(Path(args.manifest).read_text())))
+	return 0
+
+
+def _cmd_hash(args: argparse.Namespace) -> int:
+	if args.check:
+		result = check_sums(Path(args.check), Path(args.base) if args.base else None)
+		for name in result.failed:
+			print(f"FAILED: {name}", file=sys.stderr)
+		for name in result.missing:
+			print(f"MISSING: {name}", file=sys.stderr)
+		print(f"checked {result.checked}, failed {len(result.failed)}, missing {len(result.missing)}")
+		return 0 if result.ok else 1
+	text = sums_text([Path(path) for path in args.paths], Path(args.base) if args.base else None)
+	if args.out:
+		Path(args.out).write_text(text)
+	else:
+		print(text, end="")
+	return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser(prog="rl", description=DESCRIPTION)
 	parser.add_argument("--version", action="version", version=f"rl {__version__}")
@@ -145,6 +229,44 @@ def build_parser() -> argparse.ArgumentParser:
 	sub.add_argument("--profile", help="built-in profile name, instead of the recipe's (its extra lists still apply)")
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_trim)
+
+	sub = commands.add_parser("parts", help="split an image into zstd parts for v86, with a manifest")
+	sub.add_argument("recipe", help="recipe TOML file (supplies the part size and level)")
+	sub.add_argument("image", help="the image to split; free space is zeroed first unless --no-zero-free")
+	sub.add_argument("--out", metavar="DIR", help="parts folder (default: WORK/dist/parts)")
+	sub.add_argument("--chunk-size", metavar="SIZE", help="part size in bytes or such as 8MiB, instead of the recipe's")
+	sub.add_argument("--level", type=int, help="zstd level, instead of the recipe's")
+	sub.add_argument(
+		"--zero-free",
+		action=argparse.BooleanOptionalAction,
+		default=None,
+		help="zero free clusters and punch holes first (default: the recipe's)",
+	)
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_parts)
+
+	sub = commands.add_parser("manifest", help="write the build manifest for a folder of outputs")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("dist", help="folder of outputs; every file in it is listed")
+	sub.add_argument("--out", metavar="FILE", help="manifest file (default: DIST/build-manifest.json)")
+	sub.add_argument("--timing", action="append", metavar="STAGE=SECONDS", help="a stage's seconds; repeat")
+	sub.add_argument("--input", action="append", metavar="NAME=SHA256", help="the hash of an input a consumer added; repeat")
+	sub.add_argument("--extra", action="append", metavar="NAME=VALUE", help="a fact to record, such as a commit; repeat")
+	sub.add_argument("--v86-version", metavar="VERSION")
+	sub.add_argument("--peak-disk-mb", type=int)
+	sub.add_argument("--built", metavar="UTC_TIMESTAMP", help="build time (default: $SOURCE_DATE_EPOCH or now)")
+	sub.set_defaults(func=_cmd_manifest)
+
+	sub = commands.add_parser("summary", help="print a build manifest as a Markdown job summary")
+	sub.add_argument("manifest", help="build-manifest.json")
+	sub.set_defaults(func=_cmd_summary)
+
+	sub = commands.add_parser("hash", help="print SHA-256 sums for files and folders, or check a sums file")
+	sub.add_argument("paths", nargs="*", help="files and folders to sum")
+	sub.add_argument("--base", metavar="DIR", help="print names relative to DIR (with --check: where the names are found)")
+	sub.add_argument("--out", metavar="FILE", help="write the sums to FILE instead of printing them")
+	sub.add_argument("--check", metavar="SUMS", help="check a sums file instead")
+	sub.set_defaults(func=_cmd_hash)
 	return parser
 
 
@@ -152,6 +274,20 @@ def main(argv: list[str] | None = None) -> int:
 	args = build_parser().parse_args(argv)
 	try:
 		return args.func(args)
-	except (RecipeError, FetchError, WorkDirError, InstallError, VmError, ImageError, SettingsError, TrimError, PatchError) as error:
+	except (
+		RecipeError,
+		FetchError,
+		WorkDirError,
+		InstallError,
+		VmError,
+		ImageError,
+		SettingsError,
+		TrimError,
+		PatchError,
+		PartsError,
+		ManifestError,
+		SumsError,
+		ZeroFreeError,
+	) as error:
 		print(f"rl: {error}", file=sys.stderr)
 		return 2

@@ -58,7 +58,7 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image` and `rl trim`. The rest is planned.
+**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image`, `rl trim`, `rl parts`, `rl manifest`, `rl summary` and `rl hash`. The rest is planned.
 
 ```text
 rl doctor                               # check that the tools the pipeline needs are installed
@@ -68,6 +68,10 @@ rl fetch RECIPE                         # download and check every pinned input,
 rl install RECIPE [--iso FILE] [--dry-run] [--force]   # unattended install in a private QEMU; keeps the golden disk
 rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, settings
 rl trim RECIPE IMAGE [--profile NAME]   # trim a working copy of a disk with a profile
+rl parts RECIPE IMAGE [--out DIR] [--chunk-size SIZE]   # zero free space, then zstd parts and manifest.json
+rl manifest RECIPE DIST [--timing STAGE=SECONDS]   # build-manifest.json for a folder of outputs
+rl summary MANIFEST                     # the manifest as a Markdown job summary
+rl hash PATH... [--check SUMS]          # SHA-256 sums in sha256sum format, or a check
 rl explain RECIPE                       # the resolved recipe after extends, and each step's inputs and outputs
 rl patch msgina|win32k|user32|setup-art FILE --manifest M --scheme S --out OUT
 rl unpatch …                            # restore from the saved original, or remove the selecting registry value
@@ -85,11 +89,11 @@ rl serve DIR                            # range-capable static server for a loca
 | Output | What |
 |---|---|
 | Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image (`rl install`, built). Kept in the work directory as `golden/<recipe>-<key>.img`, where the key is a hash of the ISO's hash, the rendered answers, the memory and disk size and the install code, so a disk is reused only while none of them changes |
-| Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (planned) |
-| v86 parts | zstd parts of the disk, each `outputs.parts.chunk_size` bytes (default 8 MiB), with a manifest |
+| Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (`rl parts`, built) |
+| v86 parts | `rl parts` (built): zstd parts of the disk named `START-END.img.zst`, each `outputs.parts.chunk_size` bytes (default 8 MiB; every chunk gets a file, all-zero ones included), with `manifest.json` (image size, chunk, counts, compressed bytes and the raw image's SHA-256) |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
 | Remastered ISO | The official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
-| Lock and build manifest | Every input and output hash, the tool versions and timings |
+| Build manifest | `rl manifest` (built): every output's size and SHA-256, the pinned inputs, the trim profile and patchers, the part size and the stage timings; `rl summary` prints it as Markdown. The lock file is planned |
 
 ## Image pipeline and trim profiles
 

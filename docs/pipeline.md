@@ -45,3 +45,21 @@ Turns the golden disk into the finished image in a fixed order: copy, patchers, 
 ### Afterglow
 
 The Afterglow source is pinned by commit and by the SHA-256 of the uncompressed tar GitHub serves for it. `rl fetch` downloads it into the work directory, checks the pin, refuses unsafe archive paths and links, and extracts it. `rl image` builds the style with Afterglow's own scripts (needs `llvm-rc`, `lld-link`, and python3 with numpy and Pillow) and checks `afterglow.msstyles` against its pinned sum.
+
+## `rl parts`
+
+Zeroes the free clusters of the image's FAT32 partition (deleted files leave their data behind), punches holes with `fallocate --dig-holes` so the image is sparse again, then writes `START-END.img.zst` for every chunk of the disk and `manifest.json`. It works on the working image and refuses a golden disk.
+
+- **Chunk size** is the recipe key `outputs.parts.chunk_size`, a power of two of at least 64 KiB, default 8 MiB; `--chunk-size` overrides it for a measurement. v86 fetches one whole part per read, so a smaller part transfers fewer wasted bytes on a cold read and a larger one needs fewer requests and compresses better. Pick by measurement: the Quill demo used 1 MiB.
+- **Every chunk gets a file,** including all-zero ones (a few bytes each), because v86 asks for any chunk the guest reads. A short last chunk holds only the bytes it covers.
+- **Level** is `outputs.parts.zstd_level` (default 19), run through the `zstd` command with one thread per part and four parts at a time. Parts are identical across runs.
+
+On the base image: 512 parts, 468 all zero, 48 MB compressed, about 22 seconds.
+
+## `rl manifest`, `rl summary`, `rl hash`
+
+`rl manifest RECIPE DIST` writes `DIST/build-manifest.json`: every file under `DIST` with its size and SHA-256 (the parts folder summed as one entry, its own `manifest.json` listed), the pinned ISO and Afterglow hashes, the hash of the rendered answers file, the trim profile, the patchers, the part size, the stage timings (`--timing`), the v86 version, and any consumer facts (`--input NAME=SHA256`, `--extra NAME=VALUE`). The time is `$SOURCE_DATE_EPOCH` when set, so a manifest can be reproduced. `rl summary` turns it into a Markdown job summary, with the source and licence material publishing the image would need. `rl hash PATH --base DIR --out SHA256SUMS` writes `sha256sum`-format sums and `rl hash --check SHA256SUMS` checks them.
+
+## v86
+
+`tools/fetch-v86.sh` downloads the pinned v86 release (0.5.473) and its BIOS files into `$V86_DIR` (default `~/.cache/reactos-liminal/v86`), checking the package and every file against recorded SHA-256 sums and writing nothing if one differs. The saved state a v86 page restores works with one v86 build, so the version goes in the manifest.

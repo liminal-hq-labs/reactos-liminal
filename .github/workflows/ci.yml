@@ -86,7 +86,7 @@ jobs:
           persist-credentials: false
 
       - name: Run shellcheck
-        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh tools/*.sh
 
   actionlint:
     name: Workflows

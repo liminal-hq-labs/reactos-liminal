@@ -29,10 +29,13 @@ The base build is the Afterglow remaster, and its trim is the `base` profile. Qu
 | `guest/apply-settings.cmd`, `guest/polish/apply-mouse.cmd` | `guest/cmd/apply-settings.cmd.in`, one script that applies every registry file on the settings CD | Moved |
 | `guest/demo-settings.reg`, `guest/polish/*.reg` | Split by purpose into `guest/reg/quiet.reg`, `hide-desktop-icons.reg`, `watermark-off.reg` and `mouse-linear.reg`, plus the display and appearance files the recipe generates. The Quill `Run` key and wallpaper file stay in Quill's recipe | Moved |
 | `guest/make-lnk.py` | `reactos_liminal/lnk.py` (writes the same bytes; a test pins two sums) | Moved |
-| `guest/zero-free.py` | Not yet | Planned |
+| `guest/zero-free.py` | `reactos_liminal/zerofree.py`, run by `rl parts` with the `fallocate --dig-holes` step `build-all.sh` ran after it | Moved |
 | `guest/fetch-afterglow.sh`, `guest/prepare-afterglow.sh`, `guest/afterglow.pin` | `reactos_liminal/afterglow.py` and the `inputs.afterglow` table of the base recipe. The wallpaper step is not moved: the emblem overlay stays in Quill | Moved |
 | `guest/prepare-pointers.sh` | `reactos_liminal/patchers.py`, the `afterglow.pointers` patcher | Moved |
-| `tools/make-parts.mjs`, `tools/build-manifest.py`, `tools/job-summary.py`, `tools/fetch-v86.sh` | Not yet | Planned |
+| `tools/make-parts.mjs` | `reactos_liminal/parts.py` (`rl parts`): the same part names and `manifest.json` fields, in Python with the `zstd` command, so there is no Node or Bun step | Moved |
+| `tools/build-manifest.py`, `tools/job-summary.py` | `reactos_liminal/manifest.py` (`rl manifest`, `rl summary`), with the pinned facts read from the recipe and a consumer's own facts passed as `--input` and `--extra` | Moved |
+| `tools/fetch-v86.sh` | `tools/fetch-v86.sh`, unpacking into `$V86_DIR` (default `~/.cache/reactos-liminal/v86`) and refusing a folder inside the repository | Moved |
+| (new) | `reactos_liminal/hashing.py` (`rl hash`): `sha256sum`-format sums and a check | New |
 | `guest/build-all.sh` | Replaced by the `rl` commands and a recipe | Planned |
 | `guest/test_afterglow.py` | Split into this repository's tests, and Quill's overlay tests | Planned |
 | `guest/quillify.py`, `guest/quill-*.svg`, `guest/make_desk_icon.py`, `guest/make-wallpaper.sh`, `demo/`, `harness/`, the page | Stay in Quill | — |
@@ -46,6 +49,7 @@ The table is updated by each change that moves a file.
 - **Recipe parameters instead of constants.** The ISO pin, the locale, the time zone, the computer and owner names, the trim profile and the part size are recipe keys. The names are neutral (`REACTOS`, "ReactOS user"); Quill's recipe sets its own.
 - **Part size.** The Quill build cut the disk into 1 MiB parts. The recipe key `outputs.parts.chunk_size` defaults to 8 MiB, the starting point for the measurement that picks the final size.
 - **Install.** The three QEMU runs, the answers, the in-place ISO edits and the installed `freeldr.ini` fix behave as before. The golden disk is cached under a name that carries a hash of everything that shapes it (the ISO's hash, the rendered answers, the memory and disk size, and the code that runs the install), instead of a stamp file beside one fixed path. `rl install --dry-run` prints the plan and the QEMU commands without running anything.
+- **Parts.** The 1 MiB part size is now the recipe key `outputs.parts.chunk_size`, defaulting to 8 MiB (a note in the recipe says why). On the base image that is 512 parts, 468 of them all zero, 48 MB compressed at zstd level 19.
 - **Order.** Patchers run before the trim, and the trim never removes a patched file or a licence file ([RL-19](decisions.md)). Quill's build ran the pointer patch before the trim as well, but nothing enforced it.
 - **Profiles.** The trim lists are named profiles in `profiles/`. `base` is the Afterglow remaster's trim and keeps the network card drivers; a downstream trim such as Quill's is an `extra` file in the downstream repository.
 - **Work directory.** Large files go under `~/.cache/reactos-liminal` (or `--work`, or `$RL_WORK`) and never inside the repository; the commands refuse a work directory inside the checkout.

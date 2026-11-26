@@ -26,6 +26,7 @@ TOOLS = (
 	Tool("xorriso", "reads the install ISO and builds the settings CD", alternative="7z"),
 	Tool("7z", "reads ISO files where xorriso is not installed", required=False, version_args=()),
 	Tool("zstd", "compresses the v86 disk parts and state"),
+	Tool("fallocate", "punches holes in the finished image so it is sparse", required=False),
 	Tool("bash", "runs the helper scripts"),
 	Tool("llvm-rc", "builds the Afterglow visual style", required=False),
 	Tool("lld-link", "builds the Afterglow visual style", required=False),
