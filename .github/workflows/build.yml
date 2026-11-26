@@ -7,7 +7,7 @@
 # (`rl iso`) is not built here: v0.1.0 does not publish it.
 #
 # The job runs on the plain Ubuntu runner and installs its tools with apt, rather than in a shared Liminal HQ image. `ci-dos` carries
-# QEMU and mtools but not xorriso, zstd, the LLVM resource compiler and linker or numpy and Pillow, and it is a DJGPP and Rust image
+# QEMU and mtools but not xorriso, zstd, the LLVM resource compiler and linker or pinned numpy and Pillow, and it is a DJGPP and Rust image
 # far larger than this job needs; a container would also need /dev/kvm passed in.
 
 name: Build
@@ -77,7 +77,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            qemu-system-x86 qemu-utils mtools xorriso zstd librsvg2-bin llvm lld python3-numpy python3-pil
+            qemu-system-x86 qemu-utils mtools xorriso zstd librsvg2-bin llvm lld python3-venv
+          # Afterglow's pointer generator draws with numpy and Pillow, and the drawn pixels depend on their versions, so they are pinned
+          # to the ones that produce the sum Afterglow records (Ubuntu's own packages draw different pointers).
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet numpy==2.5.4 pillow==13.0.0
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/venv/bin:$PATH"
           # Ubuntu names the LLVM tools with a version; Afterglow's scripts look for the plain names.
           for tool in llvm-rc lld-link; do
             if ! command -v "$tool" >/dev/null; then
