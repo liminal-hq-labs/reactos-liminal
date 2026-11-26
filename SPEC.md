@@ -57,13 +57,14 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Built:** `rl doctor`, `rl explain` and `rl fetch`. The rest is planned.
+**Built:** `rl doctor`, `rl explain`, `rl fetch` and `rl install`. The rest is planned.
 
 ```text
 rl doctor                               # check that the tools the pipeline needs are installed
 rl build RECIPE [--out DIR] [--work DIR] [--iso FILE] [--from-golden FILE] [--only STEP] [--keep-work]
 rl verify LOCKFILE                      # rebuild and compare hashes
 rl fetch RECIPE                         # download and check every pinned input, nothing else
+rl install RECIPE [--iso FILE] [--dry-run] [--force]   # unattended install in a private QEMU; keeps the golden disk
 rl explain RECIPE                       # the resolved recipe after extends, and each step's inputs and outputs
 rl patch msgina|win32k|user32|setup-art FILE --manifest M --scheme S --out OUT
 rl unpatch …                            # restore from the saved original, or remove the selecting registry value
@@ -80,7 +81,7 @@ rl serve DIR                            # range-capable static server for a loca
 
 | Output | What |
 |---|---|
-| Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image |
+| Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image (`rl install`, built). Kept in the work directory as `golden/<recipe>-<key>.img`, where the key is a hash of the ISO's hash, the rendered answers, the memory and disk size and the install code, so a disk is reused only while none of them changes |
 | Disk image | The golden disk trimmed, configured and dressed; free space zeroed and holes punched |
 | v86 parts | zstd parts of the disk, each `outputs.parts.chunk_size` bytes (default 8 MiB), with a manifest |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |

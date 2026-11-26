@@ -18,8 +18,10 @@ The Quill demo trim is kept exactly as the `demo` trim profile. The base build i
 
 | Quill file (`site/try-reactos/…`) | Here | Status |
 |---|---|---|
-| `guest/install-golden.sh`, `guest/unattend.inf`, `guest/patch-iso.py` | Not yet | Planned |
-| `guest/vm/*` | Not yet | Planned |
+| `guest/install-golden.sh` | `reactos_liminal/install.py` (`rl install`) | Moved |
+| `guest/unattend.inf` | `guest/unattend.inf.in`, filled in from the recipe's `[install]` table | Moved |
+| `guest/patch-iso.py` | `reactos_liminal/isopatch.py` | Moved |
+| `guest/vm/*` (`qrun.sh`, `mon.py`, `run.sh`, `typ.sh`, `shot.sh`, `wait-exit.sh`) | `reactos_liminal/vm.py` (the same operations, one class) and `reactos_liminal/ppm.py` (screenshots no longer need ImageMagick) | Moved |
 | `guest/trim.sh`, `guest/trim-list-1..3.txt` | Not yet | Planned |
 | `guest/build-image.sh`, `guest/apply-settings.cmd`, `guest/demo-settings.reg`, `guest/polish/*` | Not yet | Planned |
 | `guest/make-lnk.py`, `guest/zero-free.py` | Not yet | Planned |
@@ -37,4 +39,5 @@ The table is updated by each change that moves a file.
 - **Python, not shell, for the logic.** The shell scripts that grew logic (the install, the trim, the fetches) are Python modules, so they can be tested without QEMU. The tools they call (QEMU, mtools, xorriso, zstd) are the same.
 - **Recipe parameters instead of constants.** The ISO pin, the locale, the time zone, the computer and owner names, the trim profile and the part size are recipe keys. The names are neutral (`REACTOS`, "ReactOS user"); Quill's recipe sets its own.
 - **Part size.** The Quill build cut the disk into 1 MiB parts. The recipe key `outputs.parts.chunk_size` defaults to 8 MiB, the starting point for the measurement that picks the final size.
+- **Install.** The three QEMU runs, the answers, the in-place ISO edits and the installed `freeldr.ini` fix behave as before. The golden disk is cached under a name that carries a hash of everything that shapes it (the ISO's hash, the rendered answers, the memory and disk size, and the code that runs the install), instead of a stamp file beside one fixed path. `rl install --dry-run` prints the plan and the QEMU commands without running anything.
 - **Work directory.** Large files go under `~/.cache/reactos-liminal` (or `--work`, or `$RL_WORK`) and never inside the repository; the commands refuse a work directory inside the checkout.

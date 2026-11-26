@@ -15,7 +15,7 @@ Build Afterglow-dressed ReactOS install media, disk images and browser snapshots
 
 ReactOS Liminal turns the official ReactOS 0.4.16 install ISO into finished artefacts with no hand step: an unattended install, a trimmed disk image, the [Afterglow](https://github.com/liminal-hq/afterglow-themes) desktop theme with a themed logon and Setup, a remastered install ISO, and disk parts and a saved state for the v86 emulator in a browser. A build is a declarative recipe whose every input is pinned by SHA-256, so nothing lives only in a disk image and every patch refuses a file it was not written for.
 
-> **Status:** experimental. The `rl` command can check your tools, validate a recipe and fetch the pinned ISO; nothing builds a disk here yet. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases, from v0.1.0, may carry the remastered ISO, published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating).
+> **Status:** experimental. The `rl` command can check your tools, validate a recipe, fetch the pinned ISO and install ReactOS unattended into a golden disk; trimming and the v86 parts land next. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases, from v0.1.0, may carry the remastered ISO, published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating).
 
 ## What it's for
 
@@ -33,9 +33,11 @@ On Linux with Python 3.12 and QEMU, mtools, xorriso and zstd on the path:
 ./rl doctor                                  # check the tools
 ./rl explain recipes/afterglow.toml          # the resolved, validated recipe
 ./rl fetch recipes/afterglow.toml            # download and check the pinned ISO (or pass --iso FILE)
+./rl install recipes/afterglow.toml --dry-run  # the plan and the QEMU commands
+./rl install recipes/afterglow.toml          # unattended install in a private QEMU; minutes with KVM
 ```
 
-Large files go in `~/.cache/reactos-liminal` (`--work` or `$RL_WORK` change it), never in the repository. The build commands (`rl install`, `rl image`, `rl parts`) land next.
+Large files go in `~/.cache/reactos-liminal` (`--work` or `$RL_WORK` change it), never in the repository. `rl image` and `rl parts` land next.
 
 Releases will attach the remastered ISO with its checksums, build manifest and corresponding source, built in CI from the official ISO and published only behind an owner-approved release environment.
 
@@ -52,6 +54,7 @@ The remastered media is named "Afterglow for ReactOS — unofficial remaster by 
 - [SPEC.md](SPEC.md) — scope, the recipe format, the `rl` command, outputs, hash guards and release gating, each marked planned or built
 - [docs/decisions.md](docs/decisions.md) — decisions and why
 - [docs/recipes.md](docs/recipes.md) — the recipe tables and defaults
+- [docs/pipeline.md](docs/pipeline.md) — the stages, the caches and the private machines
 - [docs/migration.md](docs/migration.md) — where the pipeline came from and what has moved
 - [NOTICE.md](NOTICE.md) — third-party components and licences, to be confirmed before an ISO release
 - [patches/README.md](patches/README.md) — the GPL source patches folder

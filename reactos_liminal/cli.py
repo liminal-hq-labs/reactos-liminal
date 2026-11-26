@@ -9,8 +9,10 @@ from pathlib import Path
 
 from . import __version__, doctor
 from .fetch import FetchError, fetch_iso
+from .install import InstallError, plan_install, run_install
 from .paths import WorkDirError, resolve_work
 from .recipe import RecipeError, load
+from .vm import VmError
 
 DESCRIPTION = """Build Afterglow-dressed ReactOS disk images from a recipe. Unofficial: not made, endorsed or supported by the ReactOS
 project. Large files go in the work directory (--work, $RL_WORK, default ~/.cache/reactos-liminal), never inside the repository."""
@@ -47,6 +49,20 @@ def _cmd_fetch(args: argparse.Namespace) -> int:
 	return 0
 
 
+def _cmd_install(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	work = resolve_work(args.work)
+	iso = Path(args.iso) if args.iso else None
+	if args.dry_run:
+		print(plan_install(recipe, work, iso, args.accel).describe())
+		return 0
+	golden = run_install(
+		recipe, work, iso, force=args.force, keep_disk_on_failure=args.keep_disk, accel=args.accel, stage_timeout=args.stage_timeout
+	)
+	print(golden)
+	return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser(prog="rl", description=DESCRIPTION)
 	parser.add_argument("--version", action="version", version=f"rl {__version__}")
@@ -64,6 +80,17 @@ def build_parser() -> argparse.ArgumentParser:
 	sub.add_argument("--iso", metavar="FILE", help="use your own copy of the official ISO (checked against the pin)")
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_fetch)
+
+	sub = commands.add_parser("install", help="install ReactOS unattended in a private QEMU and keep the golden disk")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("--iso", metavar="FILE", help="use your own copy of the official ISO (checked against the pin)")
+	sub.add_argument("--dry-run", action="store_true", help="print the plan and the QEMU commands without running anything")
+	sub.add_argument("--force", action="store_true", help="install again even when the golden disk for these inputs exists")
+	sub.add_argument("--keep-disk", action="store_true", help="leave the partial disk in the work directory after a failure")
+	sub.add_argument("--accel", choices=("kvm", "tcg,thread=multi"), help="QEMU acceleration (default: kvm when /dev/kvm is writable)")
+	sub.add_argument("--stage-timeout", type=int, metavar="SECONDS", help="limit for each of the three runs (default 1800 with KVM)")
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_install)
 	return parser
 
 
@@ -71,6 +98,6 @@ def main(argv: list[str] | None = None) -> int:
 	args = build_parser().parse_args(argv)
 	try:
 		return args.func(args)
-	except (RecipeError, FetchError, WorkDirError) as error:
+	except (RecipeError, FetchError, WorkDirError, InstallError, VmError) as error:
 		print(f"rl: {error}", file=sys.stderr)
 		return 2

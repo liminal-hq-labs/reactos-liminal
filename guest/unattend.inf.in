@@ -1,0 +1,43 @@
+; The answers file for ReactOS 0.4.16's setup: it makes the install run with no prompt. `rl install` fills in the @NAME@ markers from the
+; recipe and puts the result on a copy of the install CD as \I386\UNATTEND.INF (the place setup reads it; the official disc ships the
+; same file with setup switched off).
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[Unattend]
+Signature = "$ReactOS$"
+UnattendSetupEnabled = yes
+
+; Install to \Device\Harddisk0\Partition1\ReactOS. On an empty disk the whole disk becomes that one partition (AutoPartition).
+DestinationDiskNumber = 0
+DestinationPartitionNumber = 1
+InstallationDirectory = ReactOS
+AutoPartition = 1
+
+; Format the partition with FAT (setup makes FAT32 on a disk this size). 0 is FAT; 1 would be BtrFS.
+FormatPartition = 1
+FsType = 0
+
+; Boot loader on the system partition: the MBR and the volume boot record. 0 skips it, 1 writes a floppy.
+BootLoaderLocation = 2
+
+; The language and keyboard layout, from the recipe's install.locale.
+LocaleID = @LOCALE@
+
+; The second stage of setup (the graphical part) reads the rest.
+FullName = "@OWNER_NAME@"
+ComputerName = "@COMPUTER_NAME@"
+TimeZoneIndex = @TIME_ZONE_INDEX@
+RappsDownload = no
+; 1 is the workstation install, setup's own default.
+InstallationType = 1
+
+; Run at the first logon, on the desktop: tell the host, give the shell time to settle, then power the guest off so the disk is clean.
+[GuiRunOnce]
+%SystemRoot%\system32\cmd.exe /c echo ci: desktop>COM1&shutdown -s -t 45
+
+; The classic look, as an interactive install leaves it (the settings and the trim assume it). "no" would switch on the Lautus visual
+; style at the first logon.
+[Shell]
+DefaultThemesOff = @DEFAULT_THEMES_OFF@
