@@ -23,7 +23,9 @@ class FatImage:
 		self.env = dict(os.environ, MTOOLS_SKIP_CHECK="1")
 
 	def run(self, tool: str, *args: str, check: bool = True) -> subprocess.CompletedProcess:
-		done = subprocess.run([tool, "-i", self.spec, *args], capture_output=True, env=self.env, check=False)
+		# stdin is closed: mtools asks on the terminal before it touches a read-only file, and the question is captured with the
+		# output, so a run from a shell would wait for an answer nobody can see
+		done = subprocess.run([tool, "-i", self.spec, *args], capture_output=True, stdin=subprocess.DEVNULL, env=self.env, check=False)
 		if check and done.returncode != 0:
 			message = (done.stderr or done.stdout).decode(errors="replace").strip()
 			raise MtoolsError(f"{tool} {' '.join(args)}: {message}")
@@ -45,9 +47,12 @@ class FatImage:
 		self.run("mmd", f"::/{path}", check=False)  # an existing folder is fine
 
 	def delete_file(self, path: str) -> bool:
+		self.run("mattrib", "-r", "-h", "-s", f"::/{path}", check=False)  # a read-only file is refused, not removed
 		return self.run("mdel", f"::/{path}", check=False).returncode == 0
 
 	def delete_tree(self, path: str) -> bool:
+		self.run("mattrib", "-/", "-r", "-h", "-s", f"::/{path}/*", check=False)
+		self.run("mattrib", "-r", "-h", "-s", f"::/{path}", check=False)
 		return self.run("mdeltree", f"::/{path}", check=False).returncode == 0
 
 	def set_attributes(self, path: str, flags: str) -> None:

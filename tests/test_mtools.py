@@ -3,7 +3,11 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import os
+import pty
 import shutil
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -41,3 +45,35 @@ def test_free_space_grows_when_a_tree_is_deleted(fat, tmp_path):
 def test_a_failing_command_raises(fat):
 	with pytest.raises(MtoolsError, match="mtype"):
 		fat.read("missing.txt")
+
+
+def test_read_only_files_and_trees_are_deleted_without_a_prompt(fat, tmp_path):
+	source = tmp_path / "locked.sys"
+	source.write_bytes(b"locked")
+	fat.make_directory("drivers")
+	fat.copy_in(source, "drivers/locked.sys")
+	fat.copy_in(source, "drivers/other.sys")
+	fat.set_attributes("drivers/locked.sys", "+r +h +s")
+	fat.set_attributes("drivers/other.sys", "+r")
+	assert fat.delete_file("drivers/locked.sys")
+	assert fat.delete_tree("drivers") and not fat.exists("drivers")
+
+
+def test_a_terminal_that_never_answers_cannot_hang_a_delete(fat, tmp_path):
+	"""Run the delete with a terminal as stdin and nobody typing: mtools used to wait on its read-only question forever."""
+	source = tmp_path / "locked.sys"
+	source.write_bytes(b"locked")
+	fat.copy_in(source, "locked.sys")
+	fat.set_attributes("locked.sys", "+r")
+	script = (
+		"import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path; from reactos_liminal.mtools import FatImage; "
+		"sys.exit(0 if FatImage(Path(sys.argv[2])).delete_file('locked.sys') else 1)"
+	)
+	repository = str(Path(__file__).resolve().parent.parent)
+	master_fd, slave_fd = pty.openpty()
+	try:
+		done = subprocess.run([sys.executable, "-I", "-c", script, repository, str(fat.image)], stdin=slave_fd, timeout=30, check=False)
+	finally:
+		os.close(master_fd)
+		os.close(slave_fd)
+	assert done.returncode == 0 and not fat.exists("locked.sys")
