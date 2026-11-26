@@ -5,8 +5,9 @@
 import os
 import pty
 import shutil
-import subprocess
+import signal
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -59,21 +60,34 @@ def test_read_only_files_and_trees_are_deleted_without_a_prompt(fat, tmp_path):
 	assert fat.delete_tree("drivers") and not fat.exists("drivers")
 
 
-def test_a_terminal_that_never_answers_cannot_hang_a_delete(fat, tmp_path):
-	"""Run the delete with a terminal as stdin and nobody typing: mtools used to wait on its read-only question forever."""
+def test_a_controlling_terminal_that_never_answers_cannot_hang_mtools(fat, tmp_path):
+	"""Run with a real controlling terminal and nobody typing: mtools asks on /dev/tty about a read-only file and about a folder
+	that already exists, and used to wait for an answer forever."""
 	source = tmp_path / "locked.sys"
 	source.write_bytes(b"locked")
+	fat.make_directory("ReactOS")
 	fat.copy_in(source, "locked.sys")
 	fat.set_attributes("locked.sys", "+r")
 	script = (
 		"import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path; from reactos_liminal.mtools import FatImage; "
-		"sys.exit(0 if FatImage(Path(sys.argv[2])).delete_file('locked.sys') else 1)"
+		"disk = FatImage(Path(sys.argv[2])); disk.make_directory('ReactOS'); "
+		"sys.exit(0 if disk.delete_file('locked.sys') else 1)"
 	)
 	repository = str(Path(__file__).resolve().parent.parent)
-	master_fd, slave_fd = pty.openpty()
+	child_pid, master_fd = pty.fork()
+	if child_pid == 0:
+		os.execv(sys.executable, [sys.executable, "-I", "-c", script, repository, str(fat.image)])
+	status = None
 	try:
-		done = subprocess.run([sys.executable, "-I", "-c", script, repository, str(fat.image)], stdin=slave_fd, timeout=30, check=False)
+		for _ in range(300):
+			finished_pid, status = os.waitpid(child_pid, os.WNOHANG)
+			if finished_pid:
+				break
+			time.sleep(0.1)
+		else:
+			os.kill(child_pid, signal.SIGKILL)
+			os.waitpid(child_pid, 0)
+			pytest.fail("mtools waited for an answer on the terminal")
 	finally:
 		os.close(master_fd)
-		os.close(slave_fd)
-	assert done.returncode == 0 and not fat.exists("locked.sys")
+	assert os.waitstatus_to_exitcode(status) == 0 and not fat.exists("locked.sys")

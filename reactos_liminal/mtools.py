@@ -23,9 +23,16 @@ class FatImage:
 		self.env = dict(os.environ, MTOOLS_SKIP_CHECK="1")
 
 	def run(self, tool: str, *args: str, check: bool = True) -> subprocess.CompletedProcess:
-		# stdin is closed: mtools asks on the terminal before it touches a read-only file, and the question is captured with the
-		# output, so a run from a shell would wait for an answer nobody can see
-		done = subprocess.run([tool, "-i", self.spec, *args], capture_output=True, stdin=subprocess.DEVNULL, env=self.env, check=False)
+		# mtools asks its questions (a read-only file, a folder that exists) on /dev/tty, not on stdin, and the output is captured, so
+		# from a shell it would wait for an answer nobody can see. A new session has no controlling terminal, so it cannot ask.
+		done = subprocess.run(
+			[tool, "-i", self.spec, *args],
+			capture_output=True,
+			stdin=subprocess.DEVNULL,
+			start_new_session=True,
+			env=self.env,
+			check=False,
+		)
 		if check and done.returncode != 0:
 			message = (done.stderr or done.stdout).decode(errors="replace").strip()
 			raise MtoolsError(f"{tool} {' '.join(args)}: {message}")
