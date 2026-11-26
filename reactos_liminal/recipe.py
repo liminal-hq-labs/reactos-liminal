@@ -25,6 +25,7 @@ DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
 MIN_CHUNK_SIZE = 64 * 1024
 
 PATCHERS = ("afterglow.pointers",)
+REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons")
 TRIM_PROFILES = ("none", "demo", "base")
 
 
@@ -125,6 +126,15 @@ def _recipe_name(value: Any, key: str) -> str:
 	return value
 
 
+def _choice_int(*options: int):
+	def check(value: Any, key: str) -> int:
+		if isinstance(value, bool) or value not in options:
+			raise RecipeError(f"{key}: expected one of {', '.join(str(option) for option in options)}")
+		return value
+
+	return check
+
+
 def _chunk(value: Any, key: str) -> int:
 	byte_count = parse_size(value, key)
 	if byte_count < MIN_CHUNK_SIZE or byte_count & (byte_count - 1):
@@ -132,7 +142,30 @@ def _chunk(value: Any, key: str) -> int:
 	return byte_count
 
 
+def _table_list(spec: dict):
+	"""A list of tables (`[[name]]` in TOML), each validated against `spec`."""
+
+	def check(value: Any, key: str) -> list[dict]:
+		if not isinstance(value, list):
+			raise RecipeError(f"{key}: expected a list of tables")
+		return [_validate(item, spec, f"{key}[{index}]") for index, item in enumerate(value)]
+
+	return check
+
+
 _REQ = object()
+
+FILE_SPEC = {"source": (_str, _REQ), "destination": (_str, _REQ)}
+SHORTCUT_SPEC = {
+	"name": (_str, _REQ),
+	"target": (_str, _REQ),
+	"arguments": (_str, ""),
+	"working_dir": (_str, ""),
+	"description": (_str, ""),
+	"icon": (_str, ""),
+	"icon_index": (_int(0, 1000), 0),
+	"show": (_choice_int(1, 3, 7), 1),
+}
 
 # section -> key -> (checker, default); a default of _REQ means the key is required when the section is present.
 SCHEMA: dict[str, Any] = {
@@ -171,7 +204,8 @@ SCHEMA: dict[str, Any] = {
 		"page_file": (_page_file, "64 64"),
 		"icon_size": (_int(16, 256), 32),
 		"wallpaper": (_str, None),
-		"reg_files": (_str_list, ["display", "quiet", "watermark-off"]),
+		"reg_files": (_name_list(REG_FILES), ["display", "quiet", "watermark-off"]),
+		"remove_desktop_shortcuts": (_str_list, []),
 	},
 	"trim": {
 		"profile": (_choice(*TRIM_PROFILES), "none"),
@@ -179,6 +213,8 @@ SCHEMA: dict[str, Any] = {
 	"patchers": {
 		"list": (_name_list(PATCHERS), []),
 	},
+	"files": (_table_list(FILE_SPEC), []),
+	"shortcuts": (_table_list(SHORTCUT_SPEC), []),
 	"outputs": {
 		"disk": {
 			"zero_free": (_bool, True),

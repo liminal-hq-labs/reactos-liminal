@@ -3,6 +3,8 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import hashlib
+import os
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -11,6 +13,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from reactos_liminal.mtools import PARTITION_OFFSET, FatImage  # noqa: E402
 from reactos_liminal.recipe import load  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
@@ -47,3 +50,24 @@ sha256 = "{sha256_bytes(ISO_BYTES)}"
 """
 	)
 	return load(recipe_path), archive, ISO_BYTES
+
+
+def make_fat_image(path, megabytes=8):
+	"""A raw disk image with one small FAT partition at 1 MiB, made with mformat. Skips the test when mtools is missing."""
+	import shutil
+
+	if shutil.which("mformat") is None:
+		pytest.skip("needs mtools")
+	with open(path, "wb") as blank:
+		blank.truncate(PARTITION_OFFSET + megabytes * 1024 * 1024)
+	spec = f"{path}@@{PARTITION_OFFSET}"
+	env = dict(os.environ, MTOOLS_SKIP_CHECK="1")
+	subprocess.run(
+		["mformat", "-i", spec, "-F", "-T", str(megabytes * 2048), "-h", "1", "-s", "1", "::"], check=True, capture_output=True, env=env
+	)
+	return FatImage(path)
+
+
+@pytest.fixture
+def fat(tmp_path):
+	return make_fat_image(tmp_path / "disk.img")

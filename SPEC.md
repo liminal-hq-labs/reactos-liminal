@@ -48,6 +48,7 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 - `[install]` holds the unattended answers: locale, time zone, computer name, owner name, classic shell.
 - `[settings]` holds the display mode, page file, desktop icon size, wallpaper path and registry files (default `Dusk` scheme).
 - `[trim]` names a trim profile (`none`, `base` or `demo`) and `[patchers]` lists the patchers to run, which run before the trim.
+- `[[files]]` copies a file into the image and `[[shortcuts]]` writes a desktop shortcut; `settings.remove_desktop_shortcuts` removes stock shortcuts.
 - `[[steps]]` lists the steps by `use` (`trim`, `files`, `registry`, `shortcuts`, `afterglow.style`, `afterglow.pointers`, `afterglow.wallpaper`, `logon.msgina`, `logon.win32k-colours`, `hook`), each with an `id` and its parameters.
 - `[outputs]` chooses the disk, the v86 parts and state, and the remastered ISO.
 
@@ -57,7 +58,7 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Built:** `rl doctor`, `rl explain`, `rl fetch` and `rl install`. The rest is planned.
+**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image` and `rl trim`. The rest is planned.
 
 ```text
 rl doctor                               # check that the tools the pipeline needs are installed
@@ -65,6 +66,8 @@ rl build RECIPE [--out DIR] [--work DIR] [--iso FILE] [--from-golden FILE] [--on
 rl verify LOCKFILE                      # rebuild and compare hashes
 rl fetch RECIPE                         # download and check every pinned input, nothing else
 rl install RECIPE [--iso FILE] [--dry-run] [--force]   # unattended install in a private QEMU; keeps the golden disk
+rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, settings
+rl trim RECIPE IMAGE [--profile NAME]   # trim a working copy of a disk with a profile
 rl explain RECIPE                       # the resolved recipe after extends, and each step's inputs and outputs
 rl patch msgina|win32k|user32|setup-art FILE --manifest M --scheme S --out OUT
 rl unpatch …                            # restore from the saved original, or remove the selecting registry value
@@ -82,11 +85,20 @@ rl serve DIR                            # range-capable static server for a loca
 | Output | What |
 |---|---|
 | Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image (`rl install`, built). Kept in the work directory as `golden/<recipe>-<key>.img`, where the key is a hash of the ISO's hash, the rendered answers, the memory and disk size and the install code, so a disk is reused only while none of them changes |
-| Disk image | The golden disk trimmed, configured and dressed; free space zeroed and holes punched |
+| Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (planned) |
 | v86 parts | zstd parts of the disk, each `outputs.parts.chunk_size` bytes (default 8 MiB), with a manifest |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
 | Remastered ISO | The official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
 | Lock and build manifest | Every input and output hash, the tool versions and timings |
+
+## Image pipeline and trim profiles
+
+**Built.** `rl image` runs a fixed order for every recipe: copy the golden disk (sparse; it is only ever read), run the patchers, trim, write the recipe's files, the Afterglow style and pointer files and its shortcuts, then apply the registry settings in a build VM. A recipe cannot reorder it.
+
+- **Patchers before the trim.** Each patcher takes a stock file from the golden disk, is checked against it, and yields a patched copy that is written to the image before the trim. The trim never removes a patched file or a licence file (`LICENSES/`, `NOTICE.txt`, `CHANGES.txt`, `Program Files/otvdm/LICENSE`): a profile entry that is, or holds, one is refused before anything is removed, and every patched file is confirmed present afterwards.
+- **Trim profiles** are lists of `f PATH` and `d PATH` lines in `profiles/`: `none` removes nothing; `demo` is the Quill browser demo's trim, kept exactly as it shipped (137 entries, including the six network card drivers); `base` is `demo` without those drivers, so the guest keeps its network drivers and stack. A missing path is reported and skipped. `rl trim` works on a copy and refuses a golden disk.
+- **Settings.** The recipe's display size, desktop icon size, wallpaper path and the registry files it lists (`display`, `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons`) go on a settings CD; the build VM runs one script that applies them and the page file, then shuts down.
+- **Patchers built:** `afterglow.pointers` (a patched copy of `user32.dll` carrying the Afterglow system pointers, checked against the sum Afterglow records).
 
 ## Hash guards and patching
 

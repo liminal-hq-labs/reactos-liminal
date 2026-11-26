@@ -1,0 +1,17 @@
+@echo off
+rem Applies every registry file on the settings CD and the page file inside the guest, then shuts the guest down so the disk is clean.
+rem rl image fills in @PAGE_FILE@ and runs it from the CD: cmd /c D:\APPLY.CMD
+rem (c) Copyright 2026 Liminal HQ, Scott Morris
+rem SPDX-License-Identifier: Apache-2.0 OR MIT
+set LOG=COM1
+echo apply: start >> %LOG%
+for %%f in (%~dp0*.REG) do (
+	regedit /s "%%f"
+	echo apply: %%f >> %LOG%
+)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles /t REG_MULTI_SZ /d "C:\pagefile.sys @PAGE_FILE@" /f >> %LOG%
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles >> %LOG%
+reg query "HKLM\SYSTEM\CurrentControlSet\Services\bochsmp\Device0" >> %LOG%
+reg query "HKCU\Control Panel\Desktop" /v Wallpaper >> %LOG%
+echo apply: done >> %LOG%
+shutdown -s -t 0

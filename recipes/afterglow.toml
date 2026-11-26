@@ -44,9 +44,10 @@ reg_files = ["display", "quiet", "watermark-off"]
 [trim]
 profile = "base"
 
-# Patchers run before the trim, each on the stock file it was written for; none are enabled yet.
+# Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
+# pointers (it patches a copy of user32.dll).
 [patchers]
-list = []
+list = ["afterglow.pointers"]
 
 [outputs.disk]
 zero_free = true

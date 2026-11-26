@@ -29,3 +29,19 @@ With KVM the three runs take about three to five minutes in all (`--stage-timeou
 ### Dry run
 
 `rl install RECIPE --dry-run` prints the golden disk's path and key, whether it is cached, where the ISO would come from, each step and the three QEMU command lines. It downloads nothing, writes nothing and starts no process, so CI can test it.
+
+## `rl image`
+
+Turns the golden disk into the finished image in a fixed order: copy, patchers, trim, files, settings. The golden disk is only read.
+
+1. **Copy** the golden disk, sparse, to `images/<recipe>.img` in the work directory.
+2. **Patchers** each take a stock file from the golden disk and yield a patched copy, which is written to the image. `afterglow.pointers` patches a copy of `user32.dll` with Afterglow's own tool, which refuses any other file, and checks the result against the sum Afterglow records.
+3. **Trim** with the recipe's profile ([trim.md](trim.md)); it cannot remove a patched file or a licence file.
+4. **Files** the recipe's `[[files]]`, the Afterglow style and pointer files, the `[[shortcuts]]`, and the stock desktop shortcuts it removes.
+5. **Settings** the build VM boots the image with a settings CD in drive D:, starts `APPLY.CMD` from the Run box (sent again until the script reports, because the first Run box after a boot is sometimes ignored), and the script applies every registry file and the page file and shuts the guest down.
+
+`--no-settings` skips step 5; `--dry-run` prints the plan and runs nothing.
+
+### Afterglow
+
+The Afterglow source is pinned by commit and by the SHA-256 of the uncompressed tar GitHub serves for it. `rl fetch` downloads it into the work directory, checks the pin, refuses unsafe archive paths and links, and extracts it. `rl image` builds the style with Afterglow's own scripts (needs `llvm-rc`, `lld-link`, and python3 with numpy and Pillow) and checks `afterglow.msstyles` against its pinned sum.

@@ -4,24 +4,12 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import os
 import shutil
-import subprocess
 
 import pytest
 
-from reactos_liminal.mtools import PARTITION_OFFSET, FatImage, MtoolsError
+from reactos_liminal.mtools import MtoolsError
 
 pytestmark = pytest.mark.skipif(shutil.which("mformat") is None, reason="needs mtools")
-
-
-@pytest.fixture
-def fat(tmp_path):
-	image = tmp_path / "disk.img"
-	with open(image, "wb") as blank:
-		blank.truncate(PARTITION_OFFSET + 8 * 1024 * 1024)
-	spec = f"{image}@@{PARTITION_OFFSET}"
-	env = dict(os.environ, MTOOLS_SKIP_CHECK="1")
-	subprocess.run(["mformat", "-i", spec, "-F", "-T", "16384", "-h", "1", "-s", "1", "::"], check=True, capture_output=True, env=env)
-	return FatImage(image)
 
 
 def test_copy_read_and_delete(fat, tmp_path):

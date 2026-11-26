@@ -10,13 +10,17 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[inputs.reactos_iso]` | `name`, `url`, `zip_sha256`, `sha256` (all required) | — |
 | `[inputs.afterglow]` | `repo`, `commit`, `tar_sha256`, `msstyles_sha256` (required), `apply_reg` | `desktop/install/afterglow-original.reg` |
 | `[install]` | `locale`, `time_zone_index`, `computer_name`, `owner_name`, `classic_shell`, `memory_mb`, `disk_size_mb` | `0409`, `85`, `REACTOS`, `ReactOS user`, `true`, `768`, `4096` |
-| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `reg_files` | `1024`, `768`, `"64 64"`, `32`, none, `["display", "quiet", "watermark-off"]` |
+| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `["display", "quiet", "watermark-off"]`, none |
+| `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none |
+| `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[trim]` | `profile`: `none`, `base` or `demo` | `none` |
-| `[patchers]` | `list`: patcher names | `[]` |
+| `[patchers]` | `list`: `afterglow.pointers` | `[]` (the base recipe lists the pointer patcher) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
 
 Hashes are 64 lowercase hex digits; the Afterglow commit is the full 40 digits. A size is a number of bytes or a string such as `"8MiB"`. `chunk_size` is a power of two of at least 64 KiB.
+
+`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear` and `hide-desktop-icons`. The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
 
 ## Extending
 
