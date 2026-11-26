@@ -147,12 +147,12 @@ rl serve DIR                            # range-capable static server for a loca
 
 ## Release gating
 
-**Planned.**
+**Written, not yet run.** The workflows are checked by actionlint and by tests of their promises, but only the owner can dispatch them, so no run has happened.
 
-- `release.yml` runs on `workflow_dispatch` only, never on push, tag or schedule. Its publishing job uses the protected `release` environment, with the owner as required reviewer; the owner pushes the tag. Agents never dispatch it.
+- `build.yml` runs on `workflow_dispatch`, on pull requests that touch the pipeline paths, and when `release.yml` calls it, never on every push. `release.yml` runs on a `v*` tag the owner pushes or on `workflow_dispatch` from `main`, never on a branch push or a schedule, and builds only a commit that is on `main`. Its publishing job uses the protected `release` environment, with the owner as required reviewer. Agents never push a tag or dispatch either workflow. Setup and steps: [docs/release.md](docs/release.md).
 - The ISO is built only from the official upstream ISO named in `pins/reactos-0.4.16.toml`, downloaded and checked against both hashes (the SourceForge zip and the ISO). No upstream binary is stored in git or in a cache that outlives the run.
 - A release build remasters twice; both ISOs must be byte-identical. An unattended install from the remaster must reach an Afterglow desktop, the boot-frame guard must pass, and with cold-boot colours on, the cold-boot logon backdrop is checked.
-- Release assets: the ISO (compressed), `SHA256SUMS`, `BUILD-MANIFEST.json` (the lock), the corresponding source (the ReactOS 0.4.16 source archive, the WineVDM source of the installed build, the patches in `patches/`), `NOTICE.txt` and release notes saying it is unofficial.
+- Release assets: the ISO, `SHA256SUMS`, `build-manifest.json`, `afterglow.lock.json`, `licences.md`, the corresponding source (the ReactOS 0.4.16 source archive at the pinned commit, this repository at the release commit with the patches in `patches/`, and `SOURCE.txt` with the WineVDM pointer and the written offer) and release notes saying it is unofficial. `NOTICE.txt` and `CHANGES.txt` are on the ISO itself.
 - The remastered ISO may be published from v0.1.0, and only after the licence checklist below is complete. Releases are not immutable on GitHub, but a published release is never edited to change its assets: a fix is a new release.
 
 ### Licence checklist

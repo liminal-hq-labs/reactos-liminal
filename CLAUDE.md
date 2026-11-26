@@ -16,7 +16,7 @@ ReactOS Liminal is a Liminal HQ Labs experiment: build Afterglow-dressed ReactOS
 - **Headers.** SPDX header on every source, script, YAML, TOML and SVG file: summary line, blank, "(c) Copyright 2026 Liminal HQ, Scott Morris", `SPDX-License-Identifier: Apache-2.0 OR MIT`. `patches/` is GPL-2.0-or-later.
 - **Architecture.** SPEC first. Recipes declare, code acts; every input pinned by SHA-256. Every patch hash-guarded, same-size, with its undo. Art lives in Afterglow; no Quill content.
 - **Images.** `WORK` outside the repo; large files and ReactOS binaries never in git; copy before write; private QEMU with its own monitor socket and pid file; never kill by name; no host desktop capture; no guest network.
-- **Releases.** Licence checklist in `SPEC.md` first; owner tags and approves the `release` environment; agents never dispatch `release.yml`.
+- **Releases.** Licence checklist in `SPEC.md` first; owner tags (or dispatches) and approves the `release` environment; agents never tag or dispatch `release.yml`.
 - **CI.** One job per check. Shared images come from `liminal-hq/.github`. Dependabot is off unless the project opts in.
 - **Docs.** Update `SPEC.md` and `docs/decisions.md` in the same change as the behaviour.
 
