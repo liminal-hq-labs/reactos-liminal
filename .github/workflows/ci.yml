@@ -1,6 +1,6 @@
 # One job per check, so a pull request's checks list names exactly what passed or failed.
-# Language-neutral checks run as they are; uncomment the Rust block below (or add the
-# equivalent for the project's language) once there is code to check.
+# Language-neutral checks run as they are; uncomment the Python block below once the
+# pipeline lands.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -77,60 +77,80 @@ jobs:
           BANNER_REQUIRE_RENDER: '1'
         run: bash scripts/check-banner.sh
 
-  # Rust: one job per check in the shared ci-rust image. Take the current digest from
-  # https://github.com/liminal-hq/.github/blob/main/docs/reference/recommended-image-pins.md
+  shellcheck:
+    name: Shell scripts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run shellcheck
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable scripts/*.sh
+
+  actionlint:
+    name: Workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run actionlint
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/repo" -w /repo rhysd/actionlint:latest -color
+
+  # Python: one job per check, once reactos_liminal/ and tests/ exist.
   #
-  # fmt:
-  #   name: Format
+  # ruff:
+  #   name: Ruff
   #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 15
-  #   container:
-  #     image: ghcr.io/liminal-hq/ci-rust@sha256:f12097be8cc22eb5145a46bc9f75b38a67fedd5833add4392e11ce85023e64df
+  #   timeout-minutes: 10
   #   steps:
   #     - name: Checkout code
   #       uses: actions/checkout@v6
   #       with:
   #         persist-credentials: false
+  #
+  #     - name: Install ruff
+  #       run: pipx install ruff
   #
   #     - name: Check formatting
-  #       run: cargo fmt --all -- --check
+  #       run: ruff format --check
   #
-  # clippy:
-  #   name: Clippy
-  #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 30
-  #   container:
-  #     image: ghcr.io/liminal-hq/ci-rust@sha256:f12097be8cc22eb5145a46bc9f75b38a67fedd5833add4392e11ce85023e64df
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
-  #       with:
-  #         persist-credentials: false
-  #
-  #     - name: Cache Rust build output
-  #       uses: Swatinem/rust-cache@v2
-  #       with:
-  #         shared-key: {{PROJECT_NAME}}
-  #
-  #     - name: Run clippy
-  #       run: cargo clippy --workspace --all-targets --locked -- -D warnings
+  #     - name: Lint
+  #       run: ruff check
   #
   # test:
   #   name: Tests
   #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 30
-  #   container:
-  #     image: ghcr.io/liminal-hq/ci-rust@sha256:f12097be8cc22eb5145a46bc9f75b38a67fedd5833add4392e11ce85023e64df
+  #   timeout-minutes: 20
   #   steps:
   #     - name: Checkout code
   #       uses: actions/checkout@v6
   #       with:
   #         persist-credentials: false
   #
-  #     - name: Cache Rust build output
-  #       uses: Swatinem/rust-cache@v2
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v6
   #       with:
-  #         shared-key: {{PROJECT_NAME}}
+  #         python-version: '3.12'
   #
   #     - name: Run the tests
-  #       run: cargo nextest run --workspace --locked
+  #       run: python3 -I -m unittest discover -s tests
+  #
+  # no-binaries:
+  #   name: No upstream binaries
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 5
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v6
+  #       with:
+  #         persist-credentials: false
+  #
+  #     - name: Check git holds no ReactOS binary or image
+  #       run: bash scripts/check-no-binaries.sh
