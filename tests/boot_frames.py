@@ -8,7 +8,7 @@ import struct
 Frame = tuple[int, int, bytes]
 
 LOGO_ORIGIN = (113, 23)  # where the kernel centres the 414 x 366 logo on 640 x 480
-GOLD = (170, 85, 0)  # VGA text colour 6 ("Brown"), the selection bar's colour in FreeLoader's minimal menu
+GOLD = (168, 87, 0)  # VGA text colour 6 ("Brown") as QEMU's screendump shows it: the selection bar in FreeLoader's minimal menu
 
 
 def shown_colour(rgb: tuple[int, int, int]) -> tuple[int, int, int]:

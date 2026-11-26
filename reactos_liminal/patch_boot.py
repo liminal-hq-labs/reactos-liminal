@@ -35,10 +35,10 @@ LOGO_BMP = "afterglow-logo-rle4.bmp"
 
 # The freeldr.ini an unattended install of this release leaves on the disk, after `install` put back its default entry and delay.
 MENU_STOCK_SHA256 = ("60d6f98163599a82982f769c93348f55333b466700c57e4e8d3c8b5b66daaba5",)
-MENU_RESULT_SHA256 = "dea385b6314cce94685f3e200d08848b5a112b15fbf678dedbafcd80378a6fe5"
+MENU_RESULT_SHA256 = "ff8e138bcc90f5f23f081ad4ed622ff25bdd51cf5b650189304f5a8e1c07094e"
 MENU_TIMEOUT = 10
-ENTRY_NAME = "Afterglow for ReactOS"
-FALLBACK_NAME = "ReactOS (stock boot screen)"
+# Named as ReactOS names its own entries ("ReactOS", "ReactOS (Debug)"); the stock "ReactOS" entry is the fallback.
+ENTRY_NAME = "ReactOS (Afterglow)"
 # Design 1: FreeLoader's minimal menu, a gold selection bar on black. FreeLoader's own names for the colours are the 16 text colours;
 # Brown is the dark yellow the text mode shows as gold.
 DISPLAY = (
@@ -81,10 +81,9 @@ def afterglow_menu(stock: bytes) -> bytes:
 			line = "DefaultOS=Afterglow"
 		elif section == "Operating Systems" and line.startswith("ReactOS="):
 			out.append(f'Afterglow="{ENTRY_NAME}"')
-			line = f'ReactOS="{FALLBACK_NAME}"'
 		out.append(line)
 	result = "\n".join(out)
-	for needle in ("[Afterglow]", "DefaultOS=Afterglow", f'Afterglow="{ENTRY_NAME}"', f'ReactOS="{FALLBACK_NAME}"', "MinimalUI=Yes"):
+	for needle in ("[Afterglow]", "DefaultOS=Afterglow", f'Afterglow="{ENTRY_NAME}"', 'ReactOS="ReactOS"', "MinimalUI=Yes"):
 		if needle not in result:
 			raise PatchError(f"freeldr.ini: the stock file has no place for {needle!r}")
 	return result.replace("\n", "\r\n").encode("ascii")

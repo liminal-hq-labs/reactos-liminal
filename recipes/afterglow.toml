@@ -58,7 +58,7 @@ profile = "base"
 # and menu banner, and the settings step makes it the Winlogon shell. The icon patchers put the Afterglow icon set in copies of shell32.dll,
 # the Control Panel applets and the programs, and write the Explorer toolbar cells in place. The logon patch writes agmsgina.dll with the Afterglow banner and bar, and the
 # afterglow-logon registry file above selects it (delete that one value for the stock logon). The boot patch writes agntoskr.exe with
-# the Afterglow boot logo and a boot menu whose first entry, "Afterglow for ReactOS", starts it; the stock entry stays as the fallback.
+# the Afterglow boot logo and a boot menu whose first entry, "ReactOS (Afterglow)", starts it; the stock entry stays as the fallback.
 [patchers]
 list = [
 	"afterglow.pointers",

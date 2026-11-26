@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 # ReactOS 0.4.16's winlogon reads `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\GinaDLL` and loads that file as the
-# GINA, so a separately named patched copy works (the decision is RL-21). msgina draws every logon box with two 24-bit bitmaps,
+# GINA, so a separately named patched copy works (the decision is RL-27). msgina draws every logon box with two 24-bit bitmaps,
 # IDI_ROSLOGO (20000, 413 x 72) and IDI_BAR (20001, 413 x 5). The Afterglow BMPs are the same size and depth, so each is written over
 # its resource in place and the PE checksum is recomputed. The input must be exactly the 0.4.16 msgina.dll; the result is checked
 # against the sum pinned here. The patched file is ReactOS code (GPL) and stays in the work directory.

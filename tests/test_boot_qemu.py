@@ -34,16 +34,19 @@ pytestmark = [
 ]
 
 
+POINTER_ALLOWANCE = 400  # pixels: the guest draws the mouse pointer (about 15 x 20) into the frame, over the banner
+
+
 def grab(vm: PrivateVm, name: str):
 	"""The guest's screen now, as (width, height, RGB bytes); kept as a PNG when RL_TEST_SHOTS is set."""
 	path = vm.directory / "frame.ppm"
 	path.unlink(missing_ok=True)
-	vm.monitor([f"screendump {path}"], pause=0.5)
-	for _ in range(30):
+	vm.monitor([f"screendump {path}"], pause=0.2)
+	for _ in range(50):
 		if path.is_file() and path.stat().st_size > 0:
 			break
-		time.sleep(0.1)
-	time.sleep(0.2)
+		time.sleep(0.05)
+	time.sleep(0.1)
 	frame = read_ppm(path.read_bytes())
 	if SHOTS:
 		Path(SHOTS).mkdir(parents=True, exist_ok=True)
@@ -51,15 +54,16 @@ def grab(vm: PrivateVm, name: str):
 	return frame
 
 
-def wait_for(vm: PrivateVm, name: str, accept, timeout: float, interval: float = 1.0):
-	"""Take frames until `accept(frame)` returns (True, detail); returns the last detail. Fails with the best detail seen."""
+def wait_for(vm: PrivateVm, name: str, accept, timeout: float, interval: float = 0.1):
+	"""Take frames until `accept(frame)` returns (True, detail); returns that detail. Fails with the last detail seen. The Please wait
+	box is on screen for only a couple of seconds, so the frames come as fast as the monitor gives them."""
 	deadline = time.monotonic() + timeout
 	detail = "no frame"
 	while time.monotonic() < deadline:
 		frame = grab(vm, name)
 		ok, detail = accept(frame)
 		if ok:
-			return detail
+			return frame, detail
 		time.sleep(interval)
 	pytest.fail(f"{name}: not seen within {timeout:.0f}s; last: {detail}")
 
@@ -86,23 +90,37 @@ def test_the_boot_menu_the_kernel_logo_and_the_logon_banner_are_afterglow(tmp_pa
 	disk = tmp_path / "image.img"
 	subprocess.run(["cp", "--sparse=always", IMAGE, str(disk)], check=True)
 	vm = PrivateVm(tmp_path / "vm")
+
+	def logo_ok(frame):
+		if frame[:2] != (640, 480):
+			return False, f"a {frame[0]} x {frame[1]} frame"
+		different, compared = logo_differences(frame, art["logo"], art["box"])
+		return different == 0, f"{different} of {compared} logo pixels differ"
+
+	def banner_ok(frame):
+		position, different = find_banner(frame, art["banner"])
+		return position is not None and different <= POINTER_ALLOWANCE, f"banner at {position}, {different} pixels differ"
+
 	try:
 		vm.start(VmSpec(disk=disk, boot_order="c", memory_mb=512, allow_reboot=True))
-		menu = wait_for(vm, "reactos-liminal-art-boot-logon-menu", menu_looks_minimal_gold_on_black, 30)
+		_frame, menu = wait_for(vm, "reactos-liminal-art-boot-logon-menu", menu_looks_minimal_gold_on_black, 30)
+		_frame, logo = wait_for(vm, "reactos-liminal-art-boot-logon-kernel-logo", logo_ok, 60)
+		# The automatic logon passes through the Please wait box in a couple of seconds, too fast to catch reliably; wait for the
+		# desktop's resolution, let the shell settle, and log off to get the Welcome and Logon boxes, which stay on screen.
+		wait_for(
+			vm, "reactos-liminal-art-boot-logon-desktop", lambda frame: (frame[:2] == (1024, 768), f"a {frame[0]} x {frame[1]} frame"), 120
+		)
+		time.sleep(25)
+		vm.run_dialog("logoff")
+		welcome_frame, welcome = wait_for(vm, "reactos-liminal-art-boot-logon-logon-welcome", banner_ok, 90, interval=0.5)
+		time.sleep(2)
+		vm.monitor(["sendkey ctrl-alt-delete"])
 
-		def logo_ok(frame):
-			if frame[:2] != (640, 480):
-				return False, f"a {frame[0]} x {frame[1]} frame"
-			different, compared = logo_differences(frame, art["logo"], art["box"])
-			return different == 0, f"{different} of {compared} logo pixels differ"
+		def logon_box(frame):
+			ok, detail = banner_ok(frame)
+			return ok and frame[2] != welcome_frame[2], detail
 
-		logo = wait_for(vm, "reactos-liminal-art-boot-logon-kernel-logo", logo_ok, 60, interval=0.5)
-
-		def banner_ok(frame):
-			position, different = find_banner(frame, art["banner"])
-			return position is not None and different == 0, f"banner at {position}, {different} pixels differ"
-
-		banner = wait_for(vm, "reactos-liminal-art-boot-logon-logon", banner_ok, 240, interval=2.0)
+		_frame, box = wait_for(vm, "reactos-liminal-art-boot-logon-logon-box", logon_box, 30, interval=0.5)
 	finally:
 		vm.stop()
-	print(f"menu: {menu}; kernel logo: {logo}; logon: {banner}")
+	print(f"menu: {menu}; kernel logo: {logo}; welcome: {welcome}; logon: {box}")

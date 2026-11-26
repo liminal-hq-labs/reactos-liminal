@@ -50,7 +50,7 @@ Releases will attach the remastered ISO with its checksums, build manifest and c
 - **[Afterglow](https://github.com/liminal-hq/afterglow-themes).** All art (the visual style, colour schemes, pointers, icons, wallpapers, logon and Setup bitmaps) lives in Afterglow's `desktop/` folder as vector masters with scripted renders, and ships in Afterglow releases with a manifest of what each asset replaces. ReactOS Liminal only applies it.
 - **[Quill](https://github.com/liminal-hq-labs/quill).** Quill's Try ReactOS page is a consumer: it pins a ReactOS Liminal release, extends a base recipe with the Quill programs and documents, and gets back disk parts, a state and a manifest. Nothing Quill-specific lives here.
 
-The remastered media is named "Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs", and its boot entry reads "Afterglow for ReactOS".
+The remastered media is named "Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs", and its boot entry reads "ReactOS (Afterglow)", after ReactOS's own entry names.
 
 ## Documentation
 

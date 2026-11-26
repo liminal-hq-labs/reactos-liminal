@@ -149,9 +149,9 @@ def test_a_result_that_misses_its_pin_is_refused(setup, tmp_path, monkeypatch):
 def test_the_menu_makes_afterglow_the_default_and_keeps_the_stock_entry_as_the_fallback():
 	text = afterglow_menu(STOCK_MENU).decode().split("\r\n")
 	assert "DefaultOS=Afterglow" in text and "TimeOut=10" in text
-	assert 'Afterglow="Afterglow for ReactOS"' in text
-	assert 'ReactOS="ReactOS (stock boot screen)"' in text
-	assert text.index('Afterglow="Afterglow for ReactOS"') < text.index('ReactOS="ReactOS (stock boot screen)"')
+	assert 'Afterglow="ReactOS (Afterglow)"' in text
+	assert 'ReactOS="ReactOS"' in text
+	assert text.index('Afterglow="ReactOS (Afterglow)"') < text.index('ReactOS="ReactOS"')
 	assert "TitleText=ReactOS Boot Manager" not in text
 	assert {"MinimalUI=Yes", "SelectedColor=Brown", "SelectedTextColor=Black"} <= set(text)
 	afterglow = text.index("[Afterglow]")
