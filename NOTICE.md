@@ -10,7 +10,7 @@ ReactOS Liminal is an unofficial Liminal HQ Labs project. It is not made, endors
 
 ## Components in built media (to be confirmed)
 
-Built disks and remastered ISOs contain ReactOS 0.4.16 and the components below. **Every row is to be confirmed** file by file against the 0.4.16 source tree's `COPYING`, `CREDITS`, `media/doc/3rd Party Files.txt` and `media/fonts/doc/` before any ISO release, as part of the licence checklist in [SPEC.md](SPEC.md#licence-checklist). A release ships the confirmed list as `NOTICE.txt` and the licence texts in `LICENSES/`.
+Built disks and remastered ISOs contain ReactOS 0.4.16 and the components below. **Every row is to be confirmed** file by file against the 0.4.16 source tree's `COPYING`, `CREDITS`, `media/doc/3rd Party Files.txt` and `media/fonts/doc/` before any ISO release, as part of the licence checklist in [SPEC.md](SPEC.md#licence-checklist). A release ships the confirmed list as `NOTICE.txt` and the licence texts in `LICENSES/`; `rl image` writes both, with `CHANGES.txt`, from `reactos_liminal/licences.py`, and `rl licences` writes the [licences page](docs/licences.md).
 
 | Component | Licence (to be confirmed) |
 |---|---|

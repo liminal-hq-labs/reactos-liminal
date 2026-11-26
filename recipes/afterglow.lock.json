@@ -1,0 +1,26 @@
+{
+	"schema": 1,
+	"recipe": "afterglow",
+	"inputs": {
+		"reactos_iso": {
+			"name": "ReactOS-0.4.16-i386.iso",
+			"url": "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-0.4.16-i386.zip",
+			"zip_sha256": "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a",
+			"sha256": "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
+		},
+		"afterglow": {
+			"repo": "liminal-hq/afterglow-themes",
+			"commit": "24bc04857c7ba5de23886fc6c8a78474326194cb",
+			"tar_sha256": "1fee94a3d4f4a3d69882a1f9d82e6bfb1d7436434ba727aa9b5170ae3f7cc2ac",
+			"msstyles_sha256": "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f",
+			"apply_reg": "desktop/install/afterglow-original.reg",
+			"wallpaper": "dusk-dark-smooth",
+			"wallpaper_sha256": "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d"
+		}
+	},
+	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
+	"trim_lists": {
+		"profile:base": "593b8b0914d921012ca0357c16acd75e3554e5285b308a6f61074e6689de7e5d"
+	},
+	"files": {}
+}

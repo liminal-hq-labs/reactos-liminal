@@ -14,6 +14,9 @@ from .fetch import FetchError, fetch_iso
 from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
 from .install import InstallError, plan_install, run_install
+from .iso import IsoError, build_iso
+from .licences import LicenceError, licences_page
+from .lock import REQUIRABLE, LockError, cache_keys, failures, verify, write_lock
 from .manifest import ManifestError, build_manifest, job_summary, parse_pairs, write_manifest
 from .parts import PartsError, make_parts
 from .patchers import PatchError
@@ -86,6 +89,56 @@ def _cmd_image(args: argparse.Namespace) -> int:
 	tarball = Path(args.afterglow_tarball) if args.afterglow_tarball else None
 	image = build_image(recipe, work, golden, out, with_settings=not args.no_settings, afterglow_tarball=tarball, accel=args.accel)
 	print(image)
+	return 0
+
+
+def _cmd_iso(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	work = resolve_work(args.work)
+	image = Path(args.image) if args.image else work / "images" / f"{recipe.name}.img"
+	out = Path(args.out) if args.out else work / "dist" / f"{recipe.name}-remaster.iso"
+	print(build_iso(recipe, work, image, out, Path(args.iso) if args.iso else None))
+	return 0
+
+
+def _cmd_lock(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	path = write_lock(recipe, Path(args.out) if args.out else None)
+	print(path)
+	return 0
+
+
+def _cmd_verify(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	work = resolve_work(args.work)
+	required = tuple(name for entry in args.require or [] for name in entry.split(",") if name)
+	unknown = [name for name in required if name not in REQUIRABLE]
+	if unknown:
+		raise LockError(f"--require: unknown input {', '.join(unknown)}; choose from {', '.join(REQUIRABLE)}")
+	checks = verify(recipe, work, Path(args.lock) if args.lock else None, check_lock_file=not args.no_lock)
+	for check in checks:
+		print(check.line())
+	failed = failures(checks, required)
+	if failed:
+		print(f"rl verify: {len(failed)} check(s) failed", file=sys.stderr)
+		return 1
+	print(f"rl verify: {len(checks)} checks, none failed")
+	return 0
+
+
+def _cmd_key(args: argparse.Namespace) -> int:
+	for name, value in cache_keys(load(args.recipe), resolve_work(args.work)).items():
+		print(f"{name}={value}")
+	return 0
+
+
+def _cmd_licences(args: argparse.Namespace) -> int:
+	text = licences_page(load(args.recipe))
+	if args.out:
+		Path(args.out).write_text(text)
+		print(args.out)
+	else:
+		print(text, end="")
 	return 0
 
 
@@ -223,6 +276,42 @@ def build_parser() -> argparse.ArgumentParser:
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_image)
 
+	sub = commands.add_parser("verify", help="re-check every input pin against the work directory, and the lock file against the recipe")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("--lock", metavar="FILE", help="the lock file (default: beside the recipe, NAME.lock.json)")
+	sub.add_argument("--no-lock", action="store_true", help="skip the lock file check")
+	sub.add_argument(
+		"--require",
+		action="append",
+		metavar="INPUT[,INPUT]",
+		help=f"fail when this input is not in the work directory ({', '.join(REQUIRABLE)}); repeat or separate with commas",
+	)
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_verify)
+
+	sub = commands.add_parser("lock", help="write the lock file: the inputs the recipe resolves to, with their sums")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("--out", metavar="FILE", help="the lock file (default: beside the recipe, NAME.lock.json)")
+	sub.set_defaults(func=_cmd_lock)
+
+	sub = commands.add_parser("key", help="print the cache keys and paths of a recipe, as name=value lines (for CI)")
+	sub.add_argument("recipe", help="recipe TOML file")
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_key)
+
+	sub = commands.add_parser("licences", help="write the licences page for a recipe as Markdown")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("--out", metavar="FILE", help="write the page here instead of printing it")
+	sub.set_defaults(func=_cmd_licences)
+
+	sub = commands.add_parser("iso", help="write the remastered install ISO: the official ISO with the image's notices appended")
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("--image", metavar="FILE", help="the finished image (default: WORK/images/NAME.img)")
+	sub.add_argument("--out", metavar="FILE", help="the ISO to write (default: WORK/dist/NAME-remaster.iso)")
+	sub.add_argument("--iso", metavar="FILE", help="the official ISO (default: the one `rl fetch` kept; checked against the pin)")
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_iso)
+
 	sub = commands.add_parser("trim", help=f"trim a working copy of a disk with a profile ({', '.join(profile_names())})")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the default profile)")
 	sub.add_argument("image", help="the disk image to trim in place; never a golden disk")
@@ -288,6 +377,9 @@ def main(argv: list[str] | None = None) -> int:
 		ManifestError,
 		SumsError,
 		ZeroFreeError,
+		LockError,
+		LicenceError,
+		IsoError,
 	) as error:
 		print(f"rl: {error}", file=sys.stderr)
 		return 2

@@ -58,15 +58,19 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image`, `rl trim`, `rl parts`, `rl manifest`, `rl summary` and `rl hash`. The rest is planned.
+**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image`, `rl trim`, `rl parts`, `rl manifest`, `rl summary`, `rl hash`, `rl verify`, `rl lock`, `rl licences`, `rl iso` and `rl key`. The rest is planned.
 
 ```text
 rl doctor                               # check that the tools the pipeline needs are installed
 rl build RECIPE [--out DIR] [--work DIR] [--iso FILE] [--from-golden FILE] [--only STEP] [--keep-work]
-rl verify LOCKFILE                      # rebuild and compare hashes
+rl verify RECIPE [--require INPUT]      # re-check every input pin in the work directory, and the lock file against the recipe
+rl lock RECIPE                          # write the lock file beside the recipe: the resolved inputs and their sums
+rl licences RECIPE [--out FILE]         # the licences page, as Markdown
+rl key RECIPE                           # the cache keys and paths of a recipe as name=value lines, for CI
+rl iso RECIPE [--image FILE] [--out FILE]   # the remastered install ISO: the official ISO with the image's notices appended
 rl fetch RECIPE                         # download and check every pinned input, nothing else
 rl install RECIPE [--iso FILE] [--dry-run] [--force]   # unattended install in a private QEMU; keeps the golden disk
-rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, settings
+rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, licences, settings
 rl trim RECIPE IMAGE [--profile NAME]   # trim a working copy of a disk with a profile
 rl parts RECIPE IMAGE [--out DIR] [--chunk-size SIZE]   # zero free space, then zstd parts and manifest.json
 rl manifest RECIPE DIST [--timing STAGE=SECONDS]   # build-manifest.json for a folder of outputs
@@ -92,15 +96,16 @@ rl serve DIR                            # range-capable static server for a loca
 | Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (`rl parts`, built) |
 | v86 parts | `rl parts` (built): zstd parts of the disk named `START-END.img.zst`, each `outputs.parts.chunk_size` bytes (default 8 MiB; every chunk gets a file, all-zero ones included), with `manifest.json` (image size, chunk, counts, compressed bytes and the raw image's SHA-256) |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
-| Remastered ISO | The official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
-| Build manifest | `rl manifest` (built): every output's size and SHA-256, the pinned inputs, the trim profile and patchers, the part size and the stage timings; `rl summary` prints it as Markdown. The lock file is planned |
+| Remastered ISO | `rl iso` (built): the official ISO with a session appended that holds `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` from the image, nothing already on the disc moved; the extra cabinet and Setup art below are planned. The finished remaster is the official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
+| Build manifest | `rl manifest` (built): every output's size and SHA-256, the pinned inputs, the trim profile and patchers, the part size and the stage timings; `rl summary` prints it as Markdown. `rl lock` (built) writes `recipes/NAME.lock.json`, the resolved inputs and their sums, and `rl verify` fails on drift |
 
 ## Image pipeline and trim profiles
 
-**Built.** `rl image` runs a fixed order for every recipe: copy the golden disk (sparse; it is only ever read), run the patchers, trim, write the recipe's files, the Afterglow style and pointer files and its shortcuts, then apply the registry settings in a build VM. A recipe cannot reorder it.
+**Built.** `rl image` runs a fixed order for every recipe: copy the golden disk (sparse; it is only ever read), run the patchers, trim, write the recipe's files, the Afterglow style and pointer files and its shortcuts, then write the licence files, then apply the registry settings in a build VM. A recipe cannot reorder it.
 
 - **Patchers before the trim.** Each patcher takes a stock file from the golden disk, is checked against it, and yields a patched copy that is written to the image before the trim. The trim never removes a patched file or a licence file (`LICENSES/`, `NOTICE.txt`, `CHANGES.txt`, `Program Files/otvdm/LICENSE`): a profile entry that is, or holds, one is refused before anything is removed, and every patched file is confirmed present afterwards.
 - **Trim profiles** are lists of `f PATH` and `d PATH` lines in `profiles/`: `none` removes nothing; `base` is the Afterglow remaster's trim, which keeps the network card drivers and the network stack. A recipe adds its own removals with `[trim] extra`, a list of files in the same format that are resolved relative to the recipe that lists them and applied after the profile, in order; they go through the same protection check, and a missing or malformed file is an error naming `trim.extra`. A downstream project keeps such a list in its own repository. A missing path is reported and skipped. `rl trim` works on a copy and refuses a golden disk.
+- **Licences.** `LICENSES/` (GPL-2.0, LGPL-2.1, and the Apache-2.0 and MIT texts of this project and Afterglow), `NOTICE.txt` (what the image is, that it is an unofficial remaster not endorsed by the ReactOS Project, the corresponding-source offer, the components and their licences, the credits) and `CHANGES.txt` (every patched file with its SHA-256 before and after, the trim profile with each extra list and every removed path, the files added and the settings applied) are written to the image after the files step and before the settings, generated from the recipe and from the run, as plain ASCII with Windows line ends. The texts come from `licences/`, each checked against a recorded sum, because the official ISO carries none. `rl licences` writes the same facts as a Markdown page (`docs/licences.md`, a test checks it is current).
 - **Settings.** The recipe's display size, desktop icon size, wallpaper path and the registry files it lists (`display`, `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons`, `afterglow-logon`) go on a settings CD; the build VM runs one script that applies them and the page file, then shuts down.
 - **Patchers built:** `afterglow.pointers` (a patched copy of `user32.dll` carrying the Afterglow system pointers, checked against the sum Afterglow records), `afterglow.start` (`agexplorer.exe`, a copy of `explorer.exe` with the Afterglow Start orb and menu banner, selected by `Winlogon\Shell`; hash-guarded on the stock file, the art and the result), `afterglow.icons` (a patched copy of `shell32.dll` carrying the Afterglow icon set, below), `afterglow.cpl-icons`, `afterglow.program-icons` and `afterglow.toolbar-bitmaps` (below), `afterglow.logon` (`agmsgina.dll`, the logon banner and bar, selected by `Winlogon\GinaDLL`) and `afterglow.boot` (`agntoskr.exe` with the boot logo, and the Afterglow `freeldr.ini`). See [docs/boot-and-logon.md](docs/boot-and-logon.md).
 - **Wallpaper built:** the recipe names an Afterglow scene and the guest path; `rl image` renders it from the SVG master to a BMP, checks it against the recipe's pin, writes it and sets it (`stretch`, `centre` or `tile`). The base recipe uses `dusk-dark-smooth`.

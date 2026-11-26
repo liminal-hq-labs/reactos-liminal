@@ -68,6 +68,8 @@ def fetch_afterglow(recipe: Recipe, work: Path, tarball: Path | None = None) -> 
 			raise FetchError("the Afterglow archive has no desktop/style/build.sh")
 		shutil.rmtree(destination, ignore_errors=True)
 		top[0].replace(destination)
+		# The checked tar stays beside the tree so `rl verify` can check the pin again without downloading.
+		raw.replace(cache / f"{pin['commit']}.tar")
 		marker.write_text(actual + "\n")
 	finally:
 		shutil.rmtree(scratch, ignore_errors=True)
