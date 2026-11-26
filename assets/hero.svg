@@ -1,33 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-	{{PROJECT_TITLE}} hero banner: the Liminal HQ Labs placeholder, a small flask bubbling on a bench.
+	ReactOS Liminal hero banner: the official install disc runs through a recipe (install, trim, dress, patch), each stage passing its hash guard, and boots to an Afterglow desktop.
 
 	(c) Copyright 2026 Liminal HQ, Scott Morris
 	SPDX-License-Identifier: Apache-2.0 OR MIT
 
-	How to edit: scripts/init-project.sh fills in the title and description. Keep the title under
-	about 16 characters and the description under about 60, or shrink their font-size. Replace the
-	flask with a scene for the project when it has one: keep the 1200 x 320 viewBox, SMIL only, the
+	Palette (dusk, in the Afterglow family; README badges reuse Rose and Plum):
+	  Aubergine  #1c0f2e #2b1238   the banner background (darker in dark mode)
+	  Plum       #4a2470           the licence badge, card and window edges
+	  Violet     #2d1760           the top of the desktop sky
+	  Rose       #e8657c           the sky above the horizon, the status badge
+	  Amber      #f6a04d           the horizon and the title gradient
+	  Gold       #ffc94d #e8b43a   the sun, the Start button, the packet; the boot selection bar
+	  Jade       #9be7c4           the hash-guard ticks, the one cool accent
+	  Lavender   #f1e6f5           text on the dark ground
+
+	Scene: a disc (the official ReactOS 0.4.16 ISO) sends a gold packet into a recipe card whose
+	four stages light in turn, each earning a jade tick; the packet then crosses to a window
+	whose boot menu selects "Afterglow for ReactOS" in gold, and the curtain lifts on a dusk
+	desktop with a gold sun and a rounded Start button. No ReactOS logo or orb appears. The
+	reduced-motion view shows the finished state. Keep the 1200 x 320 viewBox, SMIL only, the
 	.motion and .static pairs for reduced motion, data-loop on the root and animations whose dur
-	divides it. For a final wordmark, outline the title with Inkscape (export text to path) and
-	keep the paths. Check every change with scripts/check-banner.sh and its shots option, and look
-	at the frames (docs/new-project.md has the commands).
+	divides it. Check every change with scripts/check-banner.sh and its shots option, and look
+	at the frames.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="hero-title hero-desc" data-loop="9">
-	<title id="hero-title">{{PROJECT_TITLE}}</title>
-	<desc id="hero-desc">{{PROJECT_TITLE}}: {{PROJECT_DESCRIPTION}}. A Liminal HQ Labs experiment. An animated banner shows a flask of glowing lime liquid bubbling on a lab bench.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="hero-title hero-desc" data-loop="12">
+	<title id="hero-title">ReactOS Liminal</title>
+	<desc id="hero-desc">ReactOS Liminal: build Afterglow-dressed ReactOS install media, disk images and browser snapshots from a recipe. An unofficial Liminal HQ Labs experiment, not affiliated with the ReactOS project. An animated banner shows an install disc feeding a recipe card whose install, trim, dress and patch stages light up in turn and each earn a hash-guard tick, then a boot menu selecting Afterglow for ReactOS in a gold bar, and a dusk desktop with a gold sun and a rounded Start button.</desc>
 
 	<style>
 		.ui { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Adwaita Sans', Inter, sans-serif; }
 		.mono { font-family: ui-monospace, 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace; }
-		.bg-a { stop-color: #0c0e16; }
-		.bg-b { stop-color: #161a28; }
-		.edge { fill: none; stroke: #2a3040; }
+		.bg-a { stop-color: #1c0f2e; }
+		.bg-b { stop-color: #2b1238; }
+		.edge { fill: none; stroke: #4a2470; }
 		.static { display: none; }
 		@media (prefers-color-scheme: dark) {
-			.bg-a { stop-color: #050507; }
-			.bg-b { stop-color: #0e1019; }
-			.edge { stroke: #1d212c; }
+			.bg-a { stop-color: #0f0819; }
+			.bg-b { stop-color: #1a0b22; }
+			.edge { stroke: #2e1747; }
 		}
 		@media (prefers-reduced-motion: reduce) {
 			.motion { display: none; }
@@ -40,79 +51,229 @@
 			<stop class="bg-a" offset="0"/>
 			<stop class="bg-b" offset="1"/>
 		</linearGradient>
-		<linearGradient id="afterglow" x1="0" y1="0" x2="1" y2="0">
-			<stop offset="0" stop-color="#ffffff"/>
-			<stop offset="0.55" stop-color="#ffaa40"/>
-			<stop offset="1" stop-color="#f43f5e"/>
+		<linearGradient id="dusk-title" x1="0" y1="0" x2="1" y2="0">
+			<stop offset="0" stop-color="#ffe08a"/>
+			<stop offset="0.5" stop-color="#f6a04d"/>
+			<stop offset="1" stop-color="#e8657c"/>
 		</linearGradient>
-		<linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
-			<stop offset="0" stop-color="#bef264"/>
-			<stop offset="0.25" stop-color="#a3e635"/>
-			<stop offset="1" stop-color="#4ade80"/>
+		<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#2d1760"/>
+			<stop offset="0.45" stop-color="#6b3480"/>
+			<stop offset="0.78" stop-color="#e8657c"/>
+			<stop offset="1" stop-color="#f6a04d"/>
 		</linearGradient>
-		<radialGradient id="wash">
-			<stop offset="0" stop-color="#a78bfa" stop-opacity="0.16"/>
-			<stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+		<linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#3a1a52"/>
+			<stop offset="1" stop-color="#1f0e33"/>
+		</linearGradient>
+		<linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#ffe08a"/>
+			<stop offset="1" stop-color="#ffb347"/>
+		</linearGradient>
+		<linearGradient id="caption" x1="0" y1="0" x2="1" y2="0">
+			<stop offset="0" stop-color="#1f2554"/>
+			<stop offset="1" stop-color="#7a4562"/>
+		</linearGradient>
+		<radialGradient id="disc" cx="0.5" cy="0.5" r="0.5">
+			<stop offset="0" stop-color="#efe6f6"/>
+			<stop offset="0.6" stop-color="#cbb6dc"/>
+			<stop offset="1" stop-color="#9c84b5"/>
 		</radialGradient>
-		<filter id="haze" x="-60%" y="-60%" width="220%" height="220%">
-			<feGaussianBlur stdDeviation="20"/>
-		</filter>
+		<radialGradient id="wash-amber">
+			<stop offset="0" stop-color="#f6a04d" stop-opacity="0.16"/>
+			<stop offset="1" stop-color="#f6a04d" stop-opacity="0"/>
+		</radialGradient>
+		<radialGradient id="wash-violet">
+			<stop offset="0" stop-color="#8b5cf6" stop-opacity="0.14"/>
+			<stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+		</radialGradient>
+		<radialGradient id="glow">
+			<stop offset="0" stop-color="#ffc94d" stop-opacity="0.55"/>
+			<stop offset="1" stop-color="#ffc94d" stop-opacity="0"/>
+		</radialGradient>
+		<g id="sheen">
+			<path d="M540 150L540 108A42 42 0 0 1 569.7 120.3Z" fill="#ffffff" opacity="0.45"/>
+			<path d="M540 150L510.3 179.7A42 42 0 0 1 498 150Z" fill="#f6a04d" opacity="0.28"/>
+			<path d="M540 150L582 150A42 42 0 0 1 569.7 179.7Z" fill="#8b5cf6" opacity="0.25"/>
+		</g>
+		<g id="tick-mark">
+			<circle r="9" fill="#9be7c4"/>
+			<path d="M-4.2 0.2L-1.2 3.2L4.4 -3" fill="none" stroke="#123a2a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+		</g>
 		<clipPath id="frame"><rect width="1200" height="320" rx="18"/></clipPath>
-		<clipPath id="flask-in"><path d="M966 104V156L916 236Q910 248 924 248H1036Q1050 248 1044 236L994 156V104Z"/></clipPath>
+		<clipPath id="desktop-clip"><rect x="832" y="58" width="326" height="164" rx="2"/></clipPath>
+		<clipPath id="above-horizon"><rect x="832" y="58" width="326" height="118"/></clipPath>
 	</defs>
 
 	<g clip-path="url(#frame)">
 		<rect data-bg="" width="1200" height="320" fill="url(#bg)"/>
-		<circle cx="70" cy="330" r="260" fill="url(#wash)"/>
+		<circle cx="980" cy="340" r="300" fill="url(#wash-amber)"/>
+		<circle cx="90" cy="-20" r="260" fill="url(#wash-violet)"/>
 
-		<!-- Left: title, description, status chip -->
+		<!-- Left: title, description, chips -->
 		<!-- hero-text:start (system font; outline it for the final wordmark) -->
-		<text class="ui" x="56" y="128" font-size="60" font-weight="800" letter-spacing="-1" fill="url(#afterglow)">{{PROJECT_TITLE}}</text>
+		<text class="ui" x="54" y="80" font-size="48" font-weight="800" letter-spacing="-1" fill="#f1e6f5">ReactOS</text>
+		<text class="ui" x="54" y="146" font-size="48" font-weight="800" letter-spacing="-1" fill="url(#dusk-title)">Liminal</text>
 		<!-- hero-text:end -->
-		<text class="ui" x="56" y="172" font-size="18" font-weight="500" fill="#e0e0e0">{{PROJECT_DESCRIPTION}}</text>
-		<g class="ui" font-size="13" font-weight="600" fill="#b4bfce">
-			<rect id="chip-status" data-box="" x="56" y="200" width="134" height="28" rx="14" fill="#a3e635" fill-opacity="0.08" stroke="#a3e635" stroke-opacity="0.45"/>
-			<circle class="motion" cx="74" cy="214" r="4" fill="#a3e635">
+		<text class="ui" x="56" y="184" font-size="15" font-weight="500" fill="#f1e6f5">Afterglow-dressed install media, disk images</text>
+		<text class="ui" x="56" y="204" font-size="15" font-weight="500" fill="#f1e6f5">and browser snapshots, built from a recipe</text>
+		<g class="ui" font-size="13" font-weight="600" fill="#f1e6f5">
+			<rect id="chip-status" data-box="" x="56" y="224" width="134" height="28" rx="14" fill="#e8657c" fill-opacity="0.14" stroke="#e8657c" stroke-opacity="0.7"/>
+			<circle class="motion" cx="74" cy="238" r="4" fill="#ffc94d">
 				<animate attributeName="opacity" dur="3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="1;0.35;1"/>
 			</circle>
-			<circle class="static" cx="74" cy="214" r="4" fill="#a3e635"/>
-			<text data-for="chip-status" x="86" y="219">experimental</text>
+			<circle class="static" cx="74" cy="238" r="4" fill="#ffc94d"/>
+			<text data-for="chip-status" x="86" y="243">experimental</text>
+			<rect id="chip-unofficial" data-box="" x="200" y="224" width="104" height="28" rx="14" fill="#8b5cf6" fill-opacity="0.12" stroke="#a98bd6" stroke-opacity="0.7"/>
+			<text data-for="chip-unofficial" x="216" y="243">unofficial</text>
 		</g>
-		<text class="mono" x="56" y="266" font-size="12" fill="#8a96aa">Liminal HQ Labs</text>
+		<text class="mono" x="56" y="286" font-size="12" fill="#c9b3d9">Liminal HQ Labs</text>
 
-		<!-- Right: a flask bubbling on the bench -->
-		<rect x="860" y="257" width="300" height="2" fill="#b4bfce" opacity="0.35"/>
+		<!-- The official install disc -->
+		<circle cx="540" cy="150" r="42" fill="url(#disc)" stroke="#f1e6f5" stroke-opacity="0.5"/>
 		<g class="motion">
-			<ellipse cx="980" cy="212" rx="90" ry="56" fill="#4ade80" opacity="0.2" filter="url(#haze)">
-				<animate attributeName="opacity" dur="4.5s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="0.16;0.32;0.16"/>
-			</ellipse>
+			<use href="#sheen">
+				<animateTransform data-cyclic="" attributeName="transform" type="rotate" dur="6s" repeatCount="indefinite" values="0 540 150;360 540 150"/>
+			</use>
 		</g>
-		<ellipse class="static" cx="980" cy="212" rx="90" ry="56" fill="#4ade80" opacity="0.24" filter="url(#haze)"/>
-		<g clip-path="url(#flask-in)">
-			<path fill="url(#liquid)" d="M900 200H1060V260H900Z"/>
-			<g class="motion" fill="#ecfccb">
-				<circle cx="962" cy="244" r="3" opacity="0">
-					<animate attributeName="cy" dur="3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.05;0.7;1" keySplines="0 0 1 1;0.5 0 0.8 1;0 0 1 1" values="244;244;204;204"/>
-					<animate attributeName="opacity" dur="3s" repeatCount="indefinite" keyTimes="0;0.05;0.15;0.6;0.7;1" values="0;0;0.85;0.85;0;0"/>
-				</circle>
-				<circle cx="990" cy="244" r="4" opacity="0">
-					<animate attributeName="cy" dur="4.5s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.3;0.9;1" keySplines="0 0 1 1;0.5 0 0.8 1;0 0 1 1" values="244;244;204;204"/>
-					<animate attributeName="opacity" dur="4.5s" repeatCount="indefinite" keyTimes="0;0.3;0.4;0.8;0.9;1" values="0;0;0.8;0.8;0;0"/>
-				</circle>
-				<circle cx="1010" cy="242" r="2.5" opacity="0">
-					<animate attributeName="cy" dur="3s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.4;0.95;1" keySplines="0 0 1 1;0.5 0 0.8 1;0 0 1 1" values="242;242;205;205"/>
-					<animate attributeName="opacity" dur="3s" repeatCount="indefinite" keyTimes="0;0.4;0.5;0.85;0.95;1" values="0;0;0.85;0.85;0;0"/>
+		<use class="static" href="#sheen"/>
+		<circle cx="540" cy="150" r="14" fill="#2b1238" stroke="#f1e6f5" stroke-opacity="0.6"/>
+		<circle cx="540" cy="150" r="5" fill="#1c0f2e"/>
+		<g class="mono" font-size="11" text-anchor="middle" fill="#d9c6e8">
+			<text x="540" y="214">ReactOS 0.4.16</text>
+			<text x="540" y="230">official ISO</text>
+		</g>
+
+		<!-- Connectors -->
+		<path data-line="" d="M586 150H608" stroke="#c9b3d9" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="4 4"/>
+		<path d="M606 145L613 150L606 155Z" fill="#c9b3d9" fill-opacity="0.8"/>
+		<path data-line="" d="M796 140H820" stroke="#c9b3d9" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="4 4"/>
+		<path d="M818 135L825 140L818 145Z" fill="#c9b3d9" fill-opacity="0.8"/>
+
+		<!-- The recipe card: four stages, each with its hash guard -->
+		<rect id="recipe" data-box="" x="612" y="40" width="180" height="240" rx="12" fill="#22113a" stroke="#4a2470" stroke-width="1.5"/>
+		<text data-for="recipe" class="mono" x="628" y="64" font-size="12" font-weight="700" fill="#ffc94d">recipe.toml</text>
+		<g class="mono" font-size="13" font-weight="600" fill="#f1e6f5">
+			<rect id="stage-install" data-box="" x="626" y="78" width="124" height="34" rx="8" fill="#321a4d"/>
+			<rect id="stage-trim" data-box="" x="626" y="122" width="124" height="34" rx="8" fill="#321a4d"/>
+			<rect id="stage-dress" data-box="" x="626" y="166" width="124" height="34" rx="8" fill="#321a4d"/>
+			<rect id="stage-patch" data-box="" x="626" y="210" width="124" height="34" rx="8" fill="#321a4d"/>
+			<g class="motion" fill="#ffc94d">
+				<rect x="626" y="78" width="124" height="34" rx="8" opacity="0">
+					<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.083;0.1;0.167;0.183;1" values="0;0;0.3;0.3;0;0"/>
+				</rect>
+				<rect x="626" y="122" width="124" height="34" rx="8" opacity="0">
+					<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.183;0.2;0.267;0.283;1" values="0;0;0.3;0.3;0;0"/>
+				</rect>
+				<rect x="626" y="166" width="124" height="34" rx="8" opacity="0">
+					<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.283;0.3;0.367;0.383;1" values="0;0;0.3;0.3;0;0"/>
+				</rect>
+				<rect x="626" y="210" width="124" height="34" rx="8" opacity="0">
+					<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.383;0.4;0.467;0.483;1" values="0;0;0.3;0.3;0;0"/>
+				</rect>
+			</g>
+			<text data-for="stage-install" x="640" y="100">install</text>
+			<text data-for="stage-trim" x="640" y="144">trim</text>
+			<text data-for="stage-dress" x="640" y="188">dress</text>
+			<text data-for="stage-patch" x="640" y="232">patch</text>
+		</g>
+		<g class="motion">
+			<use href="#tick-mark" x="770" y="95" opacity="0">
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.175;0.19;0.95;0.98;1" values="0;0;1;1;0;0"/>
+			</use>
+			<use href="#tick-mark" x="770" y="139" opacity="0">
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.275;0.29;0.95;0.98;1" values="0;0;1;1;0;0"/>
+			</use>
+			<use href="#tick-mark" x="770" y="183" opacity="0">
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.375;0.39;0.95;0.98;1" values="0;0;1;1;0;0"/>
+			</use>
+			<use href="#tick-mark" x="770" y="227" opacity="0">
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.475;0.49;0.95;0.98;1" values="0;0;1;1;0;0"/>
+			</use>
+		</g>
+		<g class="static">
+			<use href="#tick-mark" x="770" y="95"/>
+			<use href="#tick-mark" x="770" y="139"/>
+			<use href="#tick-mark" x="770" y="183"/>
+			<use href="#tick-mark" x="770" y="227"/>
+		</g>
+		<text data-for="recipe" class="mono" x="628" y="266" font-size="10" fill="#c9b3d9">every input sha256-pinned</text>
+
+		<!-- The window: an Afterglow desktop at dusk -->
+		<rect x="834" y="40" width="330" height="188" rx="10" fill="#000000" opacity="0.3"/>
+		<rect x="830" y="36" width="330" height="188" rx="10" fill="#160b26" stroke="#4a2470" stroke-width="1.5"/>
+		<circle cx="846" cy="47" r="4" fill="#ffc94d"/>
+		<circle cx="860" cy="47" r="4" fill="#e8657c"/>
+		<circle cx="874" cy="47" r="4" fill="#8b5cf6"/>
+		<g clip-path="url(#desktop-clip)">
+			<rect x="832" y="58" width="326" height="118" fill="url(#sky)"/>
+			<rect x="832" y="176" width="326" height="46" fill="url(#ground)"/>
+			<g class="motion">
+				<circle cx="1072" cy="176" r="54" fill="url(#glow)">
+					<animate attributeName="opacity" dur="6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="0.7;1;0.7"/>
 				</circle>
 			</g>
-			<g class="static" fill="#ecfccb" opacity="0.8">
-				<circle cx="962" cy="226" r="3"/>
-				<circle cx="990" cy="214" r="4"/>
-				<circle cx="1010" cy="236" r="2.5"/>
+			<circle class="static" cx="1072" cy="176" r="54" fill="url(#glow)" opacity="0.85"/>
+			<g clip-path="url(#above-horizon)">
+				<circle cx="1072" cy="176" r="30" fill="url(#sun)"/>
+				<rect x="1040" y="160" width="64" height="2" fill="#e8657c"/>
+				<rect x="1040" y="167" width="64" height="3" fill="#e8657c"/>
+			</g>
+			<ellipse cx="1072" cy="182" rx="34" ry="3" fill="#ffc94d" opacity="0.45"/>
+			<!-- Desktop icons -->
+			<rect x="846" y="70" width="22" height="22" rx="6" fill="#4a2470" stroke="#f1e6f5" stroke-opacity="0.35"/>
+			<circle cx="857" cy="81" r="5" fill="#ffc94d"/>
+			<rect x="846" y="104" width="22" height="22" rx="6" fill="#4a2470" stroke="#f1e6f5" stroke-opacity="0.35"/>
+			<rect x="851" y="110" width="12" height="10" rx="2" fill="#9be7c4"/>
+			<!-- A small window in the Dusk scheme -->
+			<rect x="930" y="76" width="112" height="70" rx="5" fill="#f4f0f6"/>
+			<rect x="930" y="76" width="112" height="14" rx="5" fill="url(#caption)"/>
+			<rect x="930" y="84" width="112" height="6" fill="url(#caption)"/>
+			<rect x="940" y="98" width="62" height="4" rx="2" fill="#c9b3d9"/>
+			<rect x="940" y="108" width="84" height="4" rx="2" fill="#c9b3d9"/>
+			<rect x="940" y="118" width="48" height="4" rx="2" fill="#c9b3d9"/>
+			<!-- Taskbar and Start button -->
+			<rect id="taskbar" data-box="" x="832" y="194" width="326" height="28" fill="#1a0d2b"/>
+			<rect id="start" data-box="" x="838" y="196" width="62" height="24" rx="12" fill="#ffc94d"/>
+			<circle cx="851" cy="208" r="4" fill="#e8657c"/>
+			<text data-for="start" class="ui" x="859" y="212.5" font-size="11" font-weight="700" fill="#2b1238">Start</text>
+			<text data-for="taskbar" class="mono" x="1112" y="212.5" font-size="10" fill="#d9c6e8">18:42</text>
+			<!-- The install curtain: progress while the recipe runs, then it lifts -->
+			<g class="motion" opacity="1">
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.66;0.71;0.95;0.98;1" values="1;1;0;0;1;1"/>
+				<rect x="832" y="58" width="326" height="164" fill="#160b26"/>
+				<rect x="885" y="136" width="220" height="6" rx="3" fill="#321a4d"/>
+				<rect x="885" y="136" width="0" height="6" rx="3" fill="#ffc94d">
+					<animate attributeName="width" dur="12s" repeatCount="indefinite" keyTimes="0;0.083;0.483;0.95;1" values="0;0;220;220;0"/>
+				</rect>
 			</g>
 		</g>
-		<path d="M966 104V156L916 236Q910 248 924 248H1036Q1050 248 1044 236L994 156V104" fill="#ffffff" fill-opacity="0.05" stroke="#e0e0e0" stroke-opacity="0.65" stroke-width="2.5" stroke-linejoin="round"/>
-		<rect x="959" y="95" width="42" height="10" rx="4" fill="#161a26" stroke="#e0e0e0" stroke-opacity="0.65" stroke-width="2.5"/>
-		<path d="M936 222L970 168" stroke="#ffffff" stroke-opacity="0.22" stroke-width="5" stroke-linecap="round"/>
+
+		<!-- The FreeLoader menu: the minimal gold bar -->
+		<rect id="boot-menu" data-box="" x="830" y="236" width="330" height="52" rx="6" fill="#000000" stroke="#4a2470" stroke-width="1.5"/>
+		<g class="motion" opacity="0">
+			<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.55;0.575;0.95;0.98;1" values="0;0;1;1;0;0"/>
+			<rect id="boot-sel" data-box="" x="840" y="240" width="310" height="26" fill="#e8b43a"/>
+			<text data-for="boot-sel" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">Afterglow for ReactOS</text>
+			<text data-for="boot-menu" class="mono" x="850" y="279" font-size="11" fill="#a99bb6">ReactOS</text>
+		</g>
+		<g class="static">
+			<rect id="boot-sel-static" data-box="" x="840" y="240" width="310" height="26" fill="#e8b43a"/>
+			<text data-for="boot-sel-static" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">Afterglow for ReactOS</text>
+			<text data-for="boot-menu" class="mono" x="850" y="279" font-size="11" fill="#a99bb6">ReactOS</text>
+		</g>
+
+		<!-- The gold packet: disc to recipe, recipe to window -->
+		<g class="motion" fill="#ffc94d">
+			<circle cx="588" cy="150" r="5" opacity="0">
+				<animate attributeName="cx" dur="12s" repeatCount="indefinite" keyTimes="0;0.02;0.08;1" values="588;588;608;608"/>
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.02;0.03;0.075;0.085;1" values="0;0;1;1;0;0"/>
+			</circle>
+			<circle cx="798" cy="140" r="5" opacity="0">
+				<animate attributeName="cx" dur="12s" repeatCount="indefinite" keyTimes="0;0.49;0.55;1" values="798;798;820;820"/>
+				<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.49;0.5;0.545;0.555;1" values="0;0;1;1;0;0"/>
+			</circle>
+		</g>
 	</g>
 	<rect class="edge" x="0.5" y="0.5" width="1199" height="319" rx="18"/>
 </svg>
