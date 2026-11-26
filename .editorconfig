@@ -16,8 +16,8 @@ trim_trailing_whitespace = false
 indent_style = space
 indent_size = 2
 
-# rustfmt uses hard tabs (see rustfmt.toml).
-[*.rs]
+# Python uses tabs, as ruff is configured.
+[*.py]
 indent_style = tab
 indent_size = 4
 

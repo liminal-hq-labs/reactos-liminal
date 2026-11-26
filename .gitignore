@@ -1,15 +1,48 @@
 # Planning notes stay local; decisions live in docs/decisions.md.
 /PLAN.md
 
-# Rust build output
-/target/
-
-# JavaScript dependencies and build output
-node_modules/
+# Work directories belong outside the repository; these catch a stray one.
+/work/
+/WORK/
+/out/
 /dist/
+/snap-*/
+*.lock.json
 
-# Python bytecode
+# Images, media and VM state: never in git.
+*.iso
+*.img
+*.vdi
+*.vmdk
+*.vhd
+*.qcow2
+*.raw
+*.zst
+*.cab
+*.zip
+*.bin
+*.state
+*.sav
+*.pid
+*.sock
+*.log
+
+# Upstream binaries: never in git.
+*.exe
+*.dll
+*.sys
+*.hiv
+*.msstyles
+
+# Caches and dependencies
 __pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+.venv/
+node_modules/
+/v86/
+.cache/
 
 # Banner review frames
 /shots/
