@@ -83,6 +83,15 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install --quiet numpy==2.5.4 pillow==13.0.0
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          # Afterglow's wallpaper renderer needs ImageMagick 7 (`magick`); Ubuntu ships 6, so the pinned official AppImage is used.
+          mkdir -p "$RUNNER_TEMP/magick"
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/magick/ImageMagick.AppImage" \
+            https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-35/ImageMagick-7.1.2-35-gcc-x86_64.AppImage
+          echo "f111044ed06b68cfb478df724c5a32d35145afa21073242f888d234a2f8cc002  $RUNNER_TEMP/magick/ImageMagick.AppImage" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/magick/ImageMagick.AppImage"
+          printf '#!/bin/sh\nAPPIMAGE_EXTRACT_AND_RUN=1 exec "%s/magick/ImageMagick.AppImage" "$@"\n' "$RUNNER_TEMP" > "$RUNNER_TEMP/magick/magick"
+          chmod +x "$RUNNER_TEMP/magick/magick"
+          echo "$RUNNER_TEMP/magick" >> "$GITHUB_PATH"
           export PATH="$RUNNER_TEMP/venv/bin:$PATH"
           # Ubuntu names the LLVM tools with a version; Afterglow's scripts look for the plain names.
           for tool in llvm-rc lld-link; do
