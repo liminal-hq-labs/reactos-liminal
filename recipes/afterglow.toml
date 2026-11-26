@@ -16,14 +16,14 @@ url = "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-
 zip_sha256 = "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a"
 sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 
-# The Afterglow source, by commit; it carries the logon and boot art as well as the style and pointers. The sums are of the
-# uncompressed tar GitHub serves for that commit (GitHub may recompress an archive) and of the default build of the visual style
-# (classic scroll bars).
+# The Afterglow source, by commit on Afterglow main; it carries the icon, logon and boot art as well as the style, pointers and colours.
+# The sums are of the uncompressed tar GitHub serves for that commit (GitHub may recompress an archive) and of the default build of the
+# visual style (classic scroll bars).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "c0be85912a66c366974086d8d83c58de5884ab45"
-tar_sha256 = "4e2a6263ddf27efc999c2e2126a4358ce67c8d293b1e0a7f7ddaea68e69f05c7"
-msstyles_sha256 = "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d"
+commit = "24bc04857c7ba5de23886fc6c8a78474326194cb"
+tar_sha256 = "1fee94a3d4f4a3d69882a1f9d82e6bfb1d7436434ba727aa9b5170ae3f7cc2ac"
+msstyles_sha256 = "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
 # from its SVG master to the 1024 x 768 BMP. The sum is of that BMP. Other scenes: dusk-light-smooth, or any palette, mode and style
