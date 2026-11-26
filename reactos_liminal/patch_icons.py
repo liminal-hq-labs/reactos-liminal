@@ -79,7 +79,10 @@ def _check_map(source_tree: Path, rows: list[dict]) -> None:
 			)
 
 
-def _render(source_tree: Path, destination: Path) -> None:
+def render_icons(source_tree: Path, destination: Path) -> None:
+	"""Render Afterglow's icon set into `destination` once; a later patcher in the same build reuses it."""
+	if (destination / "ico").is_dir():
+		return
 	tool = source_tree / "desktop" / "icons" / "render.py"
 	if not tool.is_file():
 		raise PatchError(f"{tool} is missing; the pinned Afterglow commit has no icon renderer")
@@ -88,20 +91,25 @@ def _render(source_tree: Path, destination: Path) -> None:
 		raise PatchError(f"Afterglow's render.py failed: {(done.stderr or done.stdout).strip()[-400:]}")
 
 
-def patch_shell32(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, list[str]]:
-	"""Replace the icon groups in a shell32.dll. `icons` maps a group id to the bytes of its .ico file. Returns the new file and a line
+def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, list[str]]:
+	"""Replace the icon groups in a PE file (shell32.dll, a .cpl, a program). `icons` maps a group id to the bytes of its .ico file.
+	Returns the new file and a line
 	per group. Raises PatchError when a group is missing, has too few frame ids, or a frame is not 32-bit."""
 	try:
 		pe = PeFile(stock)
 		groups = pe.data_entries(RT_GROUP_ICON)
 		frames_by_id = pe.data_entries(RT_ICON)
+		users: dict[int, set[int]] = {}  # frame id -> the groups that list it; a frame shared with another group cannot be reused
+		for other_id, other_entries in groups.items():
+			for frame in parse_group(pe.entry_data(other_entries[0])):
+				users.setdefault(frame.icon_id, set()).add(other_id)
 		content = bytearray()
 		edits: list[tuple[list[int], int, int]] = []  # (data entries, offset in the new section, size)
 		report = []
 		for group_id in sorted(icons):
 			if group_id not in groups:
-				raise PatchError(f"shell32.dll has no icon group {group_id}")
-			stock_frames = parse_group(pe.entry_data(groups[group_id][0]))
+				raise PatchError(f"the file has no icon group {group_id}")
+			stock_frames = [frame for frame in parse_group(pe.entry_data(groups[group_id][0])) if users[frame.icon_id] == {group_id}]
 			available = [frame.icon_id for frame in stock_frames]
 			for icon_id in available:
 				if icon_id not in frames_by_id:
@@ -117,7 +125,7 @@ def patch_shell32(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, list[st
 				raise PatchError(f"the icon for group {group_id} lacks one of the sizes 48, 32 and 16")
 			if len(available) < len(SIZES):
 				raise PatchError(
-					f"group {group_id} has {len(available)} frame ids and needs {len(SIZES)}; "
+					f"group {group_id} has {len(available)} frame ids of its own and needs {len(SIZES)}; "
 					"the resource directory is not grown, so it is refused"
 				)
 			# Give each new frame a stock frame id of the same size and depth where there is one, then any other unused id.
@@ -148,7 +156,7 @@ def patch_shell32(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, list[st
 		pe.update_checksum()
 		return pe.to_bytes(), report
 	except PeError as error:
-		raise PatchError(f"shell32.dll cannot be patched: {error}") from error
+		raise PatchError(f"the file cannot be patched: {error}") from error
 
 
 def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
@@ -166,7 +174,7 @@ def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: P
 	rows = [row for row in table["groups"] if row["apply"]]
 	_check_map(source_tree, rows)
 	render_dir = scratch / "icons"
-	_render(source_tree, render_dir)
+	render_icons(source_tree, render_dir)
 	afterglow_sums = _afterglow_sums(source_tree)
 	icon_sums = {}
 	icons = {}
@@ -184,7 +192,7 @@ def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: P
 	expected = pins["results"].get(digest)
 	if expected is None:
 		raise PatchError(f"no pinned result for icon set {digest}; patch, check the result and add it to {PINS_FILE.name}")
-	patched_bytes, report = patch_shell32(stock_file.read_bytes(), icons)
+	patched_bytes, report = patch_icon_groups(stock_file.read_bytes(), icons)
 	patched = scratch / "shell32-afterglow.dll"
 	patched.write_bytes(patched_bytes)
 	result = sha256_file(patched)

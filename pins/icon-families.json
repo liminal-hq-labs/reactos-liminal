@@ -1,0 +1,34 @@
+{
+	"families": {
+		"cpl-icons": {
+			"d1ddae58c1dedfc450f17813993abdb7ef4aeac6181d347b429d01202d0edc81": {
+				"ReactOS/system32/access.cpl": "b91fc7bf84158219e7c303e0730378306cc6252b6b992a8fec3985ef7b327e99",
+				"ReactOS/system32/appwiz.cpl": "0a29b72838e260d7c9fe46443c8babc5680759608bb279f00bc0b990552157bd",
+				"ReactOS/system32/desk.cpl": "4a8cd593a41f23000bb57a2a8b5429703c7d50d6ca4cc76c8808b6783befa9b7",
+				"ReactOS/system32/hdwwiz.cpl": "a817a6c404b392c4296c2b2a125e893d55b83122e53cb52265a3057235a02652",
+				"ReactOS/system32/inetcpl.cpl": "96e511bab5c016fd3d48b0786cf33dfe2d693a0332919a144b23cdd21cd20375",
+				"ReactOS/system32/intl.cpl": "25e2919c7ba87ebdf8ceeb9b18de885b1288ae88a2b0262e4bb7b1eba372cc62",
+				"ReactOS/system32/main.cpl": "d9a9916c611b16e567485454d0b786d3e8a7075160990626cd0e924937b2dc97",
+				"ReactOS/system32/mmsys.cpl": "9867cce97fea8a9fd1e85e4d6facc9474895c0e4088582da1ceb70aef6af56bc",
+				"ReactOS/system32/powercfg.cpl": "8cbcdd8ceb16e4d2279adbce25493e2ca50baa08621d2759d8cdaa3b23057d63",
+				"ReactOS/system32/sysdm.cpl": "0b1de4bcc42921e87d85363d2d86a3d8c96890dc1d8f21071a828ab53576e318",
+				"ReactOS/system32/timedate.cpl": "ff40a442c0e4c2388da7626a3a98e380ecd3f1dadc03d8f29a145d142c4a64e1"
+			}
+		},
+		"program-icons": {
+			"92cb33652c0027be70826972db89eaae72b8ccf0705424677016cf8e71ca6e26": {
+				"ReactOS/system32/cmd.exe": "cf4ba47575619416910899db4bbfba75cf70d184a9ece9082407b5aac77708f7",
+				"ReactOS/system32/notepad.exe": "b45dd27a46f75aa432a901f066e364a6e18196a88e602c48c652ea6062769bd1",
+				"ReactOS/system32/rapps.exe": "2ae3205e6892715ac8bced38a04996b06fb511013fed86d2036b2bae56159c46",
+				"Program Files/Internet Explorer/iexplore.exe": "04325208318e3eb2fb728b9180e73d0dfc2ed81698d9da57064532fce02d85d2",
+				"ReactOS/system32/cabview.dll": "9d297bf1cddbef086c5198bb6f1f21ae2a300decf87763f593f936520415371e",
+				"ReactOS/system32/shimgvw.dll": "35c396d549ac08a259d6422836485dc8661251d052725342d878e1d03551198b"
+			}
+		},
+		"toolbar-bitmaps": {
+			"c647f8ebf227f0aa9c6c72e226deb77f6847aaae4db25637a761634d62dc6a5c": {
+				"ReactOS/system32/browseui.dll": "d093fee39ad3d099c0b778ac9bf7bb288d3426c2cc5d8c5a82b83c94321bd98c"
+			}
+		}
+	}
+}

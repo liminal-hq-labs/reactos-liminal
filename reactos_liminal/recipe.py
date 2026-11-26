@@ -25,7 +25,14 @@ NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
 MIN_CHUNK_SIZE = 64 * 1024
 
-PATCHERS = ("afterglow.pointers", "afterglow.start", "afterglow.icons")
+PATCHERS = (
+	"afterglow.pointers",
+	"afterglow.start",
+	"afterglow.icons",
+	"afterglow.cpl-icons",
+	"afterglow.program-icons",
+	"afterglow.toolbar-bitmaps",
+)
 REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons")
 TRIM_PROFILES = ("none", "base")
 
