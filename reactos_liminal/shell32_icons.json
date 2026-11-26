@@ -303,6 +303,13 @@
 			"name": "IDI_SHELL_CONTROL_PANEL1",
 			"used_by": "Start menu: Settings",
 			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 512,
+			"name": "IDI_SHELL_WEB_BROWSER",
+			"used_by": "Internet Browser desktop icon (DefaultIcon shell32.dll,-512 of CLSID {871C5380-42A0-1069-A2EA-08002B30309D})",
+			"stock_frames": "16@8 32@8 48@8 16@32 32@32 48@32",
+			"afterglow": "browser"
 		}
 	]
 }

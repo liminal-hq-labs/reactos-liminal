@@ -1,9 +1,10 @@
 {
 	"families": {
 		"cpl-icons": {
-			"e822e39e75b4143568b84159ebbb9fdd30eba0ed304b0c0bc299e14e71068823": {
+			"c19be60f2b18729c4519202c8e9bad5dac6ca8c150da6a6fd8b8067776bed918": {
 				"ReactOS/system32/access.cpl": "bcfeb3ecdccf787b8fe7ed5a23fa948d7cfbc0e40bfbc60525650c5d35d5ee85",
 				"ReactOS/system32/appwiz.cpl": "438ec6156334a64d2c93a010b900edef02d68ddaa01a2fcac5bc42a1506d0bb1",
+				"ReactOS/system32/console.dll": "e3aedc8e50bf162156941c8257d38af851866051ce11f893f21582011278d116",
 				"ReactOS/system32/desk.cpl": "7eaafecc8bc42c71c08b2aeb2b19e3b064400382367706e951c2778c1446f862",
 				"ReactOS/system32/hdwwiz.cpl": "a0108dd33a95903cc55bd910448a2403be57c0f9495ce1d9bdcdd76db43b7513",
 				"ReactOS/system32/inetcpl.cpl": "ae655b30036f5188eb55e79c76bb6a5e7ec67f7323d7e4b5cb190205f2393219",
@@ -16,9 +17,10 @@
 			}
 		},
 		"program-icons": {
-			"722efe4fd3329383e31e4b9470e0a4d59a732e2f199fd5a4c843db08b3d189cc": {
+			"773db69ea3e0164ff5a2539e817ead4a003036aea2f7271bab2fdc3079dcdc2e": {
 				"ReactOS/system32/cmd.exe": "a32fa3af3a599b1811b37cd6c4841e35a2228b3b4b04015ba63490530b1103e3",
 				"ReactOS/system32/notepad.exe": "b8b5c325532548eea99fbf920ef9402d13b6c20d762c959b45c87a97f3f00d07",
+				"Program Files/Internet Explorer/iexplore.exe": "e807ae15521fd511df6fcc0e13d6aec6405b769ede3a3b8f2a0a75180bbc25f1",
 				"ReactOS/system32/cabview.dll": "f87372cc59c2a35e41f8adcd4035f8dba046bb7c17580b032754d8dbdfe61589",
 				"ReactOS/system32/shimgvw.dll": "59dafc9d9c1d29027f3fb241af8910ec659a60019366dfbf068d9fd40e58b75b",
 				"ReactOS/system32/netshell.dll": "446ef8e9352096a49ccbbbf7b38db36e9724cc25794e9ecb815b28f49b54b175"

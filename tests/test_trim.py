@@ -37,7 +37,7 @@ def test_none_removes_nothing():
 
 def test_base_is_a_complete_list_that_keeps_the_network_stack():
 	entries = lines(load_profile("base"))
-	assert len(entries) == 131
+	assert len(entries) == 130
 	assert not any("tcpip" in line.lower() or "afd" in line.lower() or "tdi" in line.lower() for line in entries)
 	assert not any(driver in entries for driver in NIC_DRIVERS)
 
