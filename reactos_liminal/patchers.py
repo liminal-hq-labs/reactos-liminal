@@ -43,7 +43,7 @@ def _afterglow_pointers(golden: FatImage, source_tree: Path, files: Path, scratc
 	if actual != expected:
 		patched.unlink(missing_ok=True)
 		raise PatchError(f"patched user32.dll is {actual}, expected {expected}")
-	log("patch", f"afterglow.pointers: user32.dll patched ({actual})")
+	log("patch", f"   afterglow.pointers: user32.dll patched ({actual})")
 	return [PatchedFile("ReactOS/system32/user32.dll", patched)]
 
 
