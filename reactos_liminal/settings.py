@@ -43,13 +43,21 @@ def display_reg(width: int, height: int) -> str:
 	return f"{HEADER}\n; Display, from the recipe.\n[{keys}\\Device0]\n{section}\n[{keys}\\Device1]\n{section}"
 
 
-def appearance_reg(icon_size: int, wallpaper: str | None) -> str:
-	"""Desktop icon size (the small icons in menus and the taskbar stay 16 px) and, when the recipe sets one, the wallpaper, stretched."""
+WALLPAPER_STYLES = {"centre": ("0", "0"), "tile": ("0", "1"), "stretch": ("2", "0")}  # WallpaperStyle, TileWallpaper
+
+
+def appearance_reg(icon_size: int, wallpaper: str | None, style: str = "stretch") -> str:
+	"""Desktop icon size (the small icons in menus and the taskbar stay 16 px) and, when the recipe sets one, the wallpaper in the style
+	the recipe names: stretched (the default), centred or tiled."""
 	metrics = "HKEY_CURRENT_USER\\Control Panel\\Desktop\\WindowMetrics"
 	text = f'{HEADER}\n; Appearance, from the recipe.\n[{metrics}]\n"Shell Icon Size"="{icon_size}"\n'
 	if wallpaper:
 		escaped = wallpaper.replace("\\", "\\\\")
-		text += f'\n[HKEY_CURRENT_USER\\Control Panel\\Desktop]\n"Wallpaper"="{escaped}"\n"WallpaperStyle"="2"\n"TileWallpaper"="0"\n'
+		wallpaper_style, tile = WALLPAPER_STYLES[style]
+		text += (
+			f'\n[HKEY_CURRENT_USER\\Control Panel\\Desktop]\n"Wallpaper"="{escaped}"\n'
+			f'"WallpaperStyle"="{wallpaper_style}"\n"TileWallpaper"="{tile}"\n'
+		)
 	return text
 
 
@@ -58,11 +66,13 @@ def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[
 	Afterglow files that select the style and the pointer scheme."""
 	settings = recipe.section("settings")
 	files = {"display": display_reg(settings["display_width"], settings["display_height"])}
-	files["appearance"] = appearance_reg(settings["icon_size"], settings.get("wallpaper"))
+	files["appearance"] = appearance_reg(settings["icon_size"], settings.get("wallpaper"), settings["wallpaper_style"])
 	for name in settings["reg_files"]:
 		if name == "display":
 			continue
 		files[name] = (REG_DIR / f"{name}.reg").read_text(encoding="utf-8")
+	if "afterglow.start" in recipe.section("patchers", "list"):
+		files["shell-agexplorer"] = (REG_DIR / "shell-agexplorer.reg").read_text(encoding="utf-8")
 	if afterglow_files is not None:
 		for name in ("afterglow", "pointers"):
 			path = afterglow_files / f"{name}.reg"

@@ -87,3 +87,21 @@ def test_the_settings_iso_holds_the_files(fake_iso_recipe, tmp_path):
 def test_the_build_vm_runs_small_and_safe(tmp_path):
 	spec = settings.build_vm_spec(tmp_path / "a.img", tmp_path / "s.iso", "kvm")
 	assert spec.memory_mb == 256 and spec.disk_cache == "writethrough" and spec.cdrom == tmp_path / "s.iso"
+
+
+def test_wallpaper_styles_set_the_two_desktop_values():
+	path = "C:\\ReactOS\\afterglow-wallpaper.bmp"
+	assert '"WallpaperStyle"="2"' in settings.appearance_reg(32, path, "stretch")
+	centred = settings.appearance_reg(32, path, "centre")
+	assert '"WallpaperStyle"="0"' in centred and '"TileWallpaper"="0"' in centred
+	tiled = settings.appearance_reg(32, path, "tile")
+	assert '"WallpaperStyle"="0"' in tiled and '"TileWallpaper"="1"' in tiled
+
+
+def test_the_start_patcher_selects_its_shell(base_recipe_path):
+	recipe = load(base_recipe_path)
+	files = settings.settings_files(recipe)
+	assert '"Shell"="agexplorer.exe"' in files["shell-agexplorer"]
+	assert 'Wallpaper"="C:\\\\ReactOS\\\\afterglow-wallpaper.bmp"' in files["appearance"]
+	recipe.data["patchers"]["list"] = ["afterglow.pointers"]
+	assert "shell-agexplorer" not in settings.settings_files(recipe)

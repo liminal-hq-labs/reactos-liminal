@@ -20,10 +20,15 @@ sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 # archive) and of the default build of the visual style (classic scroll bars).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "af5639304ea6e0ef59db48e67b1ac3d128966b30"
-tar_sha256 = "c595c68029e8ae48d3515a87b73e916cb15179101272b39a9c1ad64327c261bd"
+commit = "c0be85912a66c366974086d8d83c58de5884ab45"
+tar_sha256 = "4e2a6263ddf27efc999c2e2126a4358ce67c8d293b1e0a7f7ddaea68e69f05c7"
 msstyles_sha256 = "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d"
 apply_reg = "desktop/install/afterglow-original.reg"
+# The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
+# from its SVG master to the 1024 x 768 BMP. The sum is of that BMP. Other scenes: dusk-light-smooth, or any palette, mode and style
+# under assets/wallpapers/ in the Afterglow source.
+wallpaper = "dusk-dark-smooth"
+wallpaper_sha256 = "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d"
 
 # The unattended answers. Neutral names; a consumer recipe sets its own.
 [install]
@@ -38,6 +43,8 @@ display_width = 1024
 display_height = 768
 page_file = "64 64"
 icon_size = 32
+wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
+wallpaper_style = "stretch"
 reg_files = ["display", "quiet", "watermark-off"]
 
 # Which files the trim removes: none, or base (the Afterglow remaster's trim; keeps the network drivers and stack). A downstream
@@ -46,9 +53,10 @@ reg_files = ["display", "quiet", "watermark-off"]
 profile = "base"
 
 # Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
-# pointers (it patches a copy of user32.dll).
+# pointers (it patches a copy of user32.dll). The Start patch writes agexplorer.exe, a copy of explorer.exe with the Afterglow Start orb
+# and menu banner, and the settings step makes it the Winlogon shell.
 [patchers]
-list = ["afterglow.pointers"]
+list = ["afterglow.pointers", "afterglow.start"]
 
 [outputs.disk]
 zero_free = true

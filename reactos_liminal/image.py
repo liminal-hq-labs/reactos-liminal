@@ -29,6 +29,7 @@ from .paths import ensure
 from .recipe import Recipe
 from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile
 from .vm import PrivateVm
+from .wallpaper import WallpaperError, image_path, render_wallpaper, wanted
 
 PIPELINE = ("copy", "patchers", "trim", "files", "settings")
 DESKTOP = "Documents and Settings/Administrator/Desktop"
@@ -70,6 +71,8 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		plan.steps.append(f"  extra trim list {name}: {count} entries, applied after the profile and checked the same way")
 	extras = [f"{len(recipe.data['files'])} files", f"{len(recipe.data['shortcuts'])} shortcuts"]
 	extras.append("the Afterglow style and pointers")
+	if wanted(recipe):
+		extras.append(f"the {wanted(recipe)} wallpaper rendered from its SVG master to {recipe.section('settings', 'wallpaper')}")
 	extras.append(f"{len(recipe.section('settings', 'remove_desktop_shortcuts'))} stock desktop shortcuts removed")
 	plan.steps.append("files: " + ", ".join(extras))
 	if with_settings:
@@ -92,8 +95,27 @@ def _copy_sparse(source: Path, destination: Path) -> None:
 	destination.chmod(0o644)
 
 
-def _write_payload(recipe: Recipe, disk: FatImage, afterglow_files: Path | None, scratch: Path) -> None:
+def _write_wallpaper(recipe: Recipe, disk: FatImage, source_tree: Path | None, scratch: Path) -> None:
+	"""Render the recipe's Afterglow wallpaper and write it to `settings.wallpaper`, unless a `[[files]]` entry writes that path (the
+	recipe's own file wins, and nothing is rendered)."""
+	if wanted(recipe) is None or source_tree is None:
+		return
+	target = image_path(recipe.section("settings", "wallpaper"))
+	if any(entry["destination"].lower() == target.lower() for entry in recipe.data["files"]):
+		log("image", f"   wallpaper: [[files]] already writes {target}, so the Afterglow scene is not rendered")
+		return
+	try:
+		bitmap = render_wallpaper(recipe, source_tree, scratch)
+	except WallpaperError as error:
+		raise ImageError(str(error)) from error
+	if "/" in target:
+		_make_path(disk, target.rsplit("/", 1)[0])
+	disk.copy_in(bitmap, target)
+
+
+def _write_payload(recipe: Recipe, disk: FatImage, afterglow_files: Path | None, scratch: Path, source_tree: Path | None = None) -> None:
 	base = recipe.chain[0].parent
+	_write_wallpaper(recipe, disk, source_tree, scratch)
 	for entry in recipe.data["files"]:
 		source = (base / entry["source"]).resolve()
 		if not source.is_file():
@@ -183,7 +205,7 @@ def build_image(
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
-		_write_payload(recipe, disk, afterglow_files, scratch)
+		_write_payload(recipe, disk, afterglow_files, scratch, source_tree)
 
 		if with_settings:
 			log("image", "5. settings in the build VM")

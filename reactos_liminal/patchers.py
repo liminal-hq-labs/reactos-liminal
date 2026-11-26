@@ -47,7 +47,13 @@ def _afterglow_pointers(golden: FatImage, source_tree: Path, files: Path, scratc
 	return [PatchedFile("ReactOS/system32/user32.dll", patched)]
 
 
-PATCHERS = {"afterglow.pointers": _afterglow_pointers}
+def _afterglow_start(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
+	from .patch_start import afterglow_start  # imported here: the module imports this one for PatchError and PatchedFile
+
+	return afterglow_start(golden, source_tree, files, scratch)
+
+
+PATCHERS = {"afterglow.pointers": _afterglow_pointers, "afterglow.start": _afterglow_start}
 
 
 def run_patchers(names: list[str], golden: FatImage, source_tree: Path | None, files: Path | None, scratch: Path) -> list[PatchedFile]:
