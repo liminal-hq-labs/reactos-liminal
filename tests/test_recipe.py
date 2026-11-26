@@ -77,7 +77,7 @@ def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path
 	text = base_recipe_path.read_text().replace('profile = "base"', 'profile = "tiny"')
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
-	text = base_recipe_path.read_text().replace('list = ["afterglow.pointers", "afterglow.start"]', 'list = ["made.up"]')
+	text = base_recipe_path.read_text().replace('list = ["afterglow.pointers", "afterglow.start", "afterglow.icons"]', 'list = ["made.up"]')
 	with pytest.raises(RecipeError, match="patchers.list"):
 		load(write(tmp_path, "patch.toml", text))
 
