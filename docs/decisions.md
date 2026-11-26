@@ -30,6 +30,9 @@ Decisions take the prefix `RL` and a number (`RL-1`); a sub-decision adds a dot 
 | RL-13.1 | Minimal boot menu | FreeLoader's minimal menu (`MinimalUI=Yes`) with a gold selection bar on black. It shows no title and no FreeLoader credit line; attribution is carried by the entry name, the release notes (unofficial notice, GPL source offer, credits) and the docs | Owner | Chosen design 1 on the design canvas; the missing credit line is acknowledged |
 | RL-14 | Boot screen | FreeLoader's boot, the kernel boot animation, `bootvid.dll` and `hal.dll` stay as ReactOS draws them, apart from RL-13 and any boot-logo spike the owner adopts (see the open questions); a guard compares boot frames in every QEMU run | Owner | A remaster should not look like it replaced the system underneath |
 | RL-15 | Decision IDs | The `RL-` prefix with dotted sub-decisions | Assumed | Matches the per-area prefix convention of the other Labs projects |
+| RL-16 | Python package | The pipeline is the `reactos_liminal` package at the repository root, run by the `rl` shim in isolated mode (`python3 -I`); it uses the standard library only. Development tools are ruff and pytest, configured in `pyproject.toml`; tests that need QEMU carry the `qemu` marker and are skipped unless asked for | Assumed | Keeps the runtime dependency-free; pytest gives readable fixtures and markers for the slow tests |
+| RL-17 | Part size | The v86 disk part size is the recipe key `outputs.parts.chunk_size`, defaulting to 8 MiB | Assumed | Quill's page cut the disk into 1 MiB parts and is moving to a larger size; the default is the starting point until the measurements choose |
+| RL-18 | Copy, not import | The pipeline code was copied from Quill with a history note in `docs/migration.md`, not imported with its history | Owner | Quill-named history does not belong in this repository; each source path's log stays in Quill |
 
 ## Open questions
 

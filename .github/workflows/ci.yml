@@ -1,6 +1,5 @@
 # One job per check, so a pull request's checks list names exactly what passed or failed.
-# Language-neutral checks run as they are; uncomment the Python block below once the
-# pipeline lands.
+# Language-neutral checks run as they are, then the Python checks for the `rl` pipeline.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -8,9 +7,8 @@
 name: CI
 
 on:
+  # Every pull request, so the pull requests of a stack, which target the branch below them, are checked too.
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -88,7 +86,7 @@ jobs:
           persist-credentials: false
 
       - name: Run shellcheck
-        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable scripts/*.sh
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh
 
   actionlint:
     name: Workflows
@@ -103,54 +101,61 @@ jobs:
       - name: Run actionlint
         run: docker run --rm -v "${GITHUB_WORKSPACE}:/repo" -w /repo rhysd/actionlint:latest -color
 
-  # Python: one job per check, once reactos_liminal/ and tests/ exist.
-  #
-  # ruff:
-  #   name: Ruff
-  #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
-  #       with:
-  #         persist-credentials: false
-  #
-  #     - name: Install ruff
-  #       run: pipx install ruff
-  #
-  #     - name: Check formatting
-  #       run: ruff format --check
-  #
-  #     - name: Lint
-  #       run: ruff check
-  #
-  # test:
-  #   name: Tests
-  #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 20
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
-  #       with:
-  #         persist-credentials: false
-  #
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v6
-  #       with:
-  #         python-version: '3.12'
-  #
-  #     - name: Run the tests
-  #       run: python3 -I -m unittest discover -s tests
-  #
-  # no-binaries:
-  #   name: No upstream binaries
-  #   runs-on: ubuntu-24.04
-  #   timeout-minutes: 5
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v6
-  #       with:
-  #         persist-credentials: false
-  #
-  #     - name: Check git holds no ReactOS binary or image
-  #       run: bash scripts/check-no-binaries.sh
+  ruff:
+    name: Ruff
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install ruff
+        run: pipx install ruff==0.17.6
+
+      - name: Check formatting
+        run: ruff format --check
+
+      - name: Lint
+        run: ruff check
+
+  pytest:
+    name: Python tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # xorriso and mtools let the tests that build tiny synthetic images run; QEMU tests are marked and never run here.
+      - name: Install tools the tests use
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xorriso mtools zstd
+
+      - name: Install pytest
+        run: python3 -m pip install pytest==9.2.0
+
+      - name: Run the tests
+        run: python3 -m pytest
+
+  no-binaries:
+    name: No upstream binaries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check git holds no ReactOS binary or image
+        run: bash scripts/check-no-binaries.sh

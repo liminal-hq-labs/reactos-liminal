@@ -1,6 +1,6 @@
 # ReactOS Liminal specification
 
-The source of truth for behaviour. A change that alters behaviour updates this file in the same change. Each part is marked **Built** or **Planned**; today everything is planned.
+The source of truth for behaviour. A change that alters behaviour updates this file in the same change. Each part is marked **Built** or **Planned**.
 
 ## Purpose
 
@@ -30,10 +30,10 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 
 | Component | What | Status |
 |---|---|---|
-| `rl` | Entry point: a bash shim that runs `python3 -I -m reactos_liminal` | Planned |
-| `reactos_liminal/` | Python 3.12, standard library only: the recipe reader, lock writer, fetcher, steps, PE resource writer, MSCF cabinet writer, ISO remaster and a read-only hive reader | Planned |
+| `rl` | Entry point: a bash shim that runs the `reactos_liminal` package in isolated mode (`pyproject.toml` also installs it as `rl`) | Built |
+| `reactos_liminal/` | Python 3.12, standard library only: the recipe reader and validator, the hash-checked fetcher and `rl doctor` are built; the install, trim, image and parts steps follow, then the lock writer, PE resource writer, MSCF cabinet writer, ISO remaster and a read-only hive reader | Partly built |
 | `pins/` | The upstream ISO (URL, zip and ISO SHA-256) and the hash of every file a patcher accepts; the v86 version | Planned |
-| `recipes/` | Base and example recipes: `base/reactos-0.4.16.toml`, `kiosk-v86.toml`, `afterglow-desktop.toml`, `afterglow-iso.toml` | Planned |
+| `recipes/` | The base recipe `afterglow.toml`; consumers extend it | Built |
 | `guest/` | Unattended answer files, registry files, guest command scripts and trim lists | Planned |
 | `vm/` | Private QEMU runs: start, screenshot through the monitor, stop | Planned |
 | `harness/`, `web/` | The v86 state builder (TypeScript on Bun, driving headless Chromium) and a minimal page for it; not a public page | Planned |
@@ -41,12 +41,13 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 
 ## Recipes
 
-**Planned.** A recipe is a TOML file. It is declarative where that pays off (inputs, pins, settings, outputs, which steps run) and names code for the steps themselves.
+**Built** (the loader and validator; the steps they name are built as they land). A recipe is a TOML file. It is declarative where that pays off (inputs, pins, settings, outputs, which steps run) and names code for the steps themselves.
 
 - `[recipe]` names the recipe and optionally `extends` another, by path or as `rl:<path>` inside a pinned ReactOS Liminal release. A later table replaces an earlier one key by key; a `[[steps]]` list is appended unless an entry names `replace = "<id>"`.
 - `[inputs.*]` names every input with its pin: the ReactOS ISO (`pin = "pins/reactos-0.4.16.toml#iso"`), the Afterglow release and its manifest SHA-256, a consumer's own directories.
 - `[install]` holds the unattended answers: locale, time zone, computer name, owner name, classic shell.
-- `[settings]` holds the display mode, page file and Afterglow scheme (default `Dusk`).
+- `[settings]` holds the display mode, page file, desktop icon size, wallpaper path and registry files (default `Dusk` scheme).
+- `[trim]` names a trim profile (`none`, `base` or `demo`) and `[patchers]` lists the patchers to run, which run before the trim.
 - `[[steps]]` lists the steps by `use` (`trim`, `files`, `registry`, `shortcuts`, `afterglow.style`, `afterglow.pointers`, `afterglow.wallpaper`, `logon.msgina`, `logon.win32k-colours`, `hook`), each with an `id` and its parameters.
 - `[outputs]` chooses the disk, the v86 parts and state, and the remastered ISO.
 
@@ -56,9 +57,10 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Planned.**
+**Built:** `rl doctor`, `rl explain` and `rl fetch`. The rest is planned.
 
 ```text
+rl doctor                               # check that the tools the pipeline needs are installed
 rl build RECIPE [--out DIR] [--work DIR] [--iso FILE] [--from-golden FILE] [--only STEP] [--keep-work]
 rl verify LOCKFILE                      # rebuild and compare hashes
 rl fetch RECIPE                         # download and check every pinned input, nothing else
@@ -70,7 +72,7 @@ rl vm run|shot|stop DISK                # private QEMU with its own monitor sock
 rl serve DIR                            # range-capable static server for a local look in a browser
 ```
 
-`--work` must be outside the repository; `rl` refuses a work directory inside it. `--iso` takes the user's own copy of the official ISO, checked against the pin.
+`--work` (else `$RL_WORK`, else `~/.cache/reactos-liminal`) must be outside the repository; `rl` refuses a work directory inside it. `--iso` takes the user's own copy of the official ISO, checked against the pin.
 
 ## Outputs
 
@@ -80,7 +82,7 @@ rl serve DIR                            # range-capable static server for a loca
 |---|---|
 | Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image |
 | Disk image | The golden disk trimmed, configured and dressed; free space zeroed and holes punched |
-| v86 parts | 1 MiB zstd parts of the disk, with a manifest |
+| v86 parts | zstd parts of the disk, each `outputs.parts.chunk_size` bytes (default 8 MiB), with a manifest |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
 | Remastered ISO | The official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
 | Lock and build manifest | Every input and output hash, the tool versions and timings |

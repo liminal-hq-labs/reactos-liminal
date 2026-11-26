@@ -77,7 +77,7 @@ The pull request title and body become the merge commit message (the repository 
 ## Local tooling
 
 - **Editor settings:** `.editorconfig` is authoritative: tabs everywhere except YAML, which uses spaces.
-- **Python** (3.12, standard library only in the pipeline) is formatted and linted with `ruff format` and `ruff check`, configured for tabs, and tested with `python3 -I -m unittest`. Run project Python with `-I`.
+- **Python** (3.12, standard library only in the pipeline) is formatted and linted with `ruff format` and `ruff check`, configured for tabs, and tested with `pytest` (`python3 -m pytest`; tests that need QEMU are marked `qemu` and skipped unless run with `-m qemu`). Run project Python with `-I`. Write plain, readable variable names, not single letters, except for loop variables and lambdas.
 - **Shell** scripts pass shellcheck. **TypeScript** in `harness/` passes its typecheck and Prettier.
 - **Shared CI images** come from [`liminal-hq/.github`](https://github.com/liminal-hq/.github). Pick the leanest tier that fits and pin it by digest. A project image belongs here only when no shared tier covers it.
 - **Dependabot** is off. Add `.github/dependabot.yml` only when the project opts in.
@@ -127,10 +127,12 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 - `bash scripts/check-headers.sh` — SPDX headers
 - `bash scripts/check-banner.sh` — hero banner rules and text fit (needs `xmllint`, `rsvg-convert`, `python3` and Chromium; `--shots DIR` writes frames to look at)
 - `docker run --rm -v "$PWD:/workdir" davidanson/markdownlint-cli2:v0.17.2 "**/*.md"` — markdown
-- `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable scripts/*.sh` — shell scripts
+- `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh` — shell scripts
 - `docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint` — workflows
+- `ruff format --check`, `ruff check` and `python3 -m pytest` — Python
+- `bash scripts/check-no-binaries.sh` — git holds no upstream binary or image
 
-When the pipeline lands: `ruff check`, `ruff format --check` and `python3 -I -m unittest` for Python, and a check that git holds no upstream binary. State exactly what was and was not run when reporting results.
+State exactly what was and was not run when reporting results.
 
 ## Documentation
 
@@ -146,6 +148,9 @@ README.md SPEC.md AGENTS.md CLAUDE.md NOTICE.md LICENSE-APACHE LICENSE-MIT
 .editorconfig .markdownlint.jsonc .gitignore
 assets/        hero banner
 docs/          decisions and project notes
+reactos_liminal/  the `rl` package (Python, standard library only); `rl` is its shim
+recipes/       recipes; `afterglow.toml` is the base
+tests/         pytest tests (synthetic fixtures only)
 patches/       GPL-2.0-or-later source patches against ReactOS (licence note only so far)
 scripts/       header check, banner check and its Chromium text-fit harness
 .github/       CI workflow, issue and pull request templates, release notes configuration

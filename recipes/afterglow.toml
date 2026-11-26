@@ -1,0 +1,57 @@
+# The base recipe: ReactOS 0.4.16 with the Afterglow desktop, installed unattended from the official ISO.
+#
+# Other recipes extend this one and change what they need (a trim profile, a payload, the names). Every input is pinned by SHA-256.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[recipe]
+name = "afterglow"
+description = "ReactOS 0.4.16 with the Afterglow desktop, from the official install ISO"
+
+# The official release, as published on SourceForge: the zip, and the ISO inside it.
+[inputs.reactos_iso]
+name = "ReactOS-0.4.16-i386.iso"
+url = "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-0.4.16-i386.zip"
+zip_sha256 = "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a"
+sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
+
+# The Afterglow source, by commit. The sums are of the uncompressed tar GitHub serves for that commit (GitHub may recompress an
+# archive) and of the default build of the visual style (classic scroll bars).
+[inputs.afterglow]
+repo = "liminal-hq/afterglow-themes"
+commit = "af5639304ea6e0ef59db48e67b1ac3d128966b30"
+tar_sha256 = "c595c68029e8ae48d3515a87b73e916cb15179101272b39a9c1ad64327c261bd"
+msstyles_sha256 = "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d"
+apply_reg = "desktop/install/afterglow-original.reg"
+
+# The unattended answers. Neutral names; a consumer recipe sets its own.
+[install]
+locale = "0409"
+time_zone_index = 85
+computer_name = "REACTOS"
+owner_name = "ReactOS user"
+classic_shell = true
+
+[settings]
+display_width = 1024
+display_height = 768
+page_file = "64 64"
+icon_size = 32
+reg_files = ["display", "quiet", "watermark-off"]
+
+# Which files the trim removes: none, base (keeps the network drivers and stack) or demo (the browser demo's trim).
+[trim]
+profile = "base"
+
+# Patchers run before the trim, each on the stock file it was written for; none are enabled yet.
+[patchers]
+list = []
+
+[outputs.disk]
+zero_free = true
+
+# Each part of the disk is one file for v86. 8 MiB is the default until the part size is measured.
+[outputs.parts]
+chunk_size = "8MiB"
+zstd_level = 19
