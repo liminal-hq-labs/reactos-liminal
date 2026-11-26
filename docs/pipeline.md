@@ -55,7 +55,7 @@ Written after the trim and the files, so the trim's protection of them is a guar
 
 ### Afterglow
 
-The Afterglow source is pinned by commit and by the SHA-256 of the uncompressed tar GitHub serves for it. `rl fetch` downloads it into the work directory, checks the pin, refuses unsafe archive paths and links, and extracts it. `rl image` builds the style with Afterglow's own scripts (needs `llvm-rc`, `lld-link`, and python3 with numpy and Pillow) and checks `afterglow.msstyles` against its pinned sum.
+The Afterglow source is pinned by commit and by the SHA-256 of the uncompressed tar GitHub serves for it. `rl fetch` downloads it into the work directory, checks the pin, refuses unsafe archive paths and links, and extracts it. `rl image` builds the style with Afterglow's own scripts (needs `llvm-rc`, `lld-link`, and python3 with numpy and Pillow) and checks `afterglow.msstyles` against its pinned sum. `rl pin` moves the pin and refreshes every hash that follows from it, including the icon patchers' results; see [afterglow-pin.md](afterglow-pin.md).
 
 ## `rl verify` and `rl lock`
 

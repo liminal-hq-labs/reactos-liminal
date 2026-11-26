@@ -1,0 +1,36 @@
+# Afterglow pin
+
+The Afterglow source is one pinned input of the base recipe (`[inputs.afterglow]` in `recipes/afterglow.toml`): a commit of `liminal-hq/afterglow-themes`, the SHA-256 of the uncompressed tar GitHub serves for it, the SHA-256 of the visual style built from it and the SHA-256 of the wallpaper rendered from it. The icon patchers add to that the SHA-256 of each file they patch, in `pins/shell32-icons.json` and `pins/icon-families.json`, keyed by a digest of the icons used.
+
+## What the icon patchers read
+
+The patchers take their list of groups from Afterglow's `desktop/icons/map.json`: every resource it verifies for a module they patch (see [docs/icon-survey.md](icon-survey.md)). The art is whatever `desktop/icons/render.py` writes at the pinned commit, each file checked against Afterglow's `SHA256SUMS`. Nothing in this repository names the five drive icons, or any other icon, so a redrawn icon, a hand-tuned 16 px frame or a new icon in a module already patched is a new pin and nothing else.
+
+## Moving the pin
+
+```sh
+./rl pin recipes/afterglow.toml --afterglow REF
+```
+
+`REF` is a commit, a tag or a branch of the recipe's Afterglow repository. `rl pin` needs the golden disk (`rl install` once) and the tools `rl image` needs (`llvm-rc`, `lld-link`, `node`, `rsvg-convert`, ImageMagick 7, and python3 with numpy and Pillow). It:
+
+1. resolves `REF` to a commit and fetches that commit's source;
+2. measures the tar sum, the style sum and the wallpaper sum, and rewrites those lines of `[inputs.afterglow]` (nothing else in the recipe file changes);
+3. runs the four icon patchers against the golden disk in a recording mode and replaces the results in `pins/shell32-icons.json` and `pins/icon-families.json` (an icon set no longer in use is dropped);
+4. runs every patcher the recipe lists with the new pins, so a stale pin fails here and not at the end of an image build.
+
+`./rl pin recipes/afterglow.toml` alone re-measures the current pin, and `--check` changes nothing and exits 1 if any hash is stale (a drift check for CI or after editing a table). A patcher that pins its own result in code (`afterglow.logon`, `afterglow.start` and `afterglow.boot`) still needs that constant moved by hand when Afterglow changes that art; `rl pin` reports it with the patcher's own message.
+
+Review the diff, run `python3 -m pytest` and `ruff check`, and commit the recipe and both `pins/` files together. The golden disk does not change with the pin.
+
+## A pin on an unmerged branch
+
+A pin may name a commit that is on an Afterglow branch that has not merged, to build against art that is still in review. Mark it:
+
+```sh
+./rl pin recipes/afterglow.toml --afterglow feat/icons-v2-16px --pre-merge "afterglow-themes feat/icons-v2-16px (pull request 56)"
+```
+
+The note is stored as `pre_merge` beside the commit, and a later `rl pin --afterglow REF` without `--pre-merge` removes it. A pre-merge pin is a stand-in: it is bumped to the merged `main` commit or a tag as soon as the pull request lands, because a commit on a force-pushed branch can disappear from GitHub.
+
+**Current state.** The pin is the tip of `feat/icons-v2-16px` (Afterglow pull request 56, on top of `feat/icons-v2`, pull request 55): the icon set v2, 140 icons, with the hand-tuned 16 px frames. The branch was cut before the taskbar tray fix on Afterglow `main`, so the style built from this pin lacks that fix until the pin moves to a merged commit. The five drive icons (CD, floppy, removable, RAM disk, My Computer) are being redrawn on those branches and may change again; whenever they do, run `rl pin --afterglow` with the new tip.

@@ -39,13 +39,14 @@ def image_path(guest_path: str) -> str:
 	return match.group(1).replace("\\", "/")
 
 
-def render_wallpaper(recipe: Recipe, source_tree: Path, scratch: Path) -> Path:
+def render_wallpaper(recipe: Recipe, source_tree: Path, scratch: Path, measured: dict[str, str] | None = None) -> Path:
 	"""Render the recipe's scene to a BMP in `scratch` and check it against `inputs.afterglow.wallpaper_sha256`. Needs node,
-	rsvg-convert and ImageMagick 7."""
+	rsvg-convert and ImageMagick 7. With `measured` (for `rl pin`), the sum is stored there as `wallpaper_sha256` instead of being
+	checked."""
 	scene = wanted(recipe)
 	if scene is None:
 		raise WallpaperError("the recipe names no inputs.afterglow.wallpaper")
-	pin = recipe.section("inputs", "afterglow")["wallpaper_sha256"]
+	pin = recipe.section("inputs", "afterglow").get("wallpaper_sha256")
 	script = source_tree / "scripts" / "render-wallpapers.mjs"
 	name = f"afterglow-{scene}"
 	if not (source_tree / "assets" / "wallpapers" / f"{name}.svg").is_file():
@@ -61,7 +62,9 @@ def render_wallpaper(recipe: Recipe, source_tree: Path, scratch: Path) -> Path:
 	if done.returncode != 0 or not rendered.is_file():
 		raise WallpaperError(f"render-wallpapers.mjs failed: {(done.stderr or done.stdout).strip()[-400:]}")
 	actual = sha256_file(rendered)
-	if actual != pin:
+	if measured is not None:
+		measured["wallpaper_sha256"] = actual
+	elif actual != pin:
 		raise WallpaperError(f"{rendered.name} is {actual}, expected {pin}; the renderer or its tools differ from the pin")
 	destination = scratch / f"{name}.bmp"
 	shutil.copyfile(rendered, destination)

@@ -16,14 +16,20 @@ url = "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-
 zip_sha256 = "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a"
 sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 
-# The Afterglow source, by commit on Afterglow main; it carries the icon, logon and boot art as well as the style, pointers and colours.
-# The sums are of the uncompressed tar GitHub serves for that commit (GitHub may recompress an archive) and of the default build of the
-# visual style (classic scroll bars).
+# The Afterglow source, by commit; it carries the icon, logon and boot art as well as the style, pointers and colours. The sums are of
+# the uncompressed tar GitHub serves for that commit (GitHub may recompress an archive) and of the default build of the visual style
+# (classic scroll bars). Afterglow's icon map decides which icons the icon patchers replace, so a new icon set is a new commit here and
+# `./rl pin recipes/afterglow.toml --afterglow REF`, which measures every hash that follows from the pin; see docs/afterglow-pin.md.
+#
+# `pre_merge` marks a pin on an unmerged Afterglow branch. This one is the tip of the branch of the icon set v2 (the redrawn system
+# icons and the hand-tuned 16 px frames) and does not yet have the taskbar tray fix that is on Afterglow main. Bump it to the merged
+# main commit or a tag once those pull requests land, and `rl pin` drops the note.
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "24bc04857c7ba5de23886fc6c8a78474326194cb"
-tar_sha256 = "1fee94a3d4f4a3d69882a1f9d82e6bfb1d7436434ba727aa9b5170ae3f7cc2ac"
-msstyles_sha256 = "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f"
+commit = "c5f39dc6efd658653152845fa8c41e8a1bf2a374"
+pre_merge = "liminal-hq/afterglow-themes feat/icons-v2-16px (pull request 56); bump to the merged main commit or tag once #55 and #56 land"
+tar_sha256 = "cc901842db01020d564407cf971405a20af6ca0989825b8fd0050a667fc1b70b"
+msstyles_sha256 = "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
 # from its SVG master to the 1024 x 768 BMP. The sum is of that BMP. Other scenes: dusk-light-smooth, or any palette, mode and style

@@ -4,7 +4,8 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import subprocess
-from dataclasses import dataclass
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .fetch import sha256_file
@@ -21,6 +22,35 @@ class PatchedFile:
 	attributes: str = (
 		""  # mattrib flags to put back after the write, such as "+h +s" for freeldr.ini; empty leaves them as the copy made them
 	)
+
+
+@dataclass
+class PinRecorder:
+	"""What `rl pin` collects while the icon patchers run: each patcher's result for the icon set it was given, instead of a check
+	against a pin. `results[section][icon set digest][file]` is the SHA-256 of the patched file."""
+
+	results: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
+
+	def record(self, section: str, digest: str, name: str, result: str) -> None:
+		self.results.setdefault(section, {}).setdefault(digest, {})[name] = result
+
+
+_recorder: PinRecorder | None = None
+
+
+@contextmanager
+def recording():
+	"""Run patchers in lock mode: they record their results in the returned recorder and do not require a pin."""
+	global _recorder
+	previous, _recorder = _recorder, PinRecorder()
+	try:
+		yield _recorder
+	finally:
+		_recorder = previous
+
+
+def active_recorder() -> PinRecorder | None:
+	return _recorder
 
 
 def read_sums(path: Path) -> dict[str, str]:

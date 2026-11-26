@@ -10,12 +10,13 @@
 		},
 		"afterglow": {
 			"repo": "liminal-hq/afterglow-themes",
-			"commit": "24bc04857c7ba5de23886fc6c8a78474326194cb",
-			"tar_sha256": "1fee94a3d4f4a3d69882a1f9d82e6bfb1d7436434ba727aa9b5170ae3f7cc2ac",
-			"msstyles_sha256": "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f",
+			"commit": "c5f39dc6efd658653152845fa8c41e8a1bf2a374",
+			"tar_sha256": "cc901842db01020d564407cf971405a20af6ca0989825b8fd0050a667fc1b70b",
+			"msstyles_sha256": "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d",
 			"apply_reg": "desktop/install/afterglow-original.reg",
 			"wallpaper": "dusk-dark-smooth",
-			"wallpaper_sha256": "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d"
+			"wallpaper_sha256": "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d",
+			"pre_merge": "liminal-hq/afterglow-themes feat/icons-v2-16px (pull request 56); bump to the merged main commit or tag once #55 and #56 land"
 		}
 	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",

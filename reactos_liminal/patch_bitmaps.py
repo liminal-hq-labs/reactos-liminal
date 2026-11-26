@@ -16,10 +16,11 @@ import struct
 from pathlib import Path
 
 from .fetch import sha256_file
+from .icon_map import load_map, require_icon, toolbar_cells
 from .log import log
 from .mtools import FatImage
 from .patch_base import PatchedFile, PatchError
-from .patch_icons import _afterglow_sums, icon_set_digest, render_icons
+from .patch_icons import icon_set_digest, require_pin, settle_result, verified_icons
 from .pe_resources import RT_BITMAP, PeError, PeFile, read_ico
 
 STRIPS_FILE = Path(__file__).resolve().parent / "bitmap_strips.json"
@@ -107,39 +108,31 @@ def patch_strips(stock: bytes, strips: list[dict], cells: list[dict], icons: dic
 		raise PatchError(f"the file cannot be patched: {error}") from error
 
 
+def strip_cells(entries: dict[str, dict], file_spec: dict) -> list[dict]:
+	"""The cells to replace in one file, as `[{"index", "afterglow"}]`: every cell Afterglow's map verifies for the module, plus the
+	file's own `cells` rows for cells the map does not name. Where the map names a cell it decides."""
+	strip_ids = [strip["id"] for strip in file_spec["strips"]]
+	named = toolbar_cells(entries, file_spec["path"].rsplit("/", 1)[-1], strip_ids)
+	cells = {index: icon_id for index, icon_id in named.items()}
+	for item in file_spec.get("cells", []):
+		if item["index"] not in cells:
+			require_icon(entries, item["afterglow"], f"toolbar cell {item['index']}")
+			cells[item["index"]] = item["afterglow"]
+	return [{"index": index, "afterglow": icon_id} for index, icon_id in sorted(cells.items())]
+
+
 def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
 	"""Patch the Explorer toolbar strips in a copy of browseui.dll."""
 	spec = load_strips()
 	pins = json.loads(PINS_FILE.read_text())["families"].get(FAMILY, {})
-	map_file = source_tree / "desktop" / "icons" / "map.json"
-	if not map_file.is_file():
-		raise PatchError(f"{map_file} is missing; the pinned Afterglow commit has no icon map")
-	entries = {entry["id"]: entry for entry in json.loads(map_file.read_text())["icons"]}
-	render_dir = scratch / "icons"
-	render_icons(source_tree, render_dir)
-	afterglow_sums = _afterglow_sums(source_tree)
+	entries = load_map(source_tree)
 	results = []
 	for file_spec in spec["files"]:
-		for item in file_spec["cells"]:
-			entry = entries.get(item["afterglow"])
-			if entry is None:
-				raise PatchError(f"Afterglow's map.json has no icon {item['afterglow']!r} (toolbar cell {item['index']})")
-		icon_sums = {}
-		icons = {}
-		for item in file_spec["cells"]:
-			name = f"ico/{item['afterglow']}.ico"
-			path = render_dir / name
-			if not path.is_file():
-				raise PatchError(f"Afterglow's render.py did not write {name}")
-			sha = sha256_file(path)
-			if sha != afterglow_sums.get(name):
-				raise PatchError(f"{name} renders as {sha}, Afterglow records {afterglow_sums.get(name)}; the renderer or its tools differ")
-			icon_sums[name] = sha
-			icons[item["afterglow"]] = path.read_bytes()
+		cells = strip_cells(entries, file_spec)
+		icons, icon_sums = verified_icons(source_tree, scratch, {item["afterglow"] for item in cells})
 		digest = icon_set_digest(icon_sums)
 		expected = (pins.get(digest) or {}).get(file_spec["path"])
-		if expected is None:
-			raise PatchError(f"{FAMILY}: no pinned result for icon set {digest}; patch, check the result and add it to {PINS_FILE.name}")
+		require_pin(digest, expected, FAMILY, PINS_FILE.name)
 		stock_file = scratch / "browseui.dll"
 		golden.copy_out(file_spec["path"], stock_file)
 		actual = sha256_file(stock_file)
@@ -148,15 +141,17 @@ def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: P
 				f"{file_spec['path']} is not the stock browseui.dll of ReactOS 0.4.16 i386 (SHA-256 {actual}, expected "
 				f"{file_spec['stock_sha256']}); the bitmap ids and cell indexes were checked against that one file only"
 			)
-		patched_bytes, report = patch_strips(stock_file.read_bytes(), file_spec["strips"], file_spec["cells"], icons)
+		patched_bytes, report = patch_strips(stock_file.read_bytes(), file_spec["strips"], cells, icons)
 		patched = scratch / "browseui-afterglow.dll"
 		patched.write_bytes(patched_bytes)
 		result = sha256_file(patched)
-		if result != expected:
+		try:
+			settle_result(FAMILY, digest, file_spec["path"], result, expected, PINS_FILE.name)
+		except PatchError:
 			patched.unlink(missing_ok=True)
-			raise PatchError(f"patched {file_spec['path']} is {result}, expected {expected}")
+			raise
 		for line in report:
 			log("patch", f"   {line}")
-		log("patch", f"   {FAMILY}: {file_spec['path']} patched ({result})")
+		log("patch", f"   {FAMILY}: {file_spec['path']} patched, {len(cells)} cells ({result})")
 		results.append(PatchedFile(file_spec["path"], patched))
 	return results

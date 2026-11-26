@@ -9,7 +9,7 @@ import struct
 import pytest
 from pe_fixtures import FILE_ALIGNMENT, SECTION_ALIGNMENT, dib, group_of, ico, make_dll, stock_dll
 
-from reactos_liminal import icon_survey, patch_icons
+from reactos_liminal import icon_survey, patch_base, patch_icons
 from reactos_liminal.patchers import PatchError, run_patchers
 from reactos_liminal.pe_resources import RT_GROUP_ICON, RT_ICON, PeFile
 
@@ -99,10 +99,7 @@ def icon_setup(fat, tmp_path, monkeypatch):
 	fat.make_directory("ReactOS")
 	fat.make_directory("ReactOS/system32")
 	fat.copy_in(stock_file, "ReactOS/system32/shell32.dll")
-	table = {
-		"stock_sha256": hashlib.sha256(stock).hexdigest(),
-		"groups": [{"group": 4, "afterglow": "folder", "apply": True, "tier": "core"}, {"group": 30, "afterglow": None, "apply": False}],
-	}
+	table = {"stock_sha256": hashlib.sha256(stock).hexdigest(), "groups": [{"group": 30, "reason": "left alone"}]}
 	monkeypatch.setattr(patch_icons, "load_table", lambda: table)
 	tree = tmp_path / "tree"
 	icons_dir = tree / "desktop" / "icons"
@@ -161,10 +158,45 @@ def test_a_wrong_pinned_result_is_refused_and_leaves_no_file(icon_setup, tmp_pat
 	assert not (scratch / "shell32-afterglow.dll").exists()
 
 
-def test_a_map_that_puts_the_icon_in_another_group_is_refused(icon_setup, tmp_path):
+def test_a_group_the_map_verifies_but_the_stock_file_lacks_is_refused(icon_setup, tmp_path):
 	fat, tree, scratch, _stock, _expected, icons_dir = icon_setup
-	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "folder", "resource": {"module": "shell32.dll", "group": 5}}]}))
-	with pytest.raises(PatchError, match="map.json puts"):
+	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "folder", "resource": {"module": "shell32.dll", "group": 99}}]}))
+	with pytest.raises(PatchError, match="no icon group 99"):
+		run_patchers(["afterglow.icons"], fat, tree, tmp_path, scratch)
+
+
+def test_the_groups_come_from_the_map_with_the_tables_extras_beside_them():
+	entries = {
+		"folder": {"id": "folder", "resource": {"module": "shell32.dll", "group": 4}, "also": [{"module": "shell32.dll", "group": 104}]},
+		"doc": {"id": "doc", "resource": {"module": "user32.dll", "group": 1}},
+		"text": {"id": "text"},
+	}
+	table = {"groups": [{"group": 4, "afterglow": "text"}, {"group": 9, "afterglow": "text"}, {"group": 30, "reason": "left alone"}]}
+	# The map decides groups 4 and 104 (and ignores the table's icon for 4); the table adds 9; user32.dll's group is another module's.
+	assert patch_icons.shell32_groups(entries, table) == {4: "folder", 104: "folder", 9: "text"}
+
+
+def test_a_table_icon_the_map_does_not_have_is_refused():
+	with pytest.raises(PatchError, match="no icon 'gone'"):
+		patch_icons.shell32_groups({}, {"groups": [{"group": 9, "afterglow": "gone"}]})
+
+
+def test_a_new_icon_set_needs_lock_and_lock_mode_records_instead_of_checking(icon_setup, tmp_path, monkeypatch):
+	fat, tree, scratch, _stock, expected, _icons = icon_setup
+	monkeypatch.setattr(patch_icons, "load_pins", lambda: {"results": {}})
+	with patch_base.recording() as recorder:
+		run_patchers(["afterglow.icons"], fat, tree, tmp_path, scratch)
+	digest = patch_icons.icon_set_digest({"ico/folder.ico": hashlib.sha256(ico(0x40)).hexdigest()})
+	assert recorder.results == {"shell32": {digest: {"ReactOS/system32/shell32.dll": expected}}}
+
+
+def test_recording_stops_when_the_block_ends(icon_setup, tmp_path, monkeypatch):
+	fat, tree, scratch, *_ = icon_setup
+	monkeypatch.setattr(patch_icons, "load_pins", lambda: {"results": {}})
+	with patch_base.recording():
+		pass
+	assert patch_base.active_recorder() is None
+	with pytest.raises(PatchError, match="rl pin"):
 		run_patchers(["afterglow.icons"], fat, tree, tmp_path, scratch)
 
 
@@ -176,11 +208,8 @@ def test_the_shipped_table_and_pins_agree():
 	assert patch_icons.load_pins()["stock_sha256"] == table["stock_sha256"]
 	groups = [row["group"] for row in table["groups"]]
 	assert groups == sorted(set(groups))
-	applied = [row for row in table["groups"] if row["apply"]]
-	assert {row["group"] for row in applied if row["tier"] == "core"} == {4, 5, 16, 18, 30, 32, 33, 35, 235, 236, 237, 238}
-	for row in applied:
-		assert row["afterglow"] and row["name"]
-	assert all("reason" in row for row in table["groups"] if not row["apply"])
+	for row in table["groups"]:
+		assert not ("afterglow" in row and "reason" in row)  # a row is an extra icon or a reason to leave the group, never both
 
 
 def test_a_frame_shared_with_another_group_is_not_reused():

@@ -57,7 +57,11 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 		"afterglow.logon",
 		"afterglow.boot",
 	]
-	assert pin["afterglow"]["commit"].startswith("24bc0485") and pin["v86"] == "0.5.473" and pin["extra"] == {"quill_commit": "abc"}
+	assert (
+		pin["afterglow"]["commit"] == load(base_recipe_path).section("inputs", "afterglow")["commit"]
+		and pin["v86"] == "0.5.473"
+		and pin["extra"] == {"quill_commit": "abc"}
+	)
 	assert manifest["timings_seconds"] == {"install": 150, "image": 85}
 	assert len(pin["unattend_inf_sha256"]) == 64
 
