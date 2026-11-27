@@ -213,10 +213,9 @@ def render(
 		]
 		for item, status, note in bitmaps:
 			paths = (written or {}).get(item["module"].lower(), [])
+			compact_text = "-"
 			if paths:
 				compact_text = "removed by trim" if any(removes(compact, path) for path in paths) else "kept"
-			else:
-				compact_text = "-"
 			files = "<br>".join(f"`{path}`" for path in paths) or "-"
 			width, height = item["size"]
 			lines.append(
