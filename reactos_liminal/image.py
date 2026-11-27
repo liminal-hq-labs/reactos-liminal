@@ -30,6 +30,7 @@ from .mtools import FatImage
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
+from .rustbuild import BUILT_PREFIX, build_programs, used_builds
 from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile
 from .vm import PrivateVm
 from .wallpaper import WallpaperError, image_path, render_wallpaper, wanted
@@ -72,6 +73,10 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 	)
 	for name, count in profile.sources[1:]:
 		plan.steps.append(f"  extra trim list {name}: {count} entries, applied after the profile and checked the same way")
+	if used_builds(recipe):
+		plan.steps.insert(
+			0, "build: " + ", ".join(used_builds(recipe)) + " from source (pinned toolchain; output checked against its SHA-256)"
+		)
 	extras = [f"{len(recipe.data['files'])} files", f"{len(recipe.data['shortcuts'])} shortcuts"]
 	extras.append("the Afterglow style and pointers")
 	if wanted(recipe):
@@ -120,11 +125,21 @@ def _write_wallpaper(recipe: Recipe, disk: FatImage, source_tree: Path | None, s
 	disk.copy_in(bitmap, target)
 
 
-def _write_payload(recipe: Recipe, disk: FatImage, afterglow_files: Path | None, scratch: Path, source_tree: Path | None = None) -> None:
+def _write_payload(
+	recipe: Recipe,
+	disk: FatImage,
+	afterglow_files: Path | None,
+	scratch: Path,
+	source_tree: Path | None = None,
+	built: dict[str, Path] | None = None,
+) -> None:
 	base = recipe.chain[0].parent
 	_write_wallpaper(recipe, disk, source_tree, scratch)
 	for entry in recipe.data["files"]:
-		source = (base / entry["source"]).resolve()
+		if entry["source"].startswith(BUILT_PREFIX):
+			source = (built or {})[entry["source"][len(BUILT_PREFIX) :]]
+		else:
+			source = (base / entry["source"]).resolve()
 		if not source.is_file():
 			raise ImageError(f"files: {source} is not a file")
 		parent = entry["destination"].rsplit("/", 1)[0] if "/" in entry["destination"] else ""
@@ -199,6 +214,7 @@ def build_image(
 	out.parent.mkdir(parents=True, exist_ok=True)
 	patcher_names = recipe.section("patchers", "list")
 
+	built = build_programs(recipe, work)
 	source_tree = afterglow_files = None
 	scratch_root = ensure(work, "scratch")
 	if "afterglow" in recipe.data["inputs"]:
@@ -241,7 +257,7 @@ def build_image(
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
-		_write_payload(recipe, disk, afterglow_files, scratch, source_tree)
+		_write_payload(recipe, disk, afterglow_files, scratch, source_tree, built)
 		record.written_files = _written_paths(recipe, afterglow_files)
 
 		log("image", "5. licences, notice and changes")

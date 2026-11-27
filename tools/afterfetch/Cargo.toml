@@ -1,0 +1,29 @@
+# afterfetch.exe: the coloured system-information command for the Afterglow image, a tiny Win32 console program with no C runtime.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[package]
+name = "afterfetch"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "A coloured system-information command for ReactOS and Windows"
+license = "Apache-2.0 OR MIT"
+
+[lib]
+name = "afterfetch"
+path = "src/lib.rs"
+
+[[bin]]
+name = "afterfetch"
+path = "src/main.rs"
+test = false
+
+[profile.release]
+panic = "abort"
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+debug = 0

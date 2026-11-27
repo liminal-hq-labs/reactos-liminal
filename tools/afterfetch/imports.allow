@@ -1,0 +1,26 @@
+# The functions afterfetch.exe may import, as dll!Function, all exported by Windows 95 (and up) and by ReactOS.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# Checked by hand against the Win32 reference's "Windows 95" column. No wide-character (...W) entry points.
+advapi32.dll!GetUserNameA
+advapi32.dll!RegCloseKey
+advapi32.dll!RegOpenKeyExA
+advapi32.dll!RegQueryValueExA
+gdi32.dll!GetDeviceCaps
+kernel32.dll!ExitProcess
+kernel32.dll!GetComputerNameA
+kernel32.dll!GetConsoleScreenBufferInfo
+kernel32.dll!GetEnvironmentVariableA
+kernel32.dll!GetStdHandle
+kernel32.dll!GetSystemInfo
+kernel32.dll!GetTickCount
+kernel32.dll!GetVersionExA
+kernel32.dll!GlobalMemoryStatus
+kernel32.dll!SetConsoleTextAttribute
+kernel32.dll!WriteConsoleA
+kernel32.dll!WriteFile
+user32.dll!GetDC
+user32.dll!GetSystemMetrics
+user32.dll!ReleaseDC

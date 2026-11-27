@@ -33,6 +33,7 @@ from .patch_icons import PINS_FILE as SHELL32_PINS_FILE
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe, load
+from .rustbuild import build_program, declaring_file
 from .wallpaper import render_wallpaper, wanted
 
 ICON_PATCHERS = ("afterglow.icons", "afterglow.cpl-icons", "afterglow.program-icons", "afterglow.toolbar-bitmaps")
@@ -75,14 +76,15 @@ def pin_file(recipe: Recipe) -> Path:
 	raise PinError("no recipe in the chain has an [inputs.afterglow] table")
 
 
-def set_pins(text: str, values: dict[str, str | None]) -> str:
-	"""`text` with the keys of the `[inputs.afterglow]` table set to `values`. A key that has a value must already be in the table (so a
+def set_pins(text: str, values: dict[str, str | None], section: str = SECTION) -> str:
+	"""`text` with the keys of the `section` table (`[inputs.afterglow]` by default)
+	set to `values`. A key that has a value must already be in the table (so a
 	comment above it stays with it); a value of None removes the key. Nothing else in the file is touched."""
 	lines = text.split("\n")
 	try:
-		start = lines.index(SECTION)
+		start = lines.index(section)
 	except ValueError as error:
-		raise PinError(f"{SECTION} is not in the recipe file") from error
+		raise PinError(f"{section} is not in the recipe file") from error
 	end = next((index for index in range(start + 1, len(lines)) if lines[index].startswith("[")), len(lines))
 	for key, value in values.items():
 		pattern = re.compile(rf'^{re.escape(key)}\s*=\s*".*"\s*$')
@@ -90,7 +92,7 @@ def set_pins(text: str, values: dict[str, str | None]) -> str:
 		if not found:
 			if value is None:
 				continue
-			raise PinError(f"{SECTION} has no `{key}` line to update")
+			raise PinError(f"{section} has no `{key}` line to update")
 		if value is None:
 			del lines[found[0]]
 			end -= 1
@@ -153,6 +155,13 @@ def pin_afterglow(
 	shell32_pins, family_pins = merged_icon_pins(recorder.results)
 
 	changes = [f"{key}: {pin.get(key)} -> {value}" for key, value in measured.items() if pin.get(key) != value]
+	built_sums: dict[str, str] = {}
+	for name, table in recipe.data.get("builds", {}).items():
+		sums: dict[str, str] = {}
+		build_program(recipe, work, name, sums)
+		built_sums[name] = sums["sha256"]
+		if table["sha256"] != sums["sha256"]:
+			changes.append(f"builds.{name}.sha256: {table['sha256']} -> {sums['sha256']}")
 	wanted_note = pre_merge if ref else pin.get("pre_merge")
 	if wanted_note != pin.get("pre_merge"):
 		changes.append(f"pre_merge: {pin.get('pre_merge')} -> {wanted_note}")
@@ -170,6 +179,9 @@ def pin_afterglow(
 	if wanted_note and "pre_merge" not in pin:
 		text = text.replace(f'commit = "{pin["commit"]}"\n', f'commit = "{pin["commit"]}"\npre_merge = "{wanted_note}"\n', 1)
 	file.write_text(set_pins(text, values))
+	for name, digest in built_sums.items():
+		build_file = declaring_file(recipe, name)
+		build_file.write_text(set_pins(build_file.read_text(), {"sha256": digest}, f"[builds.{name}]"))
 	write_json(SHELL32_PINS_FILE, shell32_pins)
 	write_json(FAMILY_PINS_FILE, family_pins)
 

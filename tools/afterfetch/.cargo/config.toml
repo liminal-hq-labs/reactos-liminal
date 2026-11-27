@@ -1,0 +1,25 @@
+# Cargo settings for the Win32 build: Pentium-class code, no C runtime, linked by lld-link (the target is chosen by build.sh, so the
+# host unit tests are not affected).
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[target.win32]
+linker = "rust-lld"
+rustflags = [
+	"-C", "linker-flavor=lld-link",
+	# No CRT and no std, so the entry point is ours and nothing newer than Windows 95 gets imported.
+	"-C", "link-arg=/NODEFAULTLIB",
+	"-C", "link-arg=/ENTRY:start",
+	# A console program; subsystem version 4.0 is what the Windows 9x loader expects and ReactOS and NT accept.
+	"-C", "link-arg=/SUBSYSTEM:CONSOLE,4.0",
+	# Load at the preferred base with no relocations.
+	"-C", "link-arg=/FIXED",
+	"-C", "link-arg=/DYNAMICBASE:NO",
+	"-C", "link-arg=/FILEALIGN:512",
+	# A fixed timestamp and no build path in the output, so two builds of the same source are the same file.
+	"-C", "link-arg=/DEBUG:NONE",
+	"-C", "link-arg=/Brepro",
+	# Panic messages carry no file names (the panic handler exits), which would otherwise embed the build path.
+	"-Z", "location-detail=none",
+]
