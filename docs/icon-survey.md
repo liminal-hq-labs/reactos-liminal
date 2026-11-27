@@ -288,3 +288,5 @@ The stock icons of programs the map does not list stay stock too (the Virtual CD
 ### Round 3
 
 Afterglow's icons v5 (RL-65) added what a visitor meets first and the survey still found in stock: `ntobjshex.dll` 1 to 8 (eight groups of 48, 32 and 16 px, which the module's CLSIDs and the two folders' views load), `shell32.dll` 25 (Run), 133 (Properties of several files), 142 (Recycle Bin, full, in the confirmations), 161 (the shredder, fitted to 32 and 16 px), 200 (the (None) wallpaper entry) and 256, `regedit.exe` 135 and 136 and `taskmgr.exe` 137 and 138 (fitted, as in the table above), and the Go button's two bitmaps. All 20 are in `icon-coverage.md` as patched. Left stock on purpose: `regedit.exe` 102 (the address button, one 12 px frame, a size the patcher refuses), the Mouse Keys tray states (8-bit frames only), the ReactOS logo art (the branding rule) and the Task Manager tray meter bitmaps.
+
+The rest of what the desktop still loads in stock, Folder Options first (the Mouse Keys states and the tray meter among it), and the patch list for Afterglow's icons v6, are in [plans/icon-round-4.md](plans/icon-round-4.md).
