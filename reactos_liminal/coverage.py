@@ -72,13 +72,30 @@ class Row:
 
 
 def _key(resource: dict) -> tuple[str, str, int] | None:
-	kind = "cell" if "cell" in resource else "group" if "group" in resource else None
+	kind = "cell" if "cell" in resource else "group" if "group" in resource else "bitmap" if "bitmap" in resource else None
 	if kind is None:
 		return None
 	return (resource["module"].lower(), kind, resource[kind])
 
 
-def build_rows(entries: dict[str, dict], recorder: PinRecorder, listed_modules: set[str], image_files: dict[str, list[str]]) -> list[Row]:
+def bitmap_resources(entries: dict[str, dict], bitmaps: list[dict]) -> dict[str, list[dict]]:
+	"""The `bitmaps` entries of the map that belong to an icon of the map and live in a module an icon patcher writes bitmaps to
+	(`BITMAP_MODULES`), as `{icon id: [resource]}`; a resource here names its `bitmap` id, like a group or a cell."""
+	found: dict[str, list[dict]] = {}
+	for item in bitmaps:
+		if item.get("id") in entries and item["module"].lower() in BITMAP_MODULES:
+			resource = {"module": item["module"], "bitmap": item["resource"], "evidence": item.get("evidence") or []}
+			found.setdefault(item["id"], []).append(resource)
+	return found
+
+
+def build_rows(
+	entries: dict[str, dict],
+	recorder: PinRecorder,
+	listed_modules: set[str],
+	image_files: dict[str, list[str]],
+	bitmaps: list[dict] | None = None,
+) -> list[Row]:
 	"""One row per resource of the map, in map order, then one per patched resource the map does not name. `listed_modules` are the
 	lower-case module names the families give a stock hash for; `image_files` maps a lower-case file name to its paths on the disk."""
 	rows: list[Row] = []
@@ -86,6 +103,8 @@ def build_rows(entries: dict[str, dict], recorder: PinRecorder, listed_modules: 
 	by_icon: dict[str, list[dict]] = {icon_id: [] for icon_id in entries}
 	for icon_id, resource in map_resources(entries):
 		by_icon[icon_id].append(resource)
+	for icon_id, extra in bitmap_resources(entries, bitmaps or []).items():
+		by_icon[icon_id].extend(extra)
 	for icon_id, resources in by_icon.items():
 		if not resources:
 			detail = UNMAPPED_REASONS.get(icon_id, "the map names no verified ReactOS resource for this icon")

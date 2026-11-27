@@ -15,12 +15,13 @@ import json
 import struct
 from pathlib import Path
 
+from . import pe_resource
 from .fetch import sha256_file
-from .icon_map import load_map, require_icon, toolbar_cells
+from .icon_map import load_bitmaps, load_map, require_icon, toolbar_cells
 from .log import log
 from .mtools import FatImage
 from .patch_base import PatchedFile, PatchError, note_patched
-from .patch_icons import icon_set_digest, require_pin, settle_result, verified_icons
+from .patch_icons import icon_set_digest, require_pin, settle_result, verified_bitmaps, verified_icons
 from .pe_resources import RT_BITMAP, PeError, PeFile, read_ico
 
 STRIPS_FILE = Path(__file__).resolve().parent / "bitmap_strips.json"
@@ -108,6 +109,47 @@ def patch_strips(stock: bytes, strips: list[dict], cells: list[dict], icons: dic
 		raise PatchError(f"the file cannot be patched: {error}") from error
 
 
+def module_bitmaps(source_tree: Path, module: str) -> list[dict]:
+	"""The entries of the map's `bitmaps` list for one module; a map from before that list has none."""
+	try:
+		return [resource for resource in load_bitmaps(source_tree) if resource["module"] == module]
+	except PatchError:
+		return []
+
+
+def write_resource_bitmaps(stock: bytes, resources: list[dict], art: dict[str, bytes]) -> tuple[bytes, list[str]]:
+	"""Write each bitmap of `resources` (the map's entries: resource id, size, depth, art file) over the same resource of a PE file,
+	in place and at the same length. Refuses a stock bitmap whose header, depth or length is not the one the entry names, and art
+	whose size or depth is not."""
+	data = stock
+	report = []
+	try:
+		for resource in resources:
+			width, height = resource["size"]
+			bits = resource["bits"]
+			expected = HEADER_SIZE + width * height * bits // 8
+			dib = pe_resource.dib_from_bmp(art[resource["bitmap"]])
+			new = pe_resource.dib_info(dib)
+			if (new.header_size, new.width, new.height, new.bits_per_pixel, new.compression) != (HEADER_SIZE, width, height, bits, 0):
+				raise PatchError(f"{resource['bitmap']} is not a {width} x {height}, {bits}-bit, uncompressed bitmap")
+			if len(dib) != expected:
+				raise PatchError(f"{resource['bitmap']} has {len(dib)} bytes, expected {expected}")
+			slot = pe_resource.PeFile(data).bitmap(resource["resource"])
+			old = pe_resource.dib_info(data[slot.data_offset : slot.data_offset + HEADER_SIZE])
+			if (old.header_size, old.width, old.height, old.bits_per_pixel, old.compression) != (HEADER_SIZE, width, height, bits, 0):
+				raise PatchError(
+					f"bitmap {resource['resource']} ({resource['name']}) is {old.width}x{old.height} at {old.bits_per_pixel} bits in "
+					f"the file; the map says {width}x{height} at {bits} (a bitmap is replaced only by one of the same size and depth)"
+				)
+			if slot.size != expected:
+				raise PatchError(f"bitmap {resource['resource']} ({resource['name']}) has {slot.size} bytes, expected {expected}")
+			data = pe_resource.replace_bitmap(data, resource["resource"], dib, same_size=True)
+			report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}")
+	except (pe_resource.PeError, PeError) as error:
+		raise PatchError(f"the file cannot be patched: {error}") from error
+	return data, report
+
+
 def strip_cells(entries: dict[str, dict], file_spec: dict) -> list[dict]:
 	"""The cells to replace in one file, as `[{"index", "afterglow"}]`: every cell Afterglow's map verifies for the module, plus the
 	file's own `cells` rows for cells the map does not name. Where the map names a cell it decides."""
@@ -129,7 +171,11 @@ def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: P
 	results = []
 	for file_spec in spec["files"]:
 		cells = strip_cells(entries, file_spec)
+		module = file_spec["path"].rsplit("/", 1)[-1]
+		resources = module_bitmaps(source_tree, module)
 		icons, icon_sums = verified_icons(source_tree, scratch, {item["afterglow"] for item in cells})
+		art, art_sums = verified_bitmaps(source_tree, scratch, {resource["bitmap"] for resource in resources})
+		icon_sums.update(art_sums)
 		digest = icon_set_digest(icon_sums)
 		expected = (pins.get(digest) or {}).get(file_spec["path"])
 		require_pin(digest, expected, FAMILY, PINS_FILE.name)
@@ -142,6 +188,8 @@ def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: P
 				f"{file_spec['stock_sha256']}); the bitmap ids and cell indexes were checked against that one file only"
 			)
 		patched_bytes, report = patch_strips(stock_file.read_bytes(), file_spec["strips"], cells, icons)
+		patched_bytes, bitmap_report = write_resource_bitmaps(patched_bytes, resources, art)
+		report += bitmap_report
 		patched = scratch / "browseui-afterglow.dll"
 		patched.write_bytes(patched_bytes)
 		result = sha256_file(patched)
@@ -152,8 +200,10 @@ def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: P
 			raise
 		for item in cells:
 			note_patched(file_spec["path"].rsplit("/", 1)[-1], item["index"], item["afterglow"], file_spec["path"], "cell")
+		for resource in resources:
+			note_patched(module, resource["resource"], resource["id"], file_spec["path"], "bitmap")
 		for line in report:
 			log("patch", f"   {line}")
-		log("patch", f"   {FAMILY}: {file_spec['path']} patched, {len(cells)} cells ({result})")
+		log("patch", f"   {FAMILY}: {file_spec['path']} patched, {len(cells)} cells and {len(resources)} bitmaps ({result})")
 		results.append(PatchedFile(file_spec["path"], patched))
 	return results

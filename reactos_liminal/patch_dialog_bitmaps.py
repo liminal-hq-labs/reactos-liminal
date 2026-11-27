@@ -125,7 +125,8 @@ def dialog_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: Pa
 	"""Write the dialog bitmaps into shell32.dll, msgina.dll and agmsgina.dll."""
 	spec = load_spec()
 	pins = json.loads(PINS_FILE.read_text())["families"].get(FAMILY, {})
-	resources = load_bitmaps(source_tree)
+	own_modules = {module_name(file_spec) for file_spec in spec["files"]}
+	resources = [resource for resource in load_bitmaps(source_tree) if resource["module"] in own_modules]
 	rendered = render_bitmaps(source_tree, scratch, resources)
 	sums = {f"bitmap/{name}": sha for name, (_bytes, sha) in rendered.items()}
 	inputs = {file_spec["path"]: latest_patched(scratch, file_spec["path"]) for file_spec in spec["files"]}

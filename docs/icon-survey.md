@@ -87,6 +87,8 @@ The Explorer toolbar images are four `RT_BITMAP` strips in `browseui.dll`: 214 (
 
 The table above is the first set. Afterglow's map now also verifies cut 5, copy to clipboard 6, paste 7, favourites 2, properties 15, map drive 29 and disconnect 30, and the patcher replaces those too; 18 cells in all. The rest have no Afterglow icon and stay as ReactOS draws them. Afterglow renders 16, 32 and 48 px only, so the 24 px cells are the 48 px frame halved with an integer, alpha-weighted 2 × 2 average; the hot strips get the same cells as the normal ones because Afterglow draws no hot state. The patcher writes the cells in place, so each strip keeps its id, size and depth; it refuses a strip that differs.
 
+The Go button beside the address bar is not a strip cell. It is a pair of 20 × 20, 32-bit bitmaps of its own, `browseui.dll` 230 and 231 (`IDB_SHELL_GO` and `_HOT`), listed in the `bitmaps` of the map (the icon `go`, art `bmp/go.bmp`). The toolbar patcher writes the art over each stock bitmap in place (1,640 bytes each, the same length), after the strips; the strips' cells are the same bytes with or without it, and Afterglow draws no hot state, so both take one image.
+
 ### Control Panel applets
 
 The Control Panel folder asks each applet for `CPL_INQUIRE`'s `idIcon` and loads the icon from the `.cpl` by that resource id (`CControlPanelFolder.cpp`, negative icon index), so the groups below are what it shows. Where an applet's source has a second theme-compatibility id both are replaced.
@@ -194,6 +196,10 @@ Many applet, tray and dialog groups hold one or two 32 px frames, not nine. The 
 | `shell32.dll` 181 (the Explorer status bar's My Computer zone) | 1 (`32@32`) | `32` |
 | `sysdm.cpl` 51, 52, 2502 (the Hardware tab's Device Manager, Hardware Profiles and Add Hardware) | 1 (`32@32`) | `32` |
 | `utilman.exe` 30 | 1 (`32@32`) | `32` |
+| `regedit.exe` 135 and 136 (string and binary values) | 1 (`16@32`) | `16` |
+| `taskmgr.exe` 137 (a window with no icon, large) | 1 (`32@32`) | `32` |
+| `taskmgr.exe` 138 (the same, small) | 1 (`16@32`) | `16` |
+| `shell32.dll` 161 (the confirmation before a delete for good) | 2 (`32@32`, `32@8`) | `32`, `16` |
 | `main.cpl` 105, 106, 108, 602, 603 (keyboard and mouse tab pictures) | 2 (`32` at two depths) | `32`, `16` |
 | `main.cpl` 600 (mouse trails) | 2 (`32@1`, `32@1`) | `32`, `16` |
 | `main.cpl` 109, 110, 605, 606 (the Button tab pictures) | 2 (`48` at two depths) | `48`, `32` |
@@ -256,6 +262,12 @@ Explorer's file views draw a program's file icon from the first icon group in th
 | `hh.exe` | 2 | HTML Help | `help` | source, binary |
 | `winhlp32.exe` | 3840 | Help (the ReactOS copy; the otvdm copy is another program) | `help` | source, binary |
 | `ieframe.dll` | 1401 | HTML files | `html` | source, binary |
+| `ntobjshex.dll` | 1 | My Computer: NT Object Namespace | `ntnamespace` | source, binary |
+| | 2, 3 | A directory or key container, closed and open | `folder`, `folderopen` | source, binary |
+| | 4 | An NT object of any other type | `ntobject` | source, binary |
+| | 5, 6 | A device and a port | `ntdevice`, `ntport` | source, binary |
+| | 7 | My Computer: System Registry, and registry keys | `regkey` | source, binary |
+| | 8 | A registry value | `regbinary` | source, binary |
 
 The `base` trim removes most of these files (Calculator, Paint, WordPad, Character Map, the games, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`). A patcher leaves alone a file the trim removes (RL-53.3), so the compact image keeps the same list and a downstream recipe that keeps one of them gets the Afterglow icon. A resource verified from the source alone is checked in the stock file at build: it is patched when the group is there with frames of its own, and skipped (logged and listed in the report) when it is not. Today both source-only groups (`spider.exe` 100, `sndrec32.exe` 107) are in the stock file and are patched.
 
@@ -275,4 +287,4 @@ The stock icons of programs the map does not list stay stock too (the Virtual CD
 
 ### Round 3
 
-What is still stock after the current pin, ranked by where a visitor meets it, and the patch list for Afterglow's icons v5 (the NT Object Namespace and System Registry folders, Registry Editor's values, the Go button and four dialog pictures), are in [plans/icon-round-3.md](plans/icon-round-3.md).
+Afterglow's icons v5 (RL-65) added what a visitor meets first and the survey still found in stock: `ntobjshex.dll` 1 to 8 (eight groups of 48, 32 and 16 px, which the module's CLSIDs and the two folders' views load), `shell32.dll` 25 (Run), 133 (Properties of several files), 142 (Recycle Bin, full, in the confirmations), 161 (the shredder, fitted to 32 and 16 px), 200 (the (None) wallpaper entry) and 256, `regedit.exe` 135 and 136 and `taskmgr.exe` 137 and 138 (fitted, as in the table above), and the Go button's two bitmaps. All 20 are in `icon-coverage.md` as patched. Left stock on purpose: `regedit.exe` 102 (the address button, one 12 px frame, a size the patcher refuses), the Mouse Keys tray states (8-bit frames only), the ReactOS logo art (the branding rule) and the Task Manager tray meter bitmaps.

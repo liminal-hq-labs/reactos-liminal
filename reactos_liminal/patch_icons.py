@@ -80,6 +80,27 @@ def verified_icons(source_tree: Path, scratch: Path, icon_ids: set[str]) -> tupl
 	return icons, sums
 
 
+def verified_bitmaps(source_tree: Path, scratch: Path, names: set[str]) -> tuple[dict[str, bytes], dict[str, str]]:
+	"""The same render as `verified_icons`, for the bitmaps in its `bmp` folder: the .bmp bytes of each named file by name, and their
+	sums by `bmp/<name>`, each checked against Afterglow's `SHA256SUMS`."""
+	render_dir = scratch / "icons"
+	render_icons(source_tree, render_dir)
+	recorded = _afterglow_sums(source_tree)
+	bitmaps: dict[str, bytes] = {}
+	sums: dict[str, str] = {}
+	for name in sorted(names):
+		relative = f"bmp/{name}"
+		path = render_dir / relative
+		if not path.is_file():
+			raise PatchError(f"Afterglow's render.py did not write {relative}")
+		sha = sha256_file(path)
+		if sha != recorded.get(relative):
+			raise PatchError(f"{relative} renders as {sha}, Afterglow records {recorded.get(relative)}; the renderer or its tools differ")
+		bitmaps[name] = path.read_bytes()
+		sums[relative] = sha
+	return bitmaps, sums
+
+
 def settle_result(section: str, digest: str, name: str, result: str, expected: str | None, pins_file: str) -> None:
 	"""Check a patched file against its pinned result, or, under `rl pin`, record it as the new pin."""
 	recorder = active_recorder()
