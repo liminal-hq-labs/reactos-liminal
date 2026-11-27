@@ -118,7 +118,7 @@ def test_the_start_patcher_selects_its_shell(base_recipe_path):
 	recipe = load(base_recipe_path)
 	files = settings.settings_files(recipe)
 	assert '"Shell"="agexplorer.exe"' in files["shell-agexplorer"]
-	assert 'Wallpaper"="C:\\\\ReactOS\\\\afterglow-wallpaper.bmp"' in files["appearance"]
+	assert 'Wallpaper"="C:\\\\ReactOS\\\\Web\\\\Wallpaper\\\\Afterglow Dusk (dark, smooth).bmp"' in files["appearance"]
 	recipe.data["patchers"]["list"] = ["afterglow.pointers", "afterglow.logon"]
 	assert "shell-agexplorer" not in settings.settings_files(recipe)
 

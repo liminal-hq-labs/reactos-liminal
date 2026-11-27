@@ -3,8 +3,9 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 """Afterglow is a pinned input, and a good deal of what the pipeline checks follows from the pin: the sum of the source tar, of the
-built visual style and of the wallpaper (in the recipe), and the sum each icon patcher's result must have (in `pins/`). The icon
-patchers read the icon list from Afterglow's `map.json`, so a new icon set needs no code change: bump the pin, run `rl pin`.
+built visual style and of the wallpaper (in the recipe), the sum of each wallpaper scene's BMP and the sum each icon patcher's result
+must have (in `pins/`). The icon patchers read the icon list from Afterglow's `map.json`, so a new icon set needs no code change: bump
+the pin, run `rl pin`.
 
     rl pin RECIPE                       measure the pin the recipe already names and rewrite any hash that is stale
     rl pin RECIPE --afterglow REF       first move the pin to REF: a commit, a tag or a branch of the recipe's repository
@@ -34,7 +35,8 @@ from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe, load
 from .rustbuild import build_program, declaring_file
-from .wallpaper import render_wallpaper, wanted
+from .wallpaper import PINS_FILE as WALLPAPER_PINS_FILE
+from .wallpaper import discover_scenes, render_set, render_wallpaper, wanted
 
 # The patchers that record a result, with the ones whose copies they build on first (they record nothing themselves): the pointers
 # copy of user32.dll, the Start copy of explorer.exe and the logon copy of msgina.dll, in the order of the recipe.
@@ -162,6 +164,11 @@ def pin_afterglow(
 		with tempfile.TemporaryDirectory(dir=ensure(work, "scratch")) as scratch_name:
 			render_wallpaper(trial, tree, Path(scratch_name), measured)
 
+	with tempfile.TemporaryDirectory(dir=ensure(work, "scratch")) as scratch_name:
+		scene_sums: dict[str, str] = {}
+		render_set(trial, tree, Path(scratch_name), discover_scenes(tree), scene_sums)
+	wallpaper_pins = {"commit": commit, "scenes": dict(sorted(scene_sums.items()))}
+
 	with recording() as recorder, tempfile.TemporaryDirectory(dir=ensure(work, "scratch")) as scratch_name:
 		try:
 			run_patchers(list(ICON_PATCHERS), FatImage(golden), tree, work / "afterglow-files", Path(scratch_name))
@@ -186,6 +193,8 @@ def pin_afterglow(
 	for path, document in ((SHELL32_PINS_FILE, shell32_pins), (FAMILY_PINS_FILE, family_pins)):
 		if json.loads(path.read_text()) != document:
 			changes.append(f"{path.name}: icon results refreshed")
+	if not WALLPAPER_PINS_FILE.is_file() or json.loads(WALLPAPER_PINS_FILE.read_text()) != wallpaper_pins:
+		changes.append(f"{WALLPAPER_PINS_FILE.name}: {len(scene_sums)} wallpaper sums refreshed")
 	if check:
 		return changes
 
@@ -202,6 +211,7 @@ def pin_afterglow(
 		build_file.write_text(set_pins(build_file.read_text(), {"sha256": digest}, f"[builds.{name}]"))
 	write_json(SHELL32_PINS_FILE, shell32_pins)
 	write_json(FAMILY_PINS_FILE, family_pins)
+	write_json(WALLPAPER_PINS_FILE, wallpaper_pins)
 
 	# The finished pins, end to end: every patcher the recipe lists, with nothing recorded this time.
 	verified = load(recipe_path)

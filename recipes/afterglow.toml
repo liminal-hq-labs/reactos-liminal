@@ -54,9 +54,17 @@ display_width = 1024
 display_height = 768
 page_file = "64 64"
 icon_size = 32
-wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
+wallpaper = "C:\\ReactOS\\Web\\Wallpaper\\Afterglow Dusk (dark, smooth).bmp"
 wallpaper_style = "stretch"
 reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]
+
+# The wallpapers Display Properties lists. `scenes = "all"` puts every Afterglow scene (the five palettes, dark and light, smooth and stepped:
+# 20 BMPs of 2.3 MB) in `C:\ReactOS\Web\Wallpaper`, named for people ("Afterglow Dusk (dark, smooth)"), and `replace_stock` removes ReactOS's
+# own wallpapers (`profiles/wallpapers/stock.txt`) so the list holds only Afterglow's. The sums are in `pins/afterglow-wallpapers.json`. The
+# desktop wallpaper above is one of them. afterglow-compact.toml sets both back: the compact image carries only its one wallpaper.
+[wallpapers]
+scenes = "all"
+replace_stock = true
 
 # Which files the trim removes: none, or base (the compact trim; keeps the network drivers and stack). This recipe is the full
 # ReactOS and removes nothing; afterglow-compact.toml extends it with the base profile. A downstream recipe adds its own removals with

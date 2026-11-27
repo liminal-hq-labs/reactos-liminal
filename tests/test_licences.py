@@ -67,7 +67,8 @@ def test_the_notice_says_unofficial_and_carries_the_source_offer_and_credits(bas
 	assert "ReactOS Team" in text and "Afterglow" in text
 	assert base.section("inputs", "reactos_iso")["sha256"] in text
 	assert "\r\n" in text and "\n" not in text.replace("\r\n", "")
-	assert "Gecko" in text and "Wallpapers shipped with ReactOS" in text  # the base recipe is the full image, so nothing is left out
+	assert "Gecko" in text  # the base recipe is the full image, so Gecko is left in
+	assert "Wallpapers shipped with ReactOS" not in text  # its wallpapers are replaced by Afterglow's, and their licences go with them
 
 
 def test_the_notice_leaves_out_gecko_and_the_wallpapers_when_the_trim_removes_them(compact):

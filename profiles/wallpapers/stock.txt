@@ -1,0 +1,23 @@
+# The wallpapers ReactOS 0.4.16 ships, which a recipe with `wallpapers.replace_stock = true` removes so that Display Properties lists
+# only the wallpapers the recipe puts there. The credits files go with the pictures they credit: Angelus.txt, and README.txt, the table
+# of each wallpaper's licence, author and origin. The image's NOTICE.txt drops the stock wallpapers' licences with them.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# One path per line, under the FAT32 root, in the trim profiles' format ("f PATH"). A path that is not on the disk (the compact trim
+# has removed it already) is skipped. This is not a trim profile: it is applied by the wallpaper step and never by `rl trim`.
+
+f ReactOS/Web/Wallpaper/Angelus.txt
+f ReactOS/Web/Wallpaper/Backwoods.jpg
+f ReactOS/Web/Wallpaper/Borealis Dark.jpg
+f ReactOS/Web/Wallpaper/Borealis.jpg
+f ReactOS/Web/Wallpaper/Deep Sea.jpg
+f ReactOS/Web/Wallpaper/Grass.jpg
+f ReactOS/Web/Wallpaper/Mizu (4x3).png
+f ReactOS/Web/Wallpaper/Mizu.png
+f ReactOS/Web/Wallpaper/Nebula.bmp
+f ReactOS/Web/Wallpaper/Polarlicht.jpg
+f ReactOS/Web/Wallpaper/README.txt
+f ReactOS/Web/Wallpaper/Silhouette Dark.png
+f ReactOS/Web/Wallpaper/Silhouette.png
