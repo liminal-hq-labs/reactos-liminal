@@ -2,6 +2,10 @@
 
 The Afterglow screensavers ([liminal-hq-labs/afterglow-savers](https://github.com/liminal-hq-labs/afterglow-savers)) go into both Afterglow images: Afterglow Maze, Cracktro, Twilight and Ink, plus the Afterglow Collection, listed in Display Properties > Screen Saver, with the Collection selected after ten minutes. Quill Ghostwriter, the sixth saver, is Quill's and only Quill's remix recipe writes it. The whole plan, with the packages that land in afterglow-savers and in Quill, is that repository's `docs/packing.md`; this file holds the three packages that land here, WP-PACK-3 to WP-PACK-5, in build order. When they land, SPEC.md, `docs/recipes.md` and `docs/decisions.md` say what was built and this plan is removed.
 
+## Status
+
+WP-PACK-3 and the recipe wiring of WP-PACK-4 are built together (RL-67, RL-68): `[builds.afterglow-savers]` is in the base recipe at the savers' `main` commit `d998594`; `./rl pin recipes/afterglow.toml --savers REF` moves it. No registry file is added (RL-68), so the `screensaver-afterglow` file this plan first proposed is not written. Still to do: CI's "Afterglow savers" job and `build.yml`'s tar cache and `--require afterglow-savers-tar` (workflow files were outside this package), the Quill remix's own change, and WP-PACK-5, which boots both images.
+
 ## What changes here
 
 - **A build from another repository at a pinned commit.** `[builds.NAME]` today names an in-tree Rust project (`source`) and pins one `NAME.exe` (`sha256`). The savers are six files from one workspace in another repository, so `[builds]` gains a second form: `repo`, `commit` and `tar_sha256` (the source tar GitHub serves for that commit, fetched and checked as `[inputs.afterglow]` is), an optional `script` (default `build.sh`, relative to the project root), and `outputs`, a table of file name to SHA-256, which `[[files]]` names as `built:NAME/FILE`. afterfetch keeps the in-tree form unchanged.

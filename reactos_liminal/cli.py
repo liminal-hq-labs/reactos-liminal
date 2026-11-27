@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import __version__, doctor
 from .afterglow import fetch_afterglow
-from .audit import audit_image
+from .audit import audit_image, expected_savers
 from .fetch import FetchError, fetch_iso
 from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
@@ -24,8 +24,9 @@ from .mtools import FatImage, MtoolsError
 from .parts import PartsError, make_parts
 from .patchers import PatchError
 from .paths import WorkDirError, resolve_work
-from .pin import PinError, pin_afterglow
+from .pin import PinError, pin_afterglow, pin_savers
 from .recipe import RecipeError, load, parse_size
+from .rustbuild import build_program, fetch_build_source, remote_builds
 from .settings import SettingsError
 from .trim import TrimError, profile_names
 from .vm import VmError
@@ -65,6 +66,8 @@ def _cmd_fetch(args: argparse.Namespace) -> int:
 	print(iso)
 	if "afterglow" in recipe.data["inputs"]:
 		print(fetch_afterglow(recipe, work, Path(args.afterglow_tarball) if args.afterglow_tarball else None))
+	for name in remote_builds(recipe):
+		print(fetch_build_source(recipe, work, name))
 	return 0
 
 
@@ -153,18 +156,39 @@ def _cmd_licences(args: argparse.Namespace) -> int:
 	return 0
 
 
+def _cmd_build(args: argparse.Namespace) -> int:
+	recipe = load(args.recipe)
+	if args.name not in recipe.data["builds"]:
+		declared = ", ".join(recipe.data["builds"]) or "none"
+		raise RecipeError(f"builds.{args.name}: the recipe declares no such build; it declares {declared}")
+	result = build_program(recipe, resolve_work(args.work), args.name, tarball=Path(args.savers_tarball) if args.savers_tarball else None)
+	print(result)
+	return 0
+
+
 def _cmd_pin(args: argparse.Namespace) -> int:
 	if args.pre_merge and not args.afterglow:
 		raise PinError("--pre-merge goes with --afterglow")
-	changes = pin_afterglow(
-		args.recipe,
-		resolve_work(args.work),
-		ref=args.afterglow,
-		pre_merge=args.pre_merge,
-		golden=Path(args.golden) if args.golden else None,
-		tarball=Path(args.afterglow_tarball) if args.afterglow_tarball else None,
-		check=args.check,
-	)
+	if args.savers is not None:
+		if args.afterglow:
+			raise PinError("--savers and --afterglow pin different things; run them one at a time")
+		changes = pin_savers(
+			args.recipe,
+			resolve_work(args.work),
+			ref=args.savers or None,
+			tarball=Path(args.savers_tarball) if args.savers_tarball else None,
+			check=args.check,
+		)
+	else:
+		changes = pin_afterglow(
+			args.recipe,
+			resolve_work(args.work),
+			ref=args.afterglow,
+			pre_merge=args.pre_merge,
+			golden=Path(args.golden) if args.golden else None,
+			tarball=Path(args.afterglow_tarball) if args.afterglow_tarball else None,
+			check=args.check,
+		)
 	for change in changes:
 		print(change)
 	if args.check:
@@ -228,7 +252,8 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 	if not image.is_file():
 		print(f"rl: no such image: {image}", file=sys.stderr)
 		return 2
-	report = audit_image(FatImage(image))
+	savers = expected_savers(load(args.recipe)) if args.recipe else ()
+	report = audit_image(FatImage(image), savers)
 	text = report.render(f"Shortcut and registry audit of {image.name}")
 	if args.out:
 		Path(args.out).write_text(text)
@@ -380,9 +405,28 @@ def build_parser() -> argparse.ArgumentParser:
 	)
 	sub.add_argument("--golden", metavar="FILE", help="the golden disk the icon results are measured against (default: the recipe's)")
 	sub.add_argument("--afterglow-tarball", metavar="FILE", help="use a local .tar.gz of the commit instead of downloading it")
+	sub.add_argument(
+		"--savers",
+		nargs="?",
+		const="",
+		default=None,
+		metavar="REF",
+		help="pin the builds from other repositories (the Afterglow savers) instead: optionally first move them to this commit, tag or "
+		"branch, then measure the source tar and every output",
+	)
+	sub.add_argument("--savers-tarball", metavar="FILE", help="with --savers: use a local .tar.gz of the commit instead of downloading it")
 	sub.add_argument("--check", action="store_true", help="change nothing; list the stale hashes and exit 1 if there are any")
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_pin)
+
+	sub = commands.add_parser(
+		"build", help="build one of the recipe's [builds] and check every output against its SHA-256 (the savers, afterfetch.exe)"
+	)
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument("name", help="the build's name, as in [builds.NAME]")
+	sub.add_argument("--savers-tarball", metavar="FILE", help="use a local .tar.gz of the pinned commit instead of downloading it")
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_build)
 
 	sub = commands.add_parser("trim", help=f"trim a working copy of a disk with a profile ({', '.join(profile_names())})")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the default profile)")
@@ -396,6 +440,11 @@ def build_parser() -> argparse.ArgumentParser:
 		help="list every shortcut and registry launch point of a built image with its target, and whether the target is on the disk",
 	)
 	sub.add_argument("image", help="the finished disk image (read only)")
+	sub.add_argument(
+		"--recipe",
+		metavar="FILE",
+		help="the recipe the image was built from: every screensaver it writes must be on the disk",
+	)
 	sub.add_argument("--out", metavar="FILE", help="write the Markdown report here instead of printing it")
 	sub.add_argument(
 		"--strict",

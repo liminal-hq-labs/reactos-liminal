@@ -50,7 +50,8 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 - `[settings]` holds the display mode, page file, desktop icon size, wallpaper path and registry files (default `Dusk` scheme).
 - `[wallpapers]` chooses the wallpapers Display Properties lists: `scenes` (`"all"` or a list of Afterglow scenes, written as BMPs to `ReactOS\Web\Wallpaper` under names such as "Dusk", with sums in `pins/afterglow-wallpapers.json`) and `replace_stock` (remove ReactOS's own wallpapers, `profiles/wallpapers/stock.txt`). The base recipe sets `all` and `true`; the compact recipe sets `[]` and `false` (RL-55).
 - `[trim]` names a trim profile (`none` or `base`; the base recipe uses `none`, and `afterglow-compact.toml` extends it with `base`) and may list `extra` trim files beside the recipe, applied after the profile; `[patchers]` lists the patchers to run, which run before the trim.
-- `[builds.NAME]` names a Rust project in this repository (`source`) and pins the SHA-256 of what it builds (`sha256`); `rl image` builds it with the project's own pinned toolchain, and a `[[files]]` entry with `source = "built:NAME"` writes the result. `rl lock` measures the pin.
+- `[builds.NAME]` is a Rust project built from source, in one of two forms, and `rl image` builds each one a `[[files]]` entry uses. A project in this repository names `source` and pins the SHA-256 of its `NAME.exe` (`sha256`); `source = "built:NAME"` writes it. A project in another repository at a pinned commit names `repo`, `commit`, `tar_sha256` (the uncompressed tar GitHub serves for the commit), an optional `script` (default `build.sh`, run as `bash SCRIPT OUT_DIR` in the extracted tree) and `[builds.NAME.outputs]`, a table of file name to SHA-256; `built:NAME/FILE` writes one output, and any other file the script leaves is ignored. A recipe that extends another adds an output in its own `[builds.NAME.outputs]`, and `rl lock` and `rl pin` write its sum there (RL-67). `rl lock` records the pin, and `rl pin --savers` measures it.
+- The base recipe builds the Afterglow savers this way (`[builds.afterglow-savers]`, RL-67) and writes five standalone files, `AGMAZE.SCR`, `AGCRACK.SCR`, `AGTWILIT.SCR`, `AGINK.SCR` and `AGCOLLCT.SCR`, to `ReactOS\system32`. No saver is selected and there is no registry entry for them (RL-68): Display Properties lists every `.scr` in the system folder by its own name. The full image keeps ReactOS's own savers; the compact image's trim removes eight of them and keeps the five. The Quill Ghostwriter saver, `AGQUILL.SCR`, is built and never written by these recipes.
 - `[[files]]` copies a file into the image; across `extends`, entries merge by destination (RL-44), and a source is relative to the recipe that wrote it. An entry that writes `settings.wallpaper` supplies the wallpaper, and the Afterglow scene is not rendered. `[[shortcuts]]` writes a desktop shortcut; `settings.remove_desktop_shortcuts` removes stock shortcuts.
 - `[[steps]]` lists the steps by `use` (`trim`, `files`, `registry`, `shortcuts`, `afterglow.style`, `afterglow.pointers`, `afterglow.wallpaper`, `logon.msgina`, `logon.win32k-colours`, `hook`), each with an `id` and its parameters.
 - `[outputs]` chooses the disk, the v86 parts and state, and the remastered ISO.
@@ -61,11 +62,10 @@ A recipe chooses and parameterizes steps; it cannot add a new kind of write. The
 
 ## The `rl` command
 
-**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image`, `rl trim`, `rl parts`, `rl manifest`, `rl summary`, `rl hash`, `rl verify`, `rl lock`, `rl pin`, `rl licences`, `rl iso`, `rl key` and `rl audit`. The rest is planned.
+**Built:** `rl doctor`, `rl explain`, `rl fetch`, `rl install`, `rl image`, `rl trim`, `rl parts`, `rl manifest`, `rl summary`, `rl hash`, `rl verify`, `rl lock`, `rl pin`, `rl build`, `rl licences`, `rl iso`, `rl key` and `rl audit`. The rest is planned.
 
 ```text
 rl doctor                               # check that the tools the pipeline needs are installed
-rl build RECIPE [--out DIR] [--work DIR] [--iso FILE] [--from-golden FILE] [--only STEP] [--keep-work]
 rl verify RECIPE [--require INPUT]      # re-check every input pin in the work directory, and the lock file against the recipe
 rl lock RECIPE                          # write the lock file beside the recipe: the resolved inputs and their sums
 rl licences RECIPE [--out FILE]         # the licences page, as Markdown
@@ -75,8 +75,10 @@ rl fetch RECIPE                         # download and check every pinned input,
 rl install RECIPE [--iso FILE] [--dry-run] [--force] [--in-place-iso]   # unattended install in a private QEMU; keeps the golden disk
 rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, licences, settings
 rl pin RECIPE [--afterglow REF] [--pre-merge NOTE] [--check]   # move the Afterglow pin and refresh the hashes that follow from it
+rl pin RECIPE --savers [REF] [--check]  # move the savers' commit (or re-measure it), and rewrite the source tar sum and each output's SHA-256
+rl build RECIPE NAME                    # build one [builds.NAME] and check each output against its pin (the .scr files, afterfetch.exe)
 rl trim RECIPE IMAGE [--profile NAME]   # trim a working copy of a disk with a profile
-rl audit IMAGE [--out FILE] [--strict]  # every shortcut and registry launch point of a built image, and whether its target is on the disk
+rl audit IMAGE [--recipe RECIPE] [--out FILE] [--strict]  # every shortcut, registry launch point and screensaver of a built image, and whether its target is on the disk (with --recipe, every .scr the recipe writes)
 rl parts RECIPE IMAGE [--out DIR] [--chunk-size SIZE]   # zero free space, then zstd parts and manifest.json
 rl manifest RECIPE DIST [--timing STAGE=SECONDS]   # build-manifest.json for a folder of outputs
 rl summary MANIFEST                     # the manifest as a Markdown job summary

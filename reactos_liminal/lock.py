@@ -15,12 +15,13 @@ from pathlib import Path
 
 from .fetch import sha256_file
 from .install import golden_key, golden_path, render_unattend
-from .recipe import Recipe, is_reg_path
+from .recipe import Recipe, is_reg_path, is_remote_build
+from .rustbuild import tar_path
 from .trim import PROFILES_DIR
 from .wallpaper import STOCK_LIST, load_pins, scenes
 
 LOCK_SCHEMA = 1
-REQUIRABLE = ("iso-zip", "iso", "afterglow-tar", "msstyles")
+REQUIRABLE = ("iso-zip", "iso", "afterglow-tar", "msstyles", "afterglow-savers-tar")
 
 
 class LockError(Exception):
@@ -69,7 +70,7 @@ def build_lock(recipe: Recipe) -> dict:
 		for entry in recipe.section("settings", "reg_files")
 		if is_reg_path(entry)
 	}
-	builds = {name: table["sha256"] for name, table in recipe.data.get("builds", {}).items()}
+	builds = {name: dict(table) if is_remote_build(table) else table["sha256"] for name, table in recipe.data.get("builds", {}).items()}
 	# Resolved sources are absolute (made so against the recipe that wrote them); the lock names each one beside this recipe.
 	files = {
 		_relative(base / entry["source"], base): sha256_file(base / entry["source"])
@@ -158,6 +159,9 @@ def verify(recipe: Recipe, work: Path, lock_file: Path | None = None, check_lock
 		afterglow = recipe.section("inputs", "afterglow")
 		checks.append(_check_file("afterglow-tar", work / "afterglow" / f"{afterglow['commit']}.tar", afterglow["tar_sha256"]))
 		checks.append(_check_file("msstyles", work / "afterglow-files" / "afterglow.msstyles", afterglow["msstyles_sha256"]))
+	for name, table in recipe.data.get("builds", {}).items():
+		if is_remote_build(table):
+			checks.append(_check_file(f"{name}-tar", tar_path(recipe, work, name), table["tar_sha256"]))
 	if check_lock_file:
 		checks += check_lock(recipe, lock_file)
 	return checks
@@ -184,4 +188,10 @@ def cache_keys(recipe: Recipe, work: Path) -> dict[str, str]:
 		keys["afterglow_commit"] = afterglow["commit"]
 		keys["afterglow_tar_sha256"] = afterglow["tar_sha256"]
 		keys["afterglow_path"] = str(work / "afterglow")
+	for name, table in recipe.data.get("builds", {}).items():
+		if is_remote_build(table):
+			prefix = name.replace("-", "_")
+			keys[f"{prefix}_commit"] = table["commit"]
+			keys[f"{prefix}_tar_sha256"] = table["tar_sha256"]
+			keys[f"{prefix}_path"] = str(work / "builds" / name)
 	return keys

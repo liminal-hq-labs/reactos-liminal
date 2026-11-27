@@ -12,7 +12,8 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[install]` | `locale`, `time_zone_index`, `computer_name`, `owner_name`, `classic_shell`, `memory_mb`, `disk_size_mb` | `0409`, `85`, `REACTOS`, `ReactOS user`, `true`, `768`, `4096` |
 | `[iso]` | `writer` (`NAME VERSION`: `genisoimage 1.1.11` or `mkisofs 3.02a09`), `volume` (up to 32 letters, digits, spaces, underscores), `epoch` (seconds; the time on every file and volume date) | `genisoimage 1.1.11`, `ReactOS`, `1756425600` |
 | `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"fill"` (or `"fit"`, `"stretch"`, `"centre"`, `"tile"`), `["display", "quiet", "watermark-off"]` (the base recipe adds `afterglow-logon`, `regional-canada` and `pointer-defaults`), none |
-| `[builds.afterfetch]` | `source` (a Rust project, relative to the recipe that declares it), `sha256` of its build output (both required) | the base recipe builds `tools/afterfetch` |
+| `[builds.NAME]`, a project in this repository | `source` (a Rust project, relative to the recipe that declares it), `sha256` of its build output (both required) | the base recipe builds `tools/afterfetch` |
+| `[builds.NAME]`, a project in another repository | `repo`, `commit` (40 digits), `tar_sha256` (of the uncompressed tar GitHub serves for the commit), `script` (default `build.sh`, relative to the project's root) and `[builds.NAME.outputs]` (file name to SHA-256, at least one) | the base recipe builds `afterglow-savers` ([Screensavers](#screensavers)); a file is written with `built:NAME/FILE` |
 | `[[files]]` | `source` (relative to the recipe, or `built:NAME` for a `[builds]` output), `destination` (under the disk root) | none (the base recipe writes `afterfetch.exe` and `afterfetch.cmd`; a recipe that extends it keeps those entries and merges its own by destination, see [Extending a recipe](#extending); `built:afterfetch` works in a consumer recipe because the base recipe declares the build) |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[wallpapers]` | `scenes` (`"all"`, or a list of Afterglow scenes such as `["dusk-light-smooth"]`; `[]` is none), `replace_stock` (remove ReactOS's own wallpapers) | `[]`, `false` (the base recipe sets `"all"` and `true`; the compact recipe sets them back) |
@@ -61,6 +62,32 @@ extra = ["my-demo-trim.txt"]
 `recipes/afterglow.toml` is the full ReactOS with the Afterglow desktop: `trim.profile = "none"`, so the trim removes nothing (every app, game, screensaver, applet and font, and Gecko, so the Internet Browser works when the guest has a network); its one removal is ReactOS's own wallpapers, which the 20 Afterglow wallpapers replace in the Display Properties list ([above](#the-wallpaper-list)). `recipes/afterglow-compact.toml` is the same recipe extended with `[trim] profile = "base"`, the compact trim ([trim.md](trim.md)); it keeps one wallpaper, in `C:\ReactOS\afterglow-wallpaper.bmp`; it has its own name (`afterglow-compact`, so its disk is `images/afterglow-compact.img`) and its own lock file, `afterglow-compact.lock.json`. The two have the same golden-disk key, because the install does not depend on the trim, so `rl image recipes/afterglow-compact.toml --golden GOLDEN_DISK_OF_THE_BASE_RECIPE` reuses the base recipe's golden disk instead of installing again (a golden disk's file name carries the recipe name). `./rl lock` and `./rl verify` take a recipe each, and CI verifies both locks.
 
 A consumer that wants the compact image extends `rl:recipes/afterglow-compact.toml`; one that extends `rl:recipes/afterglow.toml` gets the full image. Quill's remix recipe (`site/try-reactos/qagrr/qagrr.toml`) extends `rl:recipes/afterglow.toml` and relied on the trim that recipe then carried, so it needs `extends = "rl:recipes/afterglow-compact.toml"` to keep its compaction (RL-48); that change is made in the Quill repository when it takes this release.
+
+## Screensavers
+
+The base recipe builds the Afterglow savers from source at a pinned commit of `liminal-hq-labs/afterglow-savers` and writes five standalone `.scr` files (no shared DLL) to `ReactOS\system32`: `AGMAZE.SCR`, `AGCRACK.SCR`, `AGTWILIT.SCR`, `AGINK.SCR` and `AGCOLLCT.SCR`, shown in Display Properties as Afterglow Maze, Cracktro, Twilight, Ink and Collection.
+
+```toml
+[builds.afterglow-savers]
+repo = "liminal-hq-labs/afterglow-savers"
+commit = "…"        # the one line to swap
+tar_sha256 = "…"
+script = "scripts/build-scr.sh"
+
+[builds.afterglow-savers.outputs]
+"AGMAZE.SCR" = "…"  # one line per file; the build also makes AGQUILL.SCR
+
+[[files]]
+source = "built:afterglow-savers/AGMAZE.SCR"
+destination = "ReactOS/system32/AGMAZE.SCR"
+```
+
+- **What each image holds.** The full image keeps ReactOS's own savers beside the five. The compact image extends it, so it writes the same five files, and its `base` trim removes ReactOS's own eight (`3dtext`, `butterflies`, `circles`, `cylfrac`, `matrix`, `mazescr`, `ssstars` and `starfield`); no trim profile names an `AG*.SCR` file, and a test keeps it so. The Quill remix recipe adds `AGQUILL.SCR` ("Quill Ghostwriter") and nothing else changes; the savers' other consumers do not get it.
+- **No saver is selected and no registry file is added** (RL-68). `quiet.reg` stays the only screensaver setting (`ScreenSaveActive` `"0"`), so the Screen Saver list shows "(None)" until someone picks one. ReactOS lists every `.scr` in the system folder by its string 1, so the files are the whole listing. The savers' own settings (sound on at volume 28, the Dusk palette) are the program's defaults, so nothing is written under `HKCU\Software\Liminal HQ\Afterglow Screensavers`.
+- **Moving the pin.** `./rl pin recipes/afterglow.toml --savers REF` resolves `REF` (a commit, tag or branch of the savers repository), fetches that commit's tar, builds it and rewrites `commit`, `tar_sha256` and every output's sum in the recipe that declares them; with no `REF` it re-measures the pinned commit, and `--check` changes nothing and exits 1 if any value is stale. It needs `rustup` with the toolchain the savers pin (1.98.0, with `rust-src` and `llvm-tools`; `rl doctor` checks), and no golden disk. `./rl build recipes/afterglow.toml afterglow-savers` builds and checks the pinned sums; `./rl lock` records the pin for each recipe, and `./rl verify` checks the kept tar against it (`--require afterglow-savers-tar` in CI).
+- **A recipe that adds an output** declares it in its own `[builds.afterglow-savers.outputs]` (a table header, not an inline table) and writes it with `[[files]]`; `rl lock` and `rl pin` keep its sum in that recipe's file and the others in the base recipe's.
+- **The audit.** `./rl audit IMAGE --recipe RECIPE` lists each `.scr` in the system folder as a screensaver entry (listed in Display Properties) and fails if one the recipe writes is not on the disk.
+- **Cost.** About 1.0 MB of files on the disk and 0.25 to 0.45 MB of v86 parts; the sizes of the booted images are measured when both are built.
 
 ## Work directory
 

@@ -289,6 +289,65 @@ def _table_list(spec: dict):
 
 _REQ = object()
 
+OUTPUT_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def _output_table(value: Any, key: str) -> dict[str, str]:
+	"""The `outputs` of a build from another repository: file name to SHA-256. The names are plain file names."""
+	if not isinstance(value, dict) or not value:
+		raise RecipeError(f"{key}: expected a table of output file name to SHA-256")
+	for name, digest in value.items():
+		if not OUTPUT_NAME.match(name):
+			raise RecipeError(f"{key}.{name}: expected a plain file name")
+		_sha256(digest, f"{key}.{name}")
+	return dict(value)
+
+
+def _script(value: Any, key: str) -> str:
+	if not isinstance(value, str) or not value or value.startswith("/") or ".." in value.replace("\\", "/").split("/"):
+		raise RecipeError(f"{key}: expected a path inside the project, such as scripts/build-scr.sh")
+	return value
+
+
+SOURCE_BUILD_SPEC = {"source": (_str, _REQ), "sha256": (_sha256, _REQ)}
+REMOTE_BUILD_SPEC = {
+	"repo": (_str, _REQ),
+	"commit": (_commit, _REQ),
+	"tar_sha256": (_sha256, _REQ),
+	"script": (_script, "build.sh"),
+	"outputs": (_output_table, _REQ),
+}
+
+
+def is_remote_build(table: dict) -> bool:
+	"""True for a build from another repository at a pinned commit (`repo`, `commit`, `tar_sha256`, `outputs`); false for a project in
+	this repository that builds one `NAME.exe` (`source`, `sha256`)."""
+	return "outputs" in table
+
+
+def _builds(value: Any, key: str) -> dict[str, dict]:
+	"""`[builds.NAME]`: a project in this repository (`source`, `sha256`) or a project at a pinned commit of another repository (`repo`,
+	`commit`, `tar_sha256`, an optional `script` and `outputs`)."""
+	if not isinstance(value, dict):
+		raise RecipeError(f"{key}: expected a table")
+	result: dict[str, dict] = {}
+	for name, table in value.items():
+		_recipe_name(name, f"{key}.{name}")
+		if not isinstance(table, dict):
+			raise RecipeError(f"{key}.{name}: expected a table")
+		remote = {"repo", "commit", "tar_sha256", "script", "outputs"} & set(table)
+		if remote and {"source", "sha256"} & set(table):
+			raise RecipeError(f"{key}.{name}: a build is `source` and `sha256`, or `repo`, `commit`, `tar_sha256` and `outputs`, not both")
+		result[name] = _validate(table, REMOTE_BUILD_SPEC if remote else SOURCE_BUILD_SPEC, f"{key}.{name}")
+	return result
+
+
+def split_built(source: str) -> tuple[str, str | None]:
+	"""`built:NAME` as (NAME, None) and `built:NAME/FILE` as (NAME, FILE)."""
+	name, _, output = source[len(BUILT_PREFIX) :].partition("/")
+	return name, output or None
+
+
 FILE_SPEC = {"source": (_str, _REQ), "destination": (_str, _REQ)}
 SHORTCUT_SPEC = {
 	"name": (_str, _REQ),
@@ -326,12 +385,7 @@ SCHEMA: dict[str, Any] = {
 			"pre_merge": (_str, None),
 		},
 	},
-	"builds": {
-		"afterfetch": {
-			"source": (_str, _REQ),
-			"sha256": (_sha256, _REQ),
-		},
-	},
+	"builds": (_builds, {}),
 	"install": {
 		"locale": (_locale, "0409"),
 		"time_zone_index": (_int(0, 999), 85),
@@ -574,8 +628,16 @@ def load(path: str | Path) -> Recipe:
 	if data["wallpapers"]["scenes"] and "afterglow" not in data.get("inputs", {}):
 		raise RecipeError("wallpapers.scenes: needs an [inputs.afterglow] table, which supplies the wallpapers")
 	for entry in data["files"]:
-		if entry["source"].startswith(BUILT_PREFIX) and entry["source"][len(BUILT_PREFIX) :] not in data.get("builds", {}):
+		if not entry["source"].startswith(BUILT_PREFIX):
+			continue
+		name, output = split_built(entry["source"])
+		table = data.get("builds", {}).get(name)
+		if table is None:
 			raise RecipeError(f"files: {entry['source']} names a build that no [builds] table declares")
+		if is_remote_build(table) and output not in table["outputs"]:
+			raise RecipeError(f"files: {entry['source']} names an output that builds.{name}.outputs does not declare")
+		if not is_remote_build(table) and output is not None:
+			raise RecipeError(f"files: {entry['source']}: builds.{name} has one program, named as built:{name}")
 	if "reactos_iso" not in data.get("inputs", {}):
 		raise RecipeError("inputs.reactos_iso: required (the pinned ISO)")
 	return Recipe(data=data, chain=chain)

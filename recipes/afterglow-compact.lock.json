@@ -35,6 +35,19 @@
 		"../guest/cmd/winfetch.cmd": "07e6410464e584fe4fa6658fc0ab8632e4372e92856d335fdb60d75fb110267d"
 	},
 	"builds": {
-		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
+		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2",
+		"afterglow-savers": {
+			"repo": "liminal-hq-labs/afterglow-savers",
+			"commit": "d99859406032da2dc36dc0b24d5e9fa29986e01f",
+			"tar_sha256": "d04e8a5b206c8f8ea11e80d99702545d87176d954071718b4154c7a78fa3d578",
+			"script": "scripts/build-scr.sh",
+			"outputs": {
+				"AGMAZE.SCR": "08a686e4ff3127aa2aa1dc52a6a6c3ba70fdd814fb139b7a41bcfb6773ece59b",
+				"AGCRACK.SCR": "12eb1196f9f9b0fc8149588966380ddc06b29674fd40eadc4b13e47d015798d2",
+				"AGTWILIT.SCR": "370282ca203447c2ee02b20c830dfc5b937a81089d5fc796d38fd3286a3e41eb",
+				"AGINK.SCR": "b88950ec17cc4b8e7ec089201346a7444bc2774cc3529f41e1a6eeb476037870",
+				"AGCOLLCT.SCR": "fa7aa7e07a2980f2a92ab11badc25442cfcaa9db9662bd1ddaca98701baa49e3"
+			}
+		}
 	}
 }

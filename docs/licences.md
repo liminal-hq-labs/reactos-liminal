@@ -7,6 +7,7 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 - **Base:** the official ReactOS 0.4.16 install CD, `ReactOS-0.4.16-i386.iso`, SHA-256 `6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855`.
 - **Recipe:** `afterglow`, with trim profile `none` and patchers `afterglow.pointers`, `afterglow.start`, `afterglow.logon`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons`, `afterglow.map-icons`, `afterglow.toolbar-bitmaps`, `afterglow.dialog-bitmaps`, `afterglow.colours`, `afterglow.boot`.
 - **Afterglow:** [`liminal-hq/afterglow-themes`](https://github.com/liminal-hq/afterglow-themes) at commit `fd023f4f147690b7055004d29fa010cd3dbd08ae`.
+- **afterglow-savers:** [`liminal-hq-labs/afterglow-savers`](https://github.com/liminal-hq-labs/afterglow-savers) at commit `d99859406032da2dc36dc0b24d5e9fa29986e01f`, built from source.
 
 ## Components and licences
 
@@ -20,6 +21,7 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 | Wallpapers shipped with ReactOS | CC-BY-NC-3.0 (Backwoods, Borealis, Deep Sea; Angelus is NC-SA), CC0-1.0, CC-BY-SA-4.0, CC-BY-1.0 and CC-BY-4.0, as each wallpaper's credits file says | credits files beside the wallpapers | ReactOS\Web\Wallpaper (replaced by Afterglow's wallpapers) |
 | Wine Gecko (the browser engine) | MPL-2.0 and the licences inside it | shipped with Gecko | ReactOS\system32\gecko |
 | Afterglow desktop theme (style, pointers, wallpapers) | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | ReactOS\Resources\Themes\Afterglow; the wallpapers in ReactOS\Web\Wallpaper or ReactOS\afterglow-wallpaper.bmp |
+| Afterglow screensavers (Maze, Cracktro, Twilight, Ink and Collection), built from source at a pinned commit | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | ReactOS\system32 (AGMAZE.SCR, AGCRACK.SCR, AGTWILIT.SCR, AGINK.SCR and AGCOLLCT.SCR) |
 | ReactOS Liminal's own settings, shortcuts and scripts | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | the settings and desktop |
 
 Component licences are taken from ReactOS's own documentation and are confirmed file by file against the 0.4.16 source before each release; the licence checklist in [SPEC.md](https://github.com/liminal-hq-labs/reactos-liminal/blob/main/SPEC.md#licence-checklist) records that step.

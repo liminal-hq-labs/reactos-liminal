@@ -223,7 +223,7 @@ def test_a_duplicate_reg_path_is_refused(base_recipe_path, tmp_path):
 
 def test_files_merge_by_destination_across_extends(base_recipe_path, tmp_path):
 	base = load(base_recipe_path)
-	assert len(base.data["files"]) == 6
+	assert len(base.data["files"]) == 11
 	child_dir = tmp_path / "quill"
 	child_dir.mkdir()
 	write(child_dir, "mine.cmd", "@echo mine\n")
@@ -242,6 +242,11 @@ def test_files_merge_by_destination_across_extends(base_recipe_path, tmp_path):
 		"ReactOS/system32/fastfetch.cmd",
 		"ReactOS/system32/screenfetch.cmd",
 		"ReactOS/system32/winfetch.cmd",
+		"ReactOS/system32/AGMAZE.SCR",
+		"ReactOS/system32/AGCRACK.SCR",
+		"ReactOS/system32/AGTWILIT.SCR",
+		"ReactOS/system32/AGINK.SCR",
+		"ReactOS/system32/AGCOLLCT.SCR",
 		"Quill/run.cmd",
 	]
 	assert files[0]["source"] == "built:afterfetch"
