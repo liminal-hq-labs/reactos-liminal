@@ -1,8 +1,10 @@
-# The icon patchers for files other than shell32.dll: `afterglow.cpl-icons`, `afterglow.program-icons` and `afterglow.dialog-icons`.
+# The icon patchers for files other than shell32.dll: `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons` and
+# `afterglow.map-icons`.
 #
-# The applets, the programs and file-type libraries, and the message-box icons of user32.dll (patched on top of the copy
-# `afterglow.pointers` leaves). Each file is taken from the golden disk, guarded by the SHA-256 of the stock 0.4.16 file in
-# `icon_families.json`, has the groups Afterglow's icon map verifies replaced, and is checked against `pins/icon-families.json`.
+# The applets, the programs and file-type libraries, the message-box icons of user32.dll (patched on top of the copy `afterglow.pointers`
+# leaves) and every other module the map names (the games, the accessories, the remaining applets). Each file is taken from the golden
+# disk, guarded by the SHA-256 of the stock 0.4.16 file in `icon_families.json`, has the groups Afterglow's icon map verifies replaced,
+# and is checked against `pins/icon-families.json`.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -10,11 +12,11 @@ import json
 from pathlib import Path
 
 from .fetch import sha256_file
-from .icon_map import load_map, module_groups, require_icon
+from .icon_map import MapResource, load_map, module_resources, require_icon
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched
-from .patch_icons import icon_set_digest, patch_icon_groups, require_pin, settle_result, verified_icons
+from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched, note_patched, note_skipped
+from .patch_icons import icon_set_digest, patch_icon_groups, require_pin, settle_result, stock_group_problem, verified_icons
 
 FAMILIES_FILE = Path(__file__).resolve().parent / "icon_families.json"
 PINS_FILE = Path(__file__).resolve().parent.parent / "pins" / "icon-families.json"
@@ -34,16 +36,43 @@ def module_name(file_spec: dict) -> str:
 	return file_spec.get("module") or file_spec["path"].rsplit("/", 1)[-1]
 
 
-def family_groups(entries: dict[str, dict], file_spec: dict) -> dict[int, str]:
-	"""The groups to replace in one file, as `{group: Afterglow icon id}`: every group Afterglow's map verifies for the module, plus the
-	file's own `groups` rows for groups the map does not name. Where the map names a group it decides."""
-	groups = module_groups(entries, module_name(file_spec))
+def family_resources(entries: dict[str, dict], file_spec: dict) -> dict[int, MapResource]:
+	"""The groups to replace in one file, as `{group: MapResource}`: every group Afterglow's map verifies for the module, plus the
+	file's own `groups` rows for groups the map does not name (verified in this repository from the source and the stock file, so
+	their evidence is `table`). Where the map names a group it decides."""
+	groups = module_resources(entries, module_name(file_spec))
 	for row in file_spec.get("groups", []):
 		if row["group"] in groups:
 			continue
 		require_icon(entries, row["afterglow"], f"{file_spec['path']} group {row['group']}")
-		groups[row["group"]] = row["afterglow"]
+		groups[row["group"]] = MapResource(row["afterglow"], ("table",))
 	return groups
+
+
+def family_groups(entries: dict[str, dict], file_spec: dict) -> dict[int, str]:
+	"""`family_resources` as `{group: Afterglow icon id}`."""
+	return {group: resource.icon_id for group, resource in family_resources(entries, file_spec).items()}
+
+
+def usable_groups(stock: bytes, module: str, image_path: str, resources: dict[int, MapResource]) -> dict[int, str]:
+	"""The groups of `resources` to write into a file, as `{group: icon id}`. A group verified in the stock binary (by Afterglow or by
+	this repository's table) is trusted, and a missing one is an error in the patch. A group the map verified from the ReactOS source
+	alone is checked against the stock file here: when it is missing, or is not an icon group the patcher can fill, it is left alone,
+	logged, and listed in the coverage report."""
+	usable: dict[int, str] = {}
+	for group, resource in sorted(resources.items()):
+		problem = None if resource.seen_in_binary else stock_group_problem(stock, group)
+		if problem is None:
+			usable[group] = resource.icon_id
+			if not resource.seen_in_binary:
+				log(
+					"patch",
+					f"   {image_path}: group {group} ({resource.icon_id}) is verified from the source only; the stock file holds it",
+				)
+		else:
+			log("patch", f"   {image_path}: group {group} ({resource.icon_id}) is left alone: {problem}")
+			note_skipped(module, group, f"verified from the source only, and {problem}")
+	return usable
 
 
 def input_copy(file_spec: dict, scratch: Path) -> Path | None:
@@ -58,8 +87,9 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 	family = load_families()[family_name]
 	pins = load_pins()["families"].get(family_name, {})
 	entries = load_map(source_tree)
-	wanted = {file_spec["path"]: family_groups(entries, file_spec) for file_spec in family["files"]}
-	icons_by_id, icon_sums = verified_icons(source_tree, scratch, {icon_id for groups in wanted.values() for icon_id in groups.values()})
+	resources = {file_spec["path"]: family_resources(entries, file_spec) for file_spec in family["files"]}
+	icon_ids = {resource.icon_id for found in resources.values() for resource in found.values()}
+	icons_by_id, icon_sums = verified_icons(source_tree, scratch, icon_ids)
 	inputs = {file_spec["path"]: input_copy(file_spec, scratch) for file_spec in family["files"]}
 	for image_path, earlier in inputs.items():
 		if earlier is not None:  # a file built on another patcher's result is pinned against that result too
@@ -71,8 +101,14 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 	for file_spec in family["files"]:
 		image_path = file_spec["path"]
 		stock_path = file_spec.get("stock_path", image_path)
+		module = module_name(file_spec)
 		if is_trimmed(image_path):
 			log("patch", f"   {family_name}: {image_path} is removed by the trim, so it is left alone")
+			continue
+		if not golden.exists(stock_path):
+			log("patch", f"   {family_name}: {stock_path} is not on the stock disk, so it is left alone")
+			for group in resources[image_path]:
+				note_skipped(module, group, f"{stock_path} is not on the stock disk")
 			continue
 		if inputs[image_path] is None and file_spec.get("stock_path"):
 			log("patch", f"   {family_name}: {image_path} is not written by an earlier patcher in this recipe, so it is left alone")
@@ -86,7 +122,11 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 				f"{stock_path} is not the stock file of ReactOS 0.4.16 i386 (SHA-256 {actual}, expected {file_spec['stock_sha256']}); "
 				"its group and frame ids were checked against that one file only"
 			)
-		icons = {group: icons_by_id[icon_id] for group, icon_id in wanted[image_path].items()}
+		wanted = usable_groups(stock_file.read_bytes(), module, image_path, resources[image_path])
+		if not wanted:
+			log("patch", f"   {family_name}: {image_path} has no group to replace, so it is left alone")
+			continue
+		icons = {group: icons_by_id[icon_id] for group, icon_id in wanted.items()}
 		try:
 			patched_bytes, report = patch_icon_groups((inputs[image_path] or stock_file).read_bytes(), icons)
 		except PatchError as error:
@@ -99,6 +139,8 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 		except PatchError:
 			patched.unlink(missing_ok=True)
 			raise
+		for group, icon_id in wanted.items():
+			note_patched(module, group, icon_id, image_path)
 		for line in report:
 			if "fitted" in line:
 				log("patch", f"   {image_path}: {line}")
@@ -115,6 +157,12 @@ def cpl_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -
 def program_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
 	"""Patch the icons of the desktop and Start menu programs and of the file types that take theirs from a program or library."""
 	return run_family("program-icons", golden, source_tree, scratch)
+
+
+def map_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
+	"""Patch the icons of every other module the map names: the games, the accessories, the applets and programs the other families do
+	not list. A module the active trim removes is left alone, so the list is the same for the full and the compact image."""
+	return run_family("map-icons", golden, source_tree, scratch)
 
 
 def dialog_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:

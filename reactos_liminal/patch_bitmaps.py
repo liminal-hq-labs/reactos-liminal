@@ -19,7 +19,7 @@ from .fetch import sha256_file
 from .icon_map import load_map, require_icon, toolbar_cells
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError
+from .patch_base import PatchedFile, PatchError, note_patched
 from .patch_icons import icon_set_digest, require_pin, settle_result, verified_icons
 from .pe_resources import RT_BITMAP, PeError, PeFile, read_ico
 
@@ -150,6 +150,8 @@ def toolbar_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: P
 		except PatchError:
 			patched.unlink(missing_ok=True)
 			raise
+		for item in cells:
+			note_patched(file_spec["path"].rsplit("/", 1)[-1], item["index"], item["afterglow"], file_spec["path"], "cell")
 		for line in report:
 			log("patch", f"   {line}")
 		log("patch", f"   {FAMILY}: {file_spec['path']} patched, {len(cells)} cells ({result})")

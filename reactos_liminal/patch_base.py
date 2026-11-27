@@ -32,6 +32,10 @@ class PinRecorder:
 	against a pin. `results[section][icon set digest][file]` is the SHA-256 of the patched file."""
 
 	results: dict[str, dict[str, dict[str, str]]] = field(default_factory=dict)
+	# What the patchers did with each resource, for the coverage report: `(module, kind, number)` where kind is "group" (an icon
+	# group) or "cell" (a toolbar cell), to the icon, the files written and the files left alone with a reason.
+	patched: dict[tuple[str, str, int], tuple[str, list[str]]] = field(default_factory=dict)
+	skipped: dict[tuple[str, str, int], list[str]] = field(default_factory=dict)
 
 	def record(self, section: str, digest: str, name: str, result: str) -> None:
 		self.results.setdefault(section, {}).setdefault(digest, {})[name] = result
@@ -53,6 +57,23 @@ def recording():
 
 def active_recorder() -> PinRecorder | None:
 	return _recorder
+
+
+def note_patched(module: str, number: int, icon_id: str, image_path: str, kind: str = "group") -> None:
+	"""Tell the coverage report that resource `number` (a group, or a toolbar cell) of `module` now carries Afterglow's `icon_id` in the
+	file at `image_path`. Only collected under `rl pin`."""
+	if _recorder is not None:
+		entry = _recorder.patched.setdefault((module.lower(), kind, number), (icon_id, []))
+		if image_path not in entry[1]:
+			entry[1].append(image_path)
+
+
+def note_skipped(module: str, number: int, reason: str, kind: str = "group") -> None:
+	"""Tell the coverage report that a resource the map names was left alone, and why."""
+	if _recorder is not None:
+		reasons = _recorder.skipped.setdefault((module.lower(), kind, number), [])
+		if reason not in reasons:
+			reasons.append(reason)
 
 
 _skipped: Callable[[str], bool] | None = None

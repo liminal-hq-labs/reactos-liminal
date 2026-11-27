@@ -17,7 +17,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[wallpapers]` | `scenes` (`"all"`, or a list of Afterglow scenes such as `["dusk-light-smooth"]`; `[]` is none), `replace_stock` (remove ReactOS's own wallpapers) | `[]`, `false` (the base recipe sets `"all"` and `true`; the compact recipe sets them back) |
 | `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
-| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons`, `afterglow.toolbar-bitmaps`, `afterglow.dialog-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them, in an order the loader checks: a patcher that builds on another's copy of a file is listed after it) |
+| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons`, `afterglow.map-icons`, `afterglow.toolbar-bitmaps`, `afterglow.dialog-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them, in an order the loader checks: a patcher that builds on another's copy of a file is listed after it) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
 

@@ -264,11 +264,13 @@ def test_removes_says_whether_a_profile_reaches_a_path(path, removed):
 
 
 def test_no_file_the_patchers_write_is_one_the_base_profile_removes():
-	"""Every path in the families, the toolbar strips and the dialog bitmaps stays in the compact image, so the compact patch list
+	"""Every path in the families (but `map-icons`, whose trimmed files a patcher leaves alone), the toolbar strips and the dialog bitmaps stays in the compact image, so the compact patch list
 	is the full one and the pins are the same."""
 	from reactos_liminal import patch_bitmaps, patch_dialog_bitmaps, patch_family
 
-	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
+	paths = [
+		file_spec["path"] for name, family in patch_family.load_families().items() if name != "map-icons" for file_spec in family["files"]
+	]
 	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
 	paths += [file_spec["path"] for file_spec in patch_dialog_bitmaps.load_spec()["files"]]
 	profile = trim.build_profile("base", [])

@@ -55,6 +55,7 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
 		"afterglow.dialog-icons",
+		"afterglow.map-icons",
 		"afterglow.toolbar-bitmaps",
 		"afterglow.dialog-bitmaps",
 		"afterglow.boot",

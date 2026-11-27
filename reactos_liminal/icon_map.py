@@ -12,6 +12,7 @@ file's SHA-256 that guards each patch, the frames a group holds, and the few gro
 (each with its icon and why)."""
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from .patch_base import PatchError
@@ -30,18 +31,41 @@ def _resources(entry: dict) -> list[dict]:
 	return found + list(entry.get("also") or [])
 
 
-def module_groups(entries: dict[str, dict], module: str) -> dict[int, str]:
-	"""The verified icon groups of one module as `{group id: Afterglow icon id}`. Two icons for one group is an error in the map."""
-	groups: dict[int, str] = {}
+@dataclass(frozen=True)
+class MapResource:
+	"""One verified icon group the map names for a module: the Afterglow icon that replaces it and how Afterglow verified it. A
+	resource with only `source` evidence was read from ReactOS's source and has not been seen in the stock binary by Afterglow."""
+
+	icon_id: str
+	evidence: tuple[str, ...]
+
+	@property
+	def seen_in_binary(self) -> bool:
+		return "binary" in self.evidence or "table" in self.evidence
+
+
+def module_resources(entries: dict[str, dict], module: str) -> dict[int, MapResource]:
+	"""The verified icon groups of one module as `{group id: MapResource}`. Two icons for one group is an error in the map."""
+	groups: dict[int, MapResource] = {}
 	for icon_id, entry in entries.items():
 		for resource in _resources(entry):
 			if resource.get("module") != module or "group" not in resource:
 				continue
 			group = resource["group"]
-			if groups.get(group, icon_id) != icon_id:
-				raise PatchError(f"Afterglow's map.json gives {module} group {group} to both {groups[group]!r} and {icon_id!r}")
-			groups[group] = icon_id
+			if group in groups and groups[group].icon_id != icon_id:
+				raise PatchError(f"Afterglow's map.json gives {module} group {group} to both {groups[group].icon_id!r} and {icon_id!r}")
+			groups[group] = MapResource(icon_id, tuple(resource.get("evidence") or ()))
 	return groups
+
+
+def module_groups(entries: dict[str, dict], module: str) -> dict[int, str]:
+	"""The verified icon groups of one module as `{group id: Afterglow icon id}`."""
+	return {group: resource.icon_id for group, resource in module_resources(entries, module).items()}
+
+
+def map_resources(entries: dict[str, dict]) -> list[tuple[str, dict]]:
+	"""Every resource the map lists, as `(icon id, resource)`, in map order, for the coverage report."""
+	return [(icon_id, resource) for icon_id, entry in entries.items() for resource in _resources(entry)]
 
 
 def toolbar_cells(entries: dict[str, dict], module: str, strip_ids: list[int]) -> dict[int, str]:

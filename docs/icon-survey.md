@@ -111,7 +111,7 @@ The Control Panel folder asks each applet for `CPL_INQUIRE`'s `idIcon` and loads
 | `sysdm.cpl` | 50 | System | `48@8 32@8 16@8 48@32 32@32 16@32` | `system` |
 | `timedate.cpl` | 1 | Date and Time | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `datetime` |
 
-Applets the base trim removes (`joy.cpl` 102, `telephon.cpl` 100, `usrmgr.cpl` 40 and 100) are not patched, though the map verifies them; `ncpa.cpl` (a stub with no resources; Network Connections shows `netshell.dll` group 100) and `odbccp32i.cpl`, `openglcfg.cpl`, `wined3dcfg.cpl` (not in the base install). The inner icons of the applets' own dialogs (mouse speed, battery states, sound events and so on) are not applet icons and are not replaced.
+`joy.cpl` 102 (Game Controllers), `telephon.cpl` 100 (Phone and Modem) and `usrmgr.cpl` 40 and 100 (User Accounts) are patched by `afterglow.map-icons` (below). `ncpa.cpl` is a stub with no resources (Network Connections shows `netshell.dll` group 100). `openglcfg.cpl` (OpenGL Configuration) and `wined3dcfg.cpl` (WineD3D Options) are on the full image but Afterglow's map names neither, so they keep their stock icons until Afterglow draws and verifies them. The inner icons of the applets' own dialogs (mouse speed, battery states, sound events and so on) are not applet icons and are not replaced.
 
 ### Start menu, file types and the rest of shell32
 
@@ -224,9 +224,35 @@ The Start menu's Shut Down dialog is loaded from `msgina.dll` by name, and Winlo
 
 The survey of the stock art (Afterglow's `docs/reactos-stock-art-survey.md`) marked 83 resources as drawn and waiting for a patch. All of the ones on the image are now patched: the Control Panel groups above, the Administrative Tools programs, Task Manager, Registry Editor and its file type, Clipboard Viewer, the keyboard indicator, Utility Manager, the volume mixer, the update installer, Font Substitution, the tray states, the Explorer groups (101, 107, 108 and 257, in `explorer.exe` and `agexplorer.exe`), the `msgina.dll` groups (21, 22, 109 and 115), `devmgr.dll` 20, `shell32.dll` 181 and the dialog bitmaps. The `ReactOS/notepad.exe` copy is patched like the one in `system32`.
 
-### Verified by the map but not patched
+### Every other module the map names
 
-The map verifies these resources, and none is patched today. Adding one is a stock-file SHA-256 in `icon_families.json` (a `files` entry), then `rl pin`; the patcher takes the groups from the map.
+`afterglow.map-icons` carries the modules the other families do not list. Each is a file with its stock SHA-256 in `icon_families.json` (a `map-icons` entry) and no group id; the groups come from the map, and `rl pin` records what happened to each in [icon-coverage.md](icon-coverage.md) (patched, skipped with the reason, or unverified). The Start menu shortcuts of these programs carry no icon of their own, so they draw the first icon group of the target, which is the group below; the file types listed take theirs from the same group.
 
-- **Removed by the `base` trim**: Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file; a patcher leaves alone a file the recipe's trim removes (RL-53.3), so the list can name one without breaking the compact image.
-- **On the image, not yet listed:** `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `ctfmon.exe`. Each needs its stock SHA-256 from the golden disk.
+| File | Group | Used for | Afterglow icon | Evidence |
+|---|---|---|---|---|
+| `sol.exe` | 100 | Solitaire (the Games folder, the title bar, the shortcut) | `sol` | source, binary |
+| `spider.exe` | 100 | Spider Solitaire | `spider` | source only; the patcher checks the stock file holds the group |
+| `winmine.exe` | 1 | Minesweeper (WineMine) | `winmine` | source, binary |
+| `joy.cpl` | 102 | Game Controllers | `joystick` | source, binary |
+| `telephon.cpl` | 100 | Phone and Modem | `telephon` | source, binary |
+| `usrmgr.cpl` | 40, 100 | User Accounts | `usrmgr` | source, binary |
+| `mspaint.exe` | 500 | Paint | `paint` | source, binary |
+| `wordpad.exe` | 102, 103 | WordPad and the `.rtf` file type | `wordpad`, `rtf` | source, binary |
+| `write.exe` | 1 | Write (the WordPad stub) | `wordpad` | source, binary |
+| `calc.exe` | 110 | Calculator | `calc` | source, binary |
+| `charmap.exe` | 100 | Character Map | `charmap` | source, binary |
+| `mplay32.exe` | 10 | Media Player | `mplay32` | source, binary |
+| `sndrec32.exe` | 107 | Sound Recorder | `sndrec32` | source only; the patcher checks the stock file holds the group |
+| `magnify.exe` | 101 | Magnifier | `magnify` | source, binary |
+| `osk.exe` | 200 | On-Screen Keyboard | `osk` | source, binary |
+| `dxdiag.exe` | 20000 | DirectX Diagnostic | `dxdiag` | source, binary |
+| `mstsc.exe` | 2000 | Remote Desktop Connection | `mstsc` | source, binary |
+| `control.exe` | 100 | Control Panel program | `controlpanel` | source, binary |
+| `ctfmon.exe` | 100 | Language bar | `kbdlayout` | source, binary |
+| `hh.exe` | 2 | HTML Help | `help` | source, binary |
+| `winhlp32.exe` | 3840 | Help (the ReactOS copy; the otvdm copy is another program) | `help` | source, binary |
+| `ieframe.dll` | 1401 | HTML files | `html` | source, binary |
+
+The `base` trim removes most of these files (Calculator, Paint, WordPad, Character Map, the games, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`). A patcher leaves alone a file the trim removes (RL-53.3), so the compact image keeps the same list and a downstream recipe that keeps one of them gets the Afterglow icon. A resource verified from the source alone is checked in the stock file at build: it is patched when the group is there with frames of its own, and skipped (logged and listed in the report) when it is not. Today both source-only groups (`spider.exe` 100, `sndrec32.exe` 107) are in the stock file and are patched.
+
+The icons the map does not name stay stock: `cd-disc`, `floppy-disk`, `usb-key`, `ram-module`, `monitor`, `clock`, `showdesk`, `trynet`, `readme` (no ReactOS resource), and the stock icons of programs the map does not list (SnapShot, Virtual CDRom Control Panel, the otvdm WineVDM launcher, the Read Me shortcut).

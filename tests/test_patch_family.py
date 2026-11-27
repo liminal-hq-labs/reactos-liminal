@@ -111,12 +111,16 @@ def test_the_group_to_replace_is_the_one_the_map_names(setup, tmp_path):
 	assert [frame.width for frame in frames] == [32, 16]  # a two-frame group is fitted, not refused
 
 
-def test_a_file_with_no_group_in_the_map_is_checked_and_its_groups_stay_as_they_were(setup, tmp_path):
+def test_a_file_with_no_group_in_the_map_is_checked_and_not_written(setup, tmp_path):
 	fat, tree, scratch, cpl_bytes, _b, icons_dir, _p = setup
 	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "mouse", "kind": "applet"}]}))
 	with patch_base.recording():
-		patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
-	assert group_of(PeFile(patched[0].local_file.read_bytes()), 4) == group_of(PeFile(cpl_bytes), 4)
+		assert run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch) == []
+	local = tmp_path / "other.cpl"
+	local.write_bytes(cpl_bytes + b"\0")
+	fat.copy_in(local, CPL)  # the stock file is still checked against its hash
+	with pytest.raises(PatchError, match="not the stock file"), patch_base.recording():
+		run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
 
 
 def dialog_family(monkeypatch, cpl_bytes):
@@ -302,19 +306,22 @@ def test_halving_averages_by_alpha_and_keeps_transparent_pixels_clear():
 
 def test_the_cell_and_family_tables_are_consistent():
 	families = patch_family.FAMILIES_FILE.read_text()
-	assert json.loads(families)["families"].keys() == {"cpl-icons", "program-icons", "dialog-icons"}
+	assert json.loads(families)["families"].keys() == {"cpl-icons", "program-icons", "dialog-icons", "map-icons"}
 	spec = patch_bitmaps.load_strips()["files"][0]
 	assert {strip["cell"] for strip in spec["strips"]} == {16, 24}
 	assert all(0 <= cell["index"] < 47 for cell in spec.get("cells", []))
 	pins = json.loads(patch_family.PINS_FILE.read_text())["families"]
-	assert set(pins) == {"cpl-icons", "program-icons", "dialog-icons", "toolbar-bitmaps", "dialog-bitmaps"}
+	assert set(pins) == {"cpl-icons", "program-icons", "dialog-icons", "map-icons", "toolbar-bitmaps", "dialog-bitmaps"}
 
 
 def test_no_patched_file_is_one_the_base_trim_removes():
-	"""The trim refuses to remove a patched file, so a family must not name a file the base profile deletes."""
+	"""The trim refuses to remove a patched file, so a family other than `map-icons` (whose files a patcher leaves alone when the trim
+	removes them, RL-53.3) must not name a file the base profile deletes."""
 	from reactos_liminal.trim import build_profile, check_profile
 
-	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
+	paths = [
+		file_spec["path"] for name, family in patch_family.load_families().items() if name != "map-icons" for file_spec in family["files"]
+	]
 	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
 	paths += [file_spec["path"] for file_spec in patch_dialog_bitmaps.load_spec()["files"]]
 	check_profile(build_profile("base", []), paths)

@@ -25,16 +25,20 @@ import tomllib
 from pathlib import Path
 
 from .afterglow import fetch_afterglow, prepare_afterglow, tree_tar_sha256
+from .coverage import REPORT_FILE, build_rows, image_files_by_name, render
+from .icon_map import load_map
 from .install import golden_path
 from .log import log
 from .mtools import FatImage
 from .patch_base import PatchError, recording
 from .patch_bitmaps import PINS_FILE as FAMILY_PINS_FILE
+from .patch_family import load_families
 from .patch_icons import PINS_FILE as SHELL32_PINS_FILE
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe, load
 from .rustbuild import build_program, declaring_file
+from .trim import build_profile
 from .wallpaper import PINS_FILE as WALLPAPER_PINS_FILE
 from .wallpaper import discover_scenes, render_set, render_wallpaper, wanted
 
@@ -48,6 +52,7 @@ ICON_PATCHERS = (
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
+	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
 )
@@ -133,6 +138,18 @@ def merged_icon_pins(recorded: dict[str, dict[str, dict[str, str]]]) -> tuple[di
 	return shell32, families
 
 
+def icon_coverage_text(tree: Path, golden: Path, recorder) -> str | None:
+	"""The coverage report for what the recorded patchers did, or None when the Afterglow tree has no icon map."""
+	if not (tree / "desktop" / "icons" / "map.json").is_file():
+		return None
+	entries = load_map(tree)
+	listed = {file_spec["path"].rsplit("/", 1)[-1].lower() for family in load_families().values() for file_spec in family["files"]}
+	named = [entry.get("resource") for entry in entries.values()] + [item for entry in entries.values() for item in entry.get("also") or []]
+	modules = {resource["module"].lower() for resource in named if resource}
+	on_disk = image_files_by_name(FatImage(golden).list_files(), modules)
+	return render(build_rows(entries, recorder, listed, on_disk), build_profile("base", []))
+
+
 def pin_afterglow(
 	recipe_path: str | Path,
 	work: Path,
@@ -178,6 +195,7 @@ def pin_afterglow(
 				"needs that constant moved by hand for new art."
 			) from error
 	shell32_pins, family_pins = merged_icon_pins(recorder.results)
+	coverage_text = icon_coverage_text(tree, golden, recorder)
 
 	changes = [f"{key}: {pin.get(key)} -> {value}" for key, value in measured.items() if pin.get(key) != value]
 	built_sums: dict[str, str] = {}
@@ -195,6 +213,8 @@ def pin_afterglow(
 			changes.append(f"{path.name}: icon results refreshed")
 	if not WALLPAPER_PINS_FILE.is_file() or json.loads(WALLPAPER_PINS_FILE.read_text()) != wallpaper_pins:
 		changes.append(f"{WALLPAPER_PINS_FILE.name}: {len(scene_sums)} wallpaper sums refreshed")
+	if coverage_text is not None and (not REPORT_FILE.is_file() or REPORT_FILE.read_text() != coverage_text):
+		changes.append(f"{REPORT_FILE.name}: icon coverage report refreshed")
 	if check:
 		return changes
 
@@ -212,6 +232,8 @@ def pin_afterglow(
 	write_json(SHELL32_PINS_FILE, shell32_pins)
 	write_json(FAMILY_PINS_FILE, family_pins)
 	write_json(WALLPAPER_PINS_FILE, wallpaper_pins)
+	if coverage_text is not None:
+		REPORT_FILE.write_text(coverage_text)
 
 	# The finished pins, end to end: every patcher the recipe lists, with nothing recorded this time.
 	verified = load(recipe_path)
