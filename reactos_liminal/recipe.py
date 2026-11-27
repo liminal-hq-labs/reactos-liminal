@@ -29,6 +29,12 @@ NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
 MIN_CHUNK_SIZE = 64 * 1024
 
+# The ISO writer a recipe pins, as `NAME VERSION`: cdrkit's `genisoimage`, which Ubuntu's apt ships and CI uses. cdrtools' `mkisofs`
+# writes a disc that boots the same but is not byte for byte the same, so a build with another writer is reported. The epoch is the
+# time stamped on every file and volume descriptor (2025-08-29), so a disc is reproducible; `$SOURCE_DATE_EPOCH` overrides it.
+ISO_WRITER_PIN = "genisoimage 1.1.11"
+ISO_EPOCH = 1756425600
+
 PATCHERS = (
 	"afterglow.pointers",
 	"afterglow.start",
@@ -141,6 +147,18 @@ def _choice(*options: str):
 		return value
 
 	return check
+
+
+def _writer(value: Any, key: str) -> str:
+	if not isinstance(value, str) or not re.fullmatch(r"(mkisofs|genisoimage) \S+", value):
+		raise RecipeError(f"{key}: expected the ISO writer as 'NAME VERSION', such as 'genisoimage 1.1.11'")
+	return value
+
+
+def _volume(value: Any, key: str) -> str:
+	if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_ ]{1,32}", value):
+		raise RecipeError(f"{key}: expected a volume label of up to 32 letters, digits, spaces or underscores")
+	return value
 
 
 def _locale(value: Any, key: str) -> str:
@@ -300,6 +318,11 @@ SCHEMA: dict[str, Any] = {
 		"classic_shell": (_bool, True),
 		"memory_mb": (_int(256, 4096), 768),
 		"disk_size_mb": (_int(512, 65536), 4096),
+	},
+	"iso": {
+		"writer": (_writer, ISO_WRITER_PIN),
+		"volume": (_volume, "ReactOS"),
+		"epoch": (_int(0, 4_102_444_800), ISO_EPOCH),
 	},
 	"settings": {
 		"display_width": (_int(640, 4096), 1024),

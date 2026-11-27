@@ -80,10 +80,44 @@ def test_doctor_reports_missing_required_tools(monkeypatch, capsys):
 	assert "required tools are missing" in capsys.readouterr().err
 
 
-def test_doctor_accepts_7z_in_place_of_xorriso(monkeypatch):
-	present = {"7z"} | {tool.name for tool in doctor.TOOLS if tool.name not in ("xorriso", "7z")}
-	monkeypatch.setattr(doctor.shutil, "which", lambda name: f"/usr/bin/{name}" if name in present else None)
+def test_doctor_requires_xorriso_and_an_iso_writer(monkeypatch):
+	"""7z does not stand in for xorriso any more (the disc's tree is extracted with it), and either ISO writer will do."""
+	everything = {tool.name for tool in doctor.TOOLS}
 	monkeypatch.setattr(doctor, "_version", lambda tool, path: "")
-	lines, ok = doctor.check()
-	assert ok or all(not line.startswith("MISSING") or "python3" in line for line in lines)
-	assert not any(line.startswith("MISSING xorriso") for line in lines)
+	monkeypatch.setattr(doctor, "writers_on_path", lambda: [])
+
+	def lines_without(*absent):
+		present = everything - set(absent)
+		monkeypatch.setattr(doctor.shutil, "which", lambda name: f"/usr/bin/{name}" if name in present else None)
+		return doctor.check()
+
+	lines, ok = lines_without("xorriso")
+	assert not ok and any(line.startswith("MISSING xorriso") for line in lines)
+	lines, ok = lines_without("mkisofs")
+	assert not any(line.startswith("MISSING mkisofs") for line in lines)
+	assert any(line.startswith("absent  mkisofs") and "covered by genisoimage" in line for line in lines)
+	lines, ok = lines_without("mkisofs", "genisoimage")
+	assert not ok and any(line.startswith("MISSING mkisofs") for line in lines)
+
+
+def test_doctor_reports_the_iso_writer_against_the_pin(monkeypatch):
+	from reactos_liminal.isobuild import Writer
+	from reactos_liminal.recipe import ISO_WRITER_PIN
+
+	pinned = Writer("/usr/bin/genisoimage", *ISO_WRITER_PIN.split())
+	other = Writer("/usr/bin/mkisofs", "mkisofs", "3.02a09")
+	monkeypatch.setattr(doctor, "writers_on_path", lambda: [pinned])
+	assert f"ok      ISO writer {ISO_WRITER_PIN} matches the recipe's pin" in doctor._iso_writer_lines()
+	monkeypatch.setattr(doctor, "writers_on_path", lambda: [other])
+	(line,) = doctor._iso_writer_lines()
+	assert line.startswith("differs ") and "mkisofs 3.02a09" in line and ISO_WRITER_PIN in line
+	monkeypatch.setattr(doctor, "writers_on_path", lambda: [other, pinned])
+	assert doctor._iso_writer_lines()[0].startswith("ok ")
+	monkeypatch.setattr(doctor, "writers_on_path", lambda: [])
+	assert doctor._iso_writer_lines() == []  # the tool lines report that no writer is installed
+
+
+def test_doctor_lists_the_cabinet_tools_as_optional():
+	by_name = {tool.name: tool for tool in doctor.TOOLS}
+	assert by_name["gcab"].required is False and by_name["cabextract"].required is False
+	assert by_name["mkisofs"].alternative == "genisoimage" and by_name["mkisofs"].required

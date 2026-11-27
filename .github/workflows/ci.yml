@@ -135,11 +135,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      # xorriso and mtools let the tests that build tiny synthetic images run; QEMU tests are marked and never run here.
+      # xorriso, genisoimage, gcab and mtools let the tests that build tiny synthetic discs and images run; QEMU tests are marked and never run here.
       - name: Install tools the tests use
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xorriso mtools zstd
+          sudo apt-get install -y --no-install-recommends xorriso genisoimage gcab cabextract mtools zstd
 
       - name: Install pytest
         run: python3 -m pip install pytest==9.2.0

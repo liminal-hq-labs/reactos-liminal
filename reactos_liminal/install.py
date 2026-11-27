@@ -20,6 +20,8 @@ from pathlib import Path
 
 from . import isopatch
 from .fetch import fetch_iso, has_hash
+from .isobuild import IsoBuildError, remove_tree, write_iso, writer_identity
+from .isotree import apply_install, apply_menu, pinned_writer, source_epoch, stock_tree
 from .log import log
 from .mtools import FatImage, MtoolsError
 from .paths import REPO, ensure
@@ -32,6 +34,8 @@ SHAPING_FILES = (
 	UNATTEND_TEMPLATE,
 	Path(__file__).resolve(),
 	Path(isopatch.__file__).resolve(),
+	Path(__file__).resolve().parent / "isobuild.py",
+	Path(__file__).resolve().parent / "isotree.py",
 	Path(__file__).resolve().parent / "vm.py",
 	Path(__file__).resolve().parent / "mtools.py",
 )
@@ -86,11 +90,19 @@ def fix_installed_freeldr(text: bytes) -> bytes:
 	return b"".join(line + b"\r\n" for line in fixed)
 
 
-def golden_key(recipe: Recipe) -> str:
-	"""Hash of everything that shapes the golden disk: the ISO's hash, the rendered answers, the memory and disk size, and the code and
-	template that run the install. The cached disk is reused only while this stays the same."""
+def iso_builder(recipe: Recipe, in_place_iso: bool = False) -> str:
+	"""Who made the install CD: the in-place patcher, or the rebuild with the ISO writer that is installed (its name and version)."""
+	if in_place_iso:
+		return "in-place"
+	return "rebuild " + writer_identity(recipe.section("iso")["writer"])
+
+
+def golden_key(recipe: Recipe, in_place_iso: bool = False) -> str:
+	"""Hash of everything that shapes the golden disk: the ISO's hash, the rendered answers, the memory and disk size, how and with what
+	the install CD is made, and the code and template that run the install. The cached disk is reused only while this stays the same."""
 	digest = hashlib.sha256()
 	digest.update(recipe.section("inputs", "reactos_iso")["sha256"].encode())
+	digest.update(f"iso-builder={iso_builder(recipe, in_place_iso)}".encode())
 	digest.update(render_unattend(recipe).encode())
 	install = recipe.section("install")
 	digest.update(f"memory={install['memory_mb']};disk={install['disk_size_mb']}".encode())
@@ -127,15 +139,15 @@ class InstallPlan:
 		return "\n".join(lines)
 
 
-def golden_path(recipe: Recipe, work: Path) -> Path:
-	return work / "golden" / f"{recipe.name}-{golden_key(recipe)[:16]}.img"
+def golden_path(recipe: Recipe, work: Path, in_place_iso: bool = False) -> Path:
+	return work / "golden" / f"{recipe.name}-{golden_key(recipe, in_place_iso)[:16]}.img"
 
 
-def plan_install(recipe: Recipe, work: Path, iso: Path | None = None, accel: str | None = None) -> InstallPlan:
+def plan_install(recipe: Recipe, work: Path, iso: Path | None = None, accel: str | None = None, in_place_iso: bool = False) -> InstallPlan:
 	"""The plan, with no download, no file written and no process started."""
 	pin = recipe.section("inputs", "reactos_iso")
-	key = golden_key(recipe)
-	golden = golden_path(recipe, work)
+	key = golden_key(recipe, in_place_iso)
+	golden = golden_path(recipe, work, in_place_iso)
 	accel = accel or default_accel()
 	if iso is not None:
 		iso_source = f"{iso} (checked against the pin)"
@@ -148,10 +160,19 @@ def plan_install(recipe: Recipe, work: Path, iso: Path | None = None, accel: str
 	vm = PrivateVm(install_dir)
 	derived = install_dir / "install.iso"
 	plan = InstallPlan(key=key, golden=golden, cached=golden.is_file(), iso_source=iso_source, accel=accel)
+	edits = (
+		f"write the answers ({install['locale']}, {install['computer_name']}, {install['owner_name']}) over /i386/unattend.inf, make "
+		f"Setup the default entry of /freeldr.ini, and start Setup without the kernel debugger in /i386/txtsetup.sif"
+	)
+	if in_place_iso:
+		derive = f"derive the install CD at {derived} by editing a copy of the official ISO in place at the same sizes: {edits}"
+	else:
+		derive = (
+			f"derive the install CD at {derived}: extract the official ISO, set the Afterglow menu text, {edits}, then write the "
+			f"disc with {iso_builder(recipe)} (ISO 9660:1999 names, hybrid boot record)"
+		)
 	plan.steps = [
-		f"derive the install CD at {derived}: write the answers ({install['locale']}, {install['computer_name']}, "
-		f"{install['owner_name']}) over /i386/unattend.inf, make Setup the default entry of /freeldr.ini, and start Setup "
-		f"without the kernel debugger in /i386/txtsetup.sif",
+		derive,
 		f"create a blank {install['disk_size_mb']} MiB raw disk (sparse)",
 	]
 	for name, order, what in STAGES:
@@ -200,6 +221,40 @@ def _run_stage(vm: PrivateVm, spec: VmSpec, name: str, shots: Path, timeout: int
 	log("install", f"{name}: guest ended after {int(time.monotonic() - started)}s")
 
 
+def derive_install_cd(recipe: Recipe, iso_path: Path, derived: Path, install_dir: Path, in_place_iso: bool = False) -> None:
+	"""Write the install CD: the official disc with the answers, Setup as the default entry and Setup's debugger off. By default the disc
+	is rebuilt from a file tree with ReactOS's own recipe (`isobuild.py`). `in_place_iso` is the earlier method, kept for one release as a
+	fallback: it overwrites three files of a copy at their own sizes."""
+	derived.unlink(missing_ok=True)
+	answers = render_unattend(recipe).encode()
+	if in_place_iso:
+		shutil.copyfile(iso_path, derived)
+		derived.chmod(0o644)
+		try:
+			lba, size = isopatch.find_file(iso_path, "/i386/unattend.inf")
+			isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.replace_text_file(old, answers))
+			# The disc boots the live environment by default; make the text-mode setup the default entry.
+			lba, size = isopatch.find_file(iso_path, "/freeldr.ini")
+			isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.set_default_os(old, "Setup"))
+			lba, size = isopatch.find_file(iso_path, "/i386/txtsetup.sif")
+			isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.substitute(old, DEBUG_FLAGS, NO_DEBUG_FLAG))
+		except isopatch.IsoPatchError as error:
+			raise InstallError(str(error)) from error
+		return
+	tree = install_dir / "tree"
+	try:
+		remove_tree(tree)
+		stock_tree(iso_path, tree)
+		apply_menu(tree)
+		apply_install(tree, answers)
+		write_iso(tree, derived, install_dir / "iso-scratch", pinned_writer(recipe), source_epoch(recipe), recipe.section("iso")["volume"])
+	except IsoBuildError as error:
+		raise InstallError(str(error)) from error
+	finally:
+		remove_tree(tree)
+	derived.chmod(0o644)
+
+
 def run_install(
 	recipe: Recipe,
 	work: Path,
@@ -208,10 +263,11 @@ def run_install(
 	keep_disk_on_failure: bool = False,
 	accel: str | None = None,
 	stage_timeout: int | None = None,
+	in_place_iso: bool = False,
 ) -> Path:
 	"""Install ReactOS 0.4.16 unattended onto a blank disk and return the golden disk's path. A disk for the same input hash is
 	reused unless `force`."""
-	golden = golden_path(recipe, work)
+	golden = golden_path(recipe, work, in_place_iso)
 	if golden.is_file() and not force:
 		log("install", f"golden disk is current ({golden}); nothing to do")
 		return golden
@@ -222,21 +278,8 @@ def run_install(
 	install_dir = ensure(work, "install")
 	ensure(work, "golden")
 	derived = install_dir / "install.iso"
-	derived.unlink(missing_ok=True)
-	shutil.copyfile(iso_path, derived)
-	derived.chmod(0o644)
-	try:
-		answers = render_unattend(recipe).encode()
-		lba, size = isopatch.find_file(iso_path, "/i386/unattend.inf")
-		isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.replace_text_file(old, answers))
-		# The disc boots the live environment by default; make the text-mode setup the default entry.
-		lba, size = isopatch.find_file(iso_path, "/freeldr.ini")
-		isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.set_default_os(old, "Setup"))
-		lba, size = isopatch.find_file(iso_path, "/i386/txtsetup.sif")
-		isopatch.patch_in_place(derived, lba, size, lambda old: isopatch.substitute(old, DEBUG_FLAGS, NO_DEBUG_FLAG))
-	except isopatch.IsoPatchError as error:
-		raise InstallError(str(error)) from error
-	log("install", "derived CD written: answers replaced, Setup is the default boot entry")
+	derive_install_cd(recipe, iso_path, derived, install_dir, in_place_iso)
+	log("install", f"derived CD written ({iso_builder(recipe, in_place_iso)}): answers replaced, Setup is the default boot entry")
 
 	disk = Path(f"{golden}.part")
 	disk.unlink(missing_ok=True)

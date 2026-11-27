@@ -11,7 +11,7 @@
 # `Kernel=agntoskr.exe` entry picks the copy. The input must be exactly the 0.4.16 kernel and the result must match the pinned sum.
 #
 # The boot menu is `freeldr.ini` on the installed disk: the stock text in, a minimal menu out (RL-13, RL-13.1). The install CD's own
-# menu is edited by `isopatch` and is not this file.
+# menu is written by `rl install` and is not this file.
 import hashlib
 from pathlib import Path
 

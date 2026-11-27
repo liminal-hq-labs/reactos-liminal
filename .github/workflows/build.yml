@@ -77,7 +77,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            qemu-system-x86 qemu-utils mtools xorriso zstd librsvg2-bin llvm lld python3-venv
+            qemu-system-x86 qemu-utils mtools xorriso genisoimage gcab zstd librsvg2-bin llvm lld python3-venv
           # Afterglow's pointer generator draws with numpy and Pillow, and the drawn pixels depend on their versions, so they are pinned
           # to the ones that produce the sum Afterglow records (Ubuntu's own packages draw different pointers).
           python3 -m venv "$RUNNER_TEMP/venv"
