@@ -57,11 +57,11 @@
 			}
 		},
 		"dialog-bitmaps": {
-			"6dd811001c033fa1a9920cdf36b75a006f7115f29d57115d52d4943c1c96d12c": {
+			"c8942f5735de5e371c05df08988d5d074a3bd338e604883add26df341cf37245": {
 				"ReactOS/system32/shell32.dll": "51ab27fe8d0384537442758c5454a07e2c4b10f2a3cf986300b279cccbc6f48b",
 				"ReactOS/system32/msgina.dll": "fe93fc8eec484a0ab1a0542ea83f8c97f503900f6dd18e1b85fd92d94b0c0baa",
 				"ReactOS/system32/agmsgina.dll": "24fba4f94d18c060f33ab236c07ebe659a0d6ee3527252208c6b4f9ff98000ac",
-				"ReactOS/system32/cards.dll": "767ee5230a46ca0fb57c5d500a0b70f38761ec1499fe9b85361ebadc6966669f"
+				"ReactOS/system32/cards.dll": "fb2cc61b04216acb65d683feca4be4784e0797eb34529246d3ac118ecdd7862f"
 			}
 		},
 		"map-icons": {

@@ -6,7 +6,7 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 
 - **Base:** the official ReactOS 0.4.16 install CD, `ReactOS-0.4.16-i386.iso`, SHA-256 `6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855`.
 - **Recipe:** `afterglow`, with trim profile `none` and patchers `afterglow.pointers`, `afterglow.start`, `afterglow.logon`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons`, `afterglow.map-icons`, `afterglow.toolbar-bitmaps`, `afterglow.dialog-bitmaps`, `afterglow.colours`, `afterglow.boot`.
-- **Afterglow:** [`liminal-hq/afterglow-themes`](https://github.com/liminal-hq/afterglow-themes) at commit `68d755c804351ff744f39be2155c5577397c9dc7`.
+- **Afterglow:** [`liminal-hq/afterglow-themes`](https://github.com/liminal-hq/afterglow-themes) at commit `29928832136625aebb0648a1aa6d487c2649da31`.
 
 ## Components and licences
 

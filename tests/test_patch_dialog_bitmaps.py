@@ -310,3 +310,13 @@ def test_a_stock_bitmap_of_another_depth_than_the_map_says_is_refused(cards, tmp
 	write_tree(tree, resources, {"desktop/cards": {"card-back.bmp": bmp24(0x44)}})
 	with patch_base.recording(), pytest.raises(PatchError, match="is 6 x 3 at 8 bits in the file"):
 		run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)
+
+
+def test_the_card_faces_are_drawn_by_the_render_script_one_folder_above_them(tmp_path):
+	(tmp_path / "desktop" / "cards" / "faces").mkdir(parents=True)
+	(tmp_path / "desktop" / "cards" / "render.py").write_text("")
+	(tmp_path / "desktop" / "dialogs").mkdir(parents=True)
+	(tmp_path / "desktop" / "dialogs" / "render.py").write_text("")
+	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/cards/faces/01-clubs-ace.svg") == "desktop/cards"
+	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/dialogs/about-banner.svg") == "desktop/dialogs"
+	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/none/x.svg") == "desktop/none"
