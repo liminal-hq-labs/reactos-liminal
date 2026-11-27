@@ -25,14 +25,15 @@ import tomllib
 from pathlib import Path
 
 from .afterglow import fetch_afterglow, prepare_afterglow, tree_tar_sha256
-from .coverage import REPORT_FILE, build_rows, image_files_by_name, render
+from .coverage import REPORT_FILE, bitmap_rows, build_rows, image_files_by_name, render
 from .icon_map import load_bitmaps, load_map
 from .install import golden_path
 from .log import log
 from .mtools import FatImage
 from .patch_base import PatchError, recording
 from .patch_bitmaps import PINS_FILE as FAMILY_PINS_FILE
-from .patch_family import load_families
+from .patch_dialog_bitmaps import load_spec as load_dialog_spec
+from .patch_family import load_families, module_name
 from .patch_icons import PINS_FILE as SHELL32_PINS_FILE
 from .patchers import run_patchers
 from .paths import ensure
@@ -153,7 +154,21 @@ def icon_coverage_text(tree: Path, golden: Path, recorder) -> str | None:
 		bitmaps = load_bitmaps(tree)
 	except PatchError:
 		bitmaps = []  # a map from before the dialog art has no `bitmaps` list
-	return render(build_rows(entries, recorder, listed, on_disk, bitmaps), build_profile("base", []))
+	return render(
+		build_rows(entries, recorder, listed, on_disk, bitmaps),
+		build_profile("base", []),
+		*bitmap_coverage(bitmaps, recorder),
+	)
+
+
+def bitmap_coverage(bitmaps: list[dict], recorder) -> tuple[list, dict[str, list[str]]]:
+	"""The bitmap rows of the coverage report and the image paths `afterglow.dialog-bitmaps` wrote for each module."""
+	written_paths = {path for results in recorder.results.get("dialog-bitmaps", {}).values() for path in results}
+	written: dict[str, list[str]] = {}
+	for file_spec in load_dialog_spec()["files"]:
+		if file_spec["path"] in written_paths:
+			written.setdefault(module_name(file_spec).lower(), []).append(file_spec["path"])
+	return bitmap_rows(bitmaps, written), written
 
 
 def pin_afterglow(

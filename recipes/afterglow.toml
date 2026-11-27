@@ -25,8 +25,8 @@ sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 # branch carries a `pre_merge` note (docs/afterglow-pin.md); a published image pins a commit on `main` or a tag (RL-24).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "c706631c6c8042920891d4e00f4381e45a6686df"
-tar_sha256 = "c651e043539abe01ad242b462a9432aa40caa0400d7763f0b398a44e504bf6fd"
+commit = "fd023f4f147690b7055004d29fa010cd3dbd08ae"
+tar_sha256 = "36febf2ad2cf9095a193eae4d24a84a3e285bd30916a2d0fb78af8418312aa50"
 msstyles_sha256 = "a6b5467cfb91c0d91e2482afe2aeb567ec5ae36dedcc49b2270ffd382f15cc1a"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered

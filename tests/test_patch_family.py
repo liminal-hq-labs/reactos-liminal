@@ -335,3 +335,33 @@ def test_the_icons_the_map_does_not_name_yet_are_in_the_tables():
 		file_spec for file_spec in patch_family.load_families()["cpl-icons"]["files"] if file_spec["path"].endswith("/console.dll")
 	)
 	assert console["groups"] == [{"group": 40, "afterglow": "console"}]
+
+
+def test_a_file_with_the_ocx_suffix_is_patched_like_any_other_library(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, cpl_bytes, _browseui, _icons, pins = setup
+	ocx = "ReactOS/system32/test.ocx"
+	local = tmp_path / "test.ocx"
+	local.write_bytes(cpl_bytes)
+	fat.copy_in(local, ocx)
+	families = {"cpl-icons": {"files": [{"path": ocx, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest()}]}}
+	monkeypatch.setattr(patch_family, "load_families", lambda: families)
+	entries = json.loads((tree / "desktop" / "icons" / "map.json").read_text())
+	entries["icons"][0]["resource"]["module"] = "test.ocx"
+	(tree / "desktop" / "icons" / "map.json").write_text(json.dumps(entries))
+	result = hashlib.sha256(patch_icons.patch_icon_groups(cpl_bytes, {4: ico(0x40)})[0]).hexdigest()
+	((digest, _results),) = pins["families"]["cpl-icons"].items()
+	pins["families"]["cpl-icons"] = {digest: {ocx: result}}
+	patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	assert [item.image_path for item in patched] == [ocx]
+	assert [frame.width for frame in group_of(PeFile(patched[0].local_file.read_bytes()), 4)] == [48, 32, 16]
+
+
+def test_the_round_4_files_are_listed_with_their_stock_hashes():
+	families = patch_family.load_families()
+	listed = {file_spec["path"]: file_spec for family in families.values() for file_spec in family["files"]}
+	for name in ("hhctrl.ocx", "setupapi.dll", "zipfldr.dll", "url.dll", "msxml3.dll", "mshta.exe", "cryptext.dll", "themeui.dll"):
+		assert f"ReactOS/system32/{name}" in listed
+	comctl = [path for path in listed if path.endswith("/comctl32.dll")]
+	assert len(comctl) == 3 and len({listed[path]["stock_sha256"] for path in comctl}) == 1
+	assert all(len(file_spec["stock_sha256"]) == 64 for file_spec in listed.values() if not file_spec.get("new_file"))
+	assert len(listed) == sum(len(family["files"]) for family in families.values())  # no file is in two families

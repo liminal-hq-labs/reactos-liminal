@@ -187,3 +187,14 @@ def test_the_coverage_report_lists_a_bitmaps_entry_as_patched():
 		pass
 	without = coverage.build_rows(entries, untouched, set(), {}, [])
 	assert next(row for row in without if row.icon_id == "go").status == "unverified"
+
+
+def test_the_bitmaps_table_marks_written_modules_patched_and_bitfields_strips_skipped():
+	items = [
+		{"id": "a", "module": "zipfldr.dll", "resource": 200, "size": [49, 49], "bits": 24},
+		{"id": "b", "module": "comctl32.dll", "resource": 120, "size": [240, 16], "bits": 32},
+		{"id": "go", "module": "browseui.dll", "resource": 230, "size": [20, 20], "bits": 32},
+	]
+	rows = coverage.bitmap_rows(items, {"zipfldr.dll": ["ReactOS/system32/zipfldr.dll"]})
+	assert [(item["id"], status) for item, status, _note in rows] == [("a", "patched"), ("b", "skipped")]  # browseui.dll has its own rows
+	assert "BI_BITFIELDS" in rows[1][2]

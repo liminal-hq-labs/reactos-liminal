@@ -236,7 +236,12 @@ def test_the_result_is_checked_against_its_pin_and_an_unpinned_set_is_refused(se
 
 def test_the_shipped_table_names_files_and_hashes_only():
 	spec = patch_dialog_bitmaps.load_spec()
-	assert [item["path"] for item in spec["files"]] == [SHELL, GINA, GINA_COPY, "ReactOS/system32/cards.dll"]
+	paths = [item["path"] for item in spec["files"]]
+	assert paths[:4] == [SHELL, GINA, GINA_COPY, "ReactOS/system32/cards.dll"]
+	assert {"ReactOS/agexplorer.exe", "ReactOS/system32/zipfldr.dll", "ReactOS/system32/cryptui.dll"} <= set(paths)
+	explorer = next(item for item in spec["files"] if item["path"] == "ReactOS/agexplorer.exe")
+	assert (explorer["module"], explorer["stock_path"]) == ("explorer.exe", "ReactOS/explorer.exe")
+	assert not {"ReactOS/system32/comctl32.dll", "ReactOS/system32/hhctrl.ocx", "ReactOS/system32/ieframe.dll"} & set(paths)  # BI_BITFIELDS
 	assert all(set(item) <= {"path", "module", "stock_path", "stock_sha256"} for item in spec["files"])  # no resource ids here
 	assert patch_dialog_bitmaps.FAMILY in json.loads(patch_bitmaps.PINS_FILE.read_text())["families"]
 	assert patch_icons.PINS_FILE.name == "shell32-icons.json"
@@ -320,3 +325,23 @@ def test_the_card_faces_are_drawn_by_the_render_script_one_folder_above_them(tmp
 	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/cards/faces/01-clubs-ace.svg") == "desktop/cards"
 	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/dialogs/about-banner.svg") == "desktop/dialogs"
 	assert patch_dialog_bitmaps.art_folder_of(tmp_path, "desktop/none/x.svg") == "desktop/none"
+
+
+def test_a_taskbar_preview_over_an_8_bit_stock_bitmap_goes_in_a_copy_an_earlier_patcher_made(cards, tmp_path, monkeypatch):
+	"""The Taskbar Properties previews are written into `agexplorer.exe`, the copy `afterglow.start` makes of `explorer.exe`: the new
+	section holds the 24-bit art, and a byte the earlier patcher changed outside the bitmaps is kept."""
+	fat, tree, scratch, stock, _path = cards
+	copy = "ReactOS/agexplorer.exe"
+	entry = {"path": copy, "module": "cards.dll", "stock_path": "ReactOS/system32/cards.dll"}
+	entry["stock_sha256"] = hashlib.sha256(stock).hexdigest()
+	spec = {"files": [entry]}
+	monkeypatch.setattr(patch_dialog_bitmaps, "load_spec", lambda: spec)
+	earlier = scratch / "earlier.exe"
+	earlier_bytes = bytearray(stock)
+	earlier_bytes[0x90] ^= 0xFF
+	earlier.write_bytes(bytes(earlier_bytes))
+	patch_base.remember_patched(scratch, patch_base.PatchedFile(copy, earlier))
+	with patch_base.recording():
+		patched = run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)
+	new = patched[0].local_file.read_bytes()
+	assert new[0x90] == earlier_bytes[0x90] and bitmap_of(new, 54) == dib24(0x44) and bitmap_of(new, 53) == dib8(1)
