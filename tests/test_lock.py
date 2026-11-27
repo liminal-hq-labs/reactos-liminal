@@ -166,3 +166,10 @@ def test_the_committed_lock_matches_the_compact_recipe():
 	recipe = load(REPO / "recipes" / "afterglow-compact.toml")
 	assert [check.status for check in check_lock(recipe)] == ["ok"]
 	assert recipe.section("trim", "profile") == "base"
+
+
+def test_the_lock_pins_one_iso_writer(fake_iso_recipe):
+	recipe, _, _ = fake_iso_recipe
+	assert build_lock(recipe)["iso"] == {"writer": "genisoimage 1.1.11", "volume": "ReactOS", "epoch": 1756425600}
+	recipe.data["iso"]["writer"] = "mkisofs 3.02a09"
+	assert build_lock(recipe)["iso"]["writer"] == "mkisofs 3.02a09"

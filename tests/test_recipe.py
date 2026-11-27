@@ -280,3 +280,18 @@ def test_a_patcher_that_builds_on_another_copy_must_follow_it(base_recipe_path, 
 def test_the_compact_recipe_has_the_same_patch_list_as_the_base_recipe(base_recipe_path, compact_recipe_path):
 	"""The trim profile differs, the patch list does not, so the pins are the same for both."""
 	assert load(compact_recipe_path).section("patchers", "list") == load(base_recipe_path).section("patchers", "list")
+
+
+def test_the_iso_table_defaults_to_the_pinned_writer_and_the_official_label(base_recipe_path):
+	from reactos_liminal.recipe import ISO_EPOCH, ISO_WRITER_PIN
+
+	iso = load(base_recipe_path).section("iso")
+	assert iso == {"writer": ISO_WRITER_PIN, "volume": "ReactOS", "epoch": ISO_EPOCH}
+
+
+@pytest.mark.parametrize("key, value", [("writer", "xorriso 1.5.8"), ("writer", "genisoimage"), ("volume", "a/b"), ("volume", "x" * 33)])
+def test_a_bad_iso_key_is_refused(base_recipe_path, tmp_path, key, value):
+	path = tmp_path / "r.toml"
+	path.write_text(f'[recipe]\nname = "x"\nextends = "{base_recipe_path}"\n[iso]\n{key} = "{value}"\n')
+	with pytest.raises(RecipeError, match=f"iso.{key}"):
+		load(path)

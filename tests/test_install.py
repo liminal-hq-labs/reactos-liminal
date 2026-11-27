@@ -3,13 +3,26 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import re
+import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
+from iso_fixtures import make_tree, stock_sums
 
-from reactos_liminal import install
+from reactos_liminal import install, isotree
 from reactos_liminal.cli import main
-from reactos_liminal.install import InstallError, fix_installed_freeldr, golden_key, golden_path, plan_install, render_unattend, run_install
+from reactos_liminal.install import (
+	InstallError,
+	derive_install_cd,
+	fix_installed_freeldr,
+	golden_key,
+	golden_path,
+	plan_install,
+	render_unattend,
+	run_install,
+)
+from reactos_liminal.isobuild import detect_writer, freeldr_lookup, write_iso
 
 
 @pytest.fixture
@@ -46,14 +59,6 @@ def test_an_answer_with_a_quote_is_refused(fake_iso_recipe):
 	recipe.data["install"]["owner_name"] = 'Bad "name"'
 	with pytest.raises(InstallError, match="OWNER_NAME"):
 		render_unattend(recipe)
-
-
-def test_the_answers_fit_on_the_disc():
-	"""The official unattend.inf holds 2,575 bytes and the edit keeps that size, so the rendered answers must be smaller."""
-	from reactos_liminal.recipe import load
-	from tests.conftest import REPO
-
-	assert len(render_unattend(load(REPO / "recipes" / "afterglow.toml")).encode()) < 2575 - 2
 
 
 def test_installed_freeldr_gets_the_normal_entry_and_delay():
@@ -126,3 +131,46 @@ def test_a_current_golden_disk_is_reused_without_running_anything(fake_iso_recip
 	assert plan_install(recipe, work).cached
 	assert run_install(recipe, work) == golden
 	assert golden.read_bytes() == b"a finished disk"
+
+
+def test_the_key_names_the_iso_builder_and_its_version(fake_iso_recipe, monkeypatch):
+	"""A different ISO writer, or the in-place patcher, makes a different install CD, so it must make a different golden disk."""
+	recipe, _, _ = fake_iso_recipe
+	monkeypatch.setattr(install, "writer_identity", lambda pin=None: "genisoimage 1.1.11")
+	cdrkit = golden_key(recipe)
+	monkeypatch.setattr(install, "writer_identity", lambda pin=None: "genisoimage 1.1.12")
+	assert golden_key(recipe) != cdrkit
+	monkeypatch.setattr(install, "writer_identity", lambda pin=None: "mkisofs 3.02a09")
+	assert golden_key(recipe) != cdrkit
+	assert golden_key(recipe, in_place_iso=True) not in (cdrkit, golden_key(recipe))
+	assert golden_key(recipe, in_place_iso=True) == golden_key(recipe, in_place_iso=True)
+	assert golden_path(recipe, Path("/w"), True) != golden_path(recipe, Path("/w"))
+
+
+def test_the_plan_says_how_the_install_cd_is_made(fake_iso_recipe, tmp_path, no_processes):
+	recipe, _, _ = fake_iso_recipe
+	rebuilt = plan_install(recipe, tmp_path / "work", accel="kvm").describe()
+	assert "extract the official ISO" in rebuilt and "ISO 9660:1999" in rebuilt
+	in_place = plan_install(recipe, tmp_path / "work", accel="kvm", in_place_iso=True)
+	assert "in place at the same sizes" in in_place.describe()
+	assert in_place.key != plan_install(recipe, tmp_path / "work", accel="kvm").key
+
+
+def test_the_install_cd_is_rebuilt_from_a_tree_with_the_answers(fake_iso_recipe, tmp_path, monkeypatch):
+	if not shutil.which("xorriso"):
+		pytest.skip("needs xorriso")
+	try:
+		detect_writer()
+	except Exception:
+		pytest.skip("needs an ISO writer")
+	recipe, _, _ = fake_iso_recipe
+	monkeypatch.setattr(isotree, "STOCK_SUMS", stock_sums())
+	official = tmp_path / "official.iso"
+	write_iso(make_tree(tmp_path / "src"), official, tmp_path / "scratch", detect_writer(), 1756425600)
+	derived = tmp_path / "install" / "install.iso"
+	derived.parent.mkdir()
+	derive_install_cd(recipe, official, derived, derived.parent)
+	data = derived.read_bytes()
+	answers = freeldr_lookup(derived, "i386/unattend.inf")
+	assert b"UnattendSetupEnabled = yes" in data[answers.extent * 2048 : answers.extent * 2048 + answers.size]
+	assert not (derived.parent / "tree").exists()

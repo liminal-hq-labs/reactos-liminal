@@ -15,6 +15,7 @@ from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
 from .install import InstallError, plan_install, run_install
 from .iso import IsoError, build_iso
+from .isobuild import IsoBuildError
 from .licences import LicenceError, licences_page
 from .lock import REQUIRABLE, LockError, cache_keys, failures, verify, write_lock
 from .manifest import ManifestError, build_manifest, job_summary, parse_pairs, write_manifest
@@ -70,10 +71,17 @@ def _cmd_install(args: argparse.Namespace) -> int:
 	work = resolve_work(args.work)
 	iso = Path(args.iso) if args.iso else None
 	if args.dry_run:
-		print(plan_install(recipe, work, iso, args.accel).describe())
+		print(plan_install(recipe, work, iso, args.accel, args.in_place_iso).describe())
 		return 0
 	golden = run_install(
-		recipe, work, iso, force=args.force, keep_disk_on_failure=args.keep_disk, accel=args.accel, stage_timeout=args.stage_timeout
+		recipe,
+		work,
+		iso,
+		force=args.force,
+		keep_disk_on_failure=args.keep_disk,
+		accel=args.accel,
+		stage_timeout=args.stage_timeout,
+		in_place_iso=args.in_place_iso,
 	)
 	print(golden)
 	return 0
@@ -284,6 +292,11 @@ def build_parser() -> argparse.ArgumentParser:
 	sub.add_argument("--keep-disk", action="store_true", help="leave the partial disk in the work directory after a failure")
 	sub.add_argument("--accel", choices=("kvm", "tcg,thread=multi"), help="QEMU acceleration (default: kvm when /dev/kvm is writable)")
 	sub.add_argument("--stage-timeout", type=int, metavar="SECONDS", help="limit for each of the three runs (default 1800 with KVM)")
+	sub.add_argument(
+		"--in-place-iso",
+		action="store_true",
+		help="make the install CD by overwriting files of a copy of the official ISO (the earlier method, a fallback for one release)",
+	)
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_install)
 
@@ -326,7 +339,9 @@ def build_parser() -> argparse.ArgumentParser:
 	sub.add_argument("--out", metavar="FILE", help="write the page here instead of printing it")
 	sub.set_defaults(func=_cmd_licences)
 
-	sub = commands.add_parser("iso", help="write the remastered install ISO: the official ISO with the image's notices appended")
+	sub = commands.add_parser(
+		"iso", help="write the remastered install ISO: the official ISO rebuilt with the Afterglow menu and the image's notices"
+	)
 	sub.add_argument("recipe", help="recipe TOML file")
 	sub.add_argument("--image", metavar="FILE", help="the finished image (default: WORK/images/NAME.img)")
 	sub.add_argument("--out", metavar="FILE", help="the ISO to write (default: WORK/dist/NAME-remaster.iso)")
@@ -419,6 +434,7 @@ def main(argv: list[str] | None = None) -> int:
 		LockError,
 		LicenceError,
 		IsoError,
+		IsoBuildError,
 	) as error:
 		print(f"rl: {error}", file=sys.stderr)
 		return 2

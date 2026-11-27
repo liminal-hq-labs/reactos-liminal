@@ -18,6 +18,11 @@
 			"wallpaper_sha256": "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d"
 		}
 	},
+	"iso": {
+		"writer": "genisoimage 1.1.11",
+		"volume": "ReactOS",
+		"epoch": 1756425600
+	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
 	"trim_lists": {
 		"profile:none": "605f008fd7a6ed0db5f2d60ee926db9060199d247c144398a95bd639b98c7455"

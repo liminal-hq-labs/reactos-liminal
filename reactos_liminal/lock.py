@@ -79,6 +79,7 @@ def build_lock(recipe: Recipe) -> dict:
 		"schema": LOCK_SCHEMA,
 		"recipe": recipe.name,
 		"inputs": inputs,
+		"iso": dict(recipe.section("iso")),
 		"answers_sha256": _text_sum(render_unattend(recipe)),
 		"trim_lists": trim_lists,
 		"files": files,

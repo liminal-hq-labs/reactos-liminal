@@ -9,7 +9,9 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from .isobuild import writers_on_path
 from .paths import REPO
+from .recipe import ISO_WRITER_PIN
 
 
 @dataclass(frozen=True)
@@ -26,8 +28,21 @@ TOOLS = (
 	Tool("qemu-img", "creates and converts disk images"),
 	Tool("mcopy", "mtools: reads and writes files on the FAT32 disk image", version_args=("--version",)),
 	Tool("mdel", "mtools: trims files from the disk image"),
-	Tool("xorriso", "reads the install ISO and builds the settings CD", alternative="7z"),
-	Tool("7z", "reads ISO files where xorriso is not installed", required=False, version_args=()),
+	Tool("xorriso", "reads the install ISO, extracts its tree and builds the settings CD"),
+	Tool(
+		"mkisofs",
+		"writes the install CD and the remastered ISO (cdrtools; cdrkit installs it as a link to genisoimage)",
+		alternative="genisoimage",
+		version_args=("-version",),
+	),
+	Tool(
+		"genisoimage",
+		"writes the install CD and the remastered ISO (cdrkit, the writer the recipe pins)",
+		required=False,
+		version_args=("-version",),
+	),
+	Tool("gcab", "writes the extra Setup cabinet on the remastered ISO", required=False),
+	Tool("cabextract", "checks the extra Setup cabinet", required=False),
 	Tool("zstd", "compresses the v86 disk parts and state"),
 	Tool("fallocate", "punches holes in the finished image so it is sparse", required=False),
 	Tool("bash", "runs the helper scripts"),
@@ -50,6 +65,20 @@ def _version(tool: Tool, path: str) -> str:
 		return ""
 	text = (done.stdout or done.stderr).strip()
 	return text.splitlines()[0][:80] if text else ""
+
+
+def _iso_writer_lines() -> list[str]:
+	"""Which ISO writers are installed against the one the recipe pins. A different writer makes a disc that boots the same but is not
+	byte for byte the pinned build's."""
+	writers = writers_on_path()
+	if not writers:
+		return []  # the tool lines above already report the missing writer
+	if any(writer.identity == ISO_WRITER_PIN for writer in writers):
+		return [f"ok      ISO writer {ISO_WRITER_PIN} matches the recipe's pin"]
+	found = ", ".join(writer.identity for writer in writers)
+	return [
+		f"differs ISO writer {found}: the recipe pins {ISO_WRITER_PIN}; discs boot the same but their bytes differ from the pinned build"
+	]
 
 
 def _rust_line() -> str:
@@ -106,6 +135,7 @@ def check() -> tuple[list[str], bool]:
 			lines.append(f"ok      python {module}: {purpose}")
 		except ImportError:
 			lines.append(f"absent  python {module}: {purpose} (optional)")
+	lines += _iso_writer_lines()
 	lines.append(_rust_line())
 	kvm = "/dev/kvm"
 	if os.access(kvm, os.W_OK):

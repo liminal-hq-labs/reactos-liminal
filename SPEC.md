@@ -45,6 +45,7 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 
 - `[recipe]` names the recipe and optionally `extends` another, by path or as `rl:<path>` inside a pinned ReactOS Liminal release. A later table replaces an earlier one key by key; a `[[steps]]` list is appended unless an entry names `replace = "<id>"`.
 - `[inputs.*]` names every input with its pin: the ReactOS ISO (`pin = "pins/reactos-0.4.16.toml#iso"`), the Afterglow release and its manifest SHA-256, a consumer's own directories.
+- `[iso]` holds the ISO writer pin (`NAME VERSION`), the volume label and the epoch that dates every file on the disc.
 - `[install]` holds the unattended answers: locale, time zone, computer name, owner name, classic shell.
 - `[settings]` holds the display mode, page file, desktop icon size, wallpaper path and registry files (default `Dusk` scheme).
 - `[trim]` names a trim profile (`none` or `base`; the base recipe uses `none`, and `afterglow-compact.toml` extends it with `base`) and may list `extra` trim files beside the recipe, applied after the profile; `[patchers]` lists the patchers to run, which run before the trim.
@@ -55,7 +56,7 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 
 A recipe chooses and parameterizes steps; it cannot add a new kind of write. The QEMU stage logic, ready detection, the patchers' safety checks and the remaster stay code.
 
-**The lock file.** A build writes `<recipe>.lock.json` next to its outputs: every resolved input with its SHA-256, the step list after `extends`, the tool versions (QEMU, xorriso, mtools, zstd, Chromium) and every output's hash. The disk before the state build, the parts and the ISO are expected to be reproducible; the saved state is recorded but depends on timing.
+**The lock file.** A build writes `<recipe>.lock.json` next to its outputs: every resolved input with its SHA-256, the step list after `extends`, the tool versions (QEMU, xorriso, the ISO writer, mtools, zstd, Chromium) and every output's hash. The disk before the state build, the parts and the ISO are expected to be reproducible; the saved state is recorded but depends on timing.
 
 ## The `rl` command
 
@@ -68,9 +69,9 @@ rl verify RECIPE [--require INPUT]      # re-check every input pin in the work d
 rl lock RECIPE                          # write the lock file beside the recipe: the resolved inputs and their sums
 rl licences RECIPE [--out FILE]         # the licences page, as Markdown
 rl key RECIPE                           # the cache keys and paths of a recipe as name=value lines, for CI
-rl iso RECIPE [--image FILE] [--out FILE]   # the remastered install ISO: the official ISO with the image's notices appended
+rl iso RECIPE [--image FILE] [--out FILE]   # the remastered install ISO: the official ISO rebuilt with the Afterglow menu and the image's notices
 rl fetch RECIPE                         # download and check every pinned input, nothing else
-rl install RECIPE [--iso FILE] [--dry-run] [--force]   # unattended install in a private QEMU; keeps the golden disk
+rl install RECIPE [--iso FILE] [--dry-run] [--force] [--in-place-iso]   # unattended install in a private QEMU; keeps the golden disk
 rl image RECIPE [--golden FILE] [--out FILE] [--dry-run] [--no-settings]   # patchers, trim, files, licences, settings
 rl pin RECIPE [--afterglow REF] [--pre-merge NOTE] [--check]   # move the Afterglow pin and refresh the hashes that follow from it
 rl trim RECIPE IMAGE [--profile NAME]   # trim a working copy of a disk with a profile
@@ -94,11 +95,11 @@ rl serve DIR                            # range-capable static server for a loca
 
 | Output | What |
 |---|---|
-| Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image (`rl install`, built). Kept in the work directory as `golden/<recipe>-<key>.img`, where the key is a hash of the ISO's hash, the rendered answers, the memory and disk size and the install code, so a disk is reused only while none of them changes |
+| Golden disk | An unattended install from the official ISO: one FAT32 partition, 4 GiB sparse raw image (`rl install`, built). Kept in the work directory as `golden/<recipe>-<key>.img`, where the key is a hash of the ISO's hash, the rendered answers, the memory and disk size, how the install CD is made (the ISO writer's name and version) and the install code, so a disk is reused only while none of them changes |
 | Disk image | The golden disk patched, trimmed, configured and dressed (`rl image`, built); free space zeroed and holes punched (`rl parts`, built) |
 | v86 parts | `rl parts` (built): zstd parts of the disk named `START-END.img.zst`, each `outputs.parts.chunk_size` bytes (default 8 MiB; every chunk gets a file, all-zero ones included), with `manifest.json` (image size, chunk, counts, compressed bytes and the raw image's SHA-256) |
 | v86 state | A saved machine state, taken when the recipe's ready predicate holds (a serial marker or a pixel test) |
-| Remastered ISO | `rl iso` (built, not part of v0.1.0): the official ISO with a session appended that holds `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` from the image, nothing already on the disc moved; the extra cabinet and Setup art below are planned. The finished remaster is the official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
+| Remastered ISO | `rl iso` (built, not part of v0.1.0): the official ISO rebuilt from its file tree with ReactOS's own recipe (ISO 9660:1999 names, hybrid boot record, written by the writer `[iso]` pins, reproducible), the menu text "ReactOS (Afterglow)" and `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` from the image, never the unattended answers ([docs/iso.md](docs/iso.md), RL-54); Setup art is planned. The finished remaster is the official ISO with an extra cabinet, edited `txtsetup.sif` and `unattend.inf`, themed Setup art and live environment, `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`; `reactos.cab` byte-identical to upstream |
 | Build manifest | `rl manifest` (built): every output's size and SHA-256, the pinned inputs, the trim profile and patchers, the part size and the stage timings; `rl summary` prints it as Markdown. `rl lock` (built) writes `recipes/NAME.lock.json`, the resolved inputs and their sums, and `rl verify` fails on drift |
 
 ## Image pipeline and trim profiles
@@ -147,7 +148,7 @@ rl serve DIR                            # range-capable static server for a loca
 | `shell32.dll` bitmaps | About banner and bar, Log Off dialog background, mark and button strip, 24-bit, in place (`afterglow.dialog-bitmaps`) | Restore the original | Built |
 | `win32k.sys` | Cold-boot colours (the `SysColors[]` entries), on by default, as a separate `agwin32k.sys` selected by `SubSystems\Kmode` if ReactOS honours it | One registry value, or restore the original | Planned |
 | `reactos.exe`, `syssetup.dll` | Setup watermark and header art | Restore the original | Planned |
-| Install media | Extra cabinet, `txtsetup.sif` `[Cabinets]`, both `unattend.inf` files, live environment, volume label and autorun icon | Use the official ISO | Planned |
+| Install media | Menu text, notices and the install CD are rebuilt (RL-54, built); extra cabinet (writer built, nothing in it yet), Setup art, live environment, volume label and autorun icon follow | Use the official ISO | Partly built |
 | `freeldr.ini` | A minimal menu (`MinimalUI=Yes`) with a gold selection bar and an entry "ReactOS (Afterglow)"; the stock entry stays as the fallback (`afterglow.boot`) | Pick the stock entry | Built |
 | `explorer.exe` → `agexplorer.exe` | Start button orb (bitmap 143) and Start menu banner (bitmap 158), same size and format; selected by `Winlogon\Shell` | Set `Shell` back to `explorer.exe` | Built |
 | Kernel boot logo (`agntoskr.exe`) | Bitmap 5 of a copy of the kernel, 414 × 366 in 16 colours, selected by the entry's `Kernel=` line (`afterglow.boot`) | Pick the stock entry | Built |

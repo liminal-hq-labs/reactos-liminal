@@ -50,7 +50,8 @@ ignore = ["W191"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra -m 'not qemu'"
+addopts = "-ra -m 'not qemu and not slow'"
 markers = [
 	"qemu: needs QEMU (and KVM for a practical run); skipped by default and never run in CI. Run with: pytest -m qemu",
+	"slow: needs the real official ISO (RL_TEST_WORK/dl); skipped by default and never run in CI. Run with: pytest -m slow",
 ]

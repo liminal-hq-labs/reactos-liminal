@@ -1,55 +1,31 @@
-# Tests for `rl iso`: the official ISO with a session appended, checked on a tiny synthetic ISO built with xorriso.
+# Tests for `rl iso`: the official disc rebuilt from its tree with the Afterglow menu text and the image's notices, checked on a small
+# synthetic disc that stands in for the official one.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import hashlib
-import shutil
-import subprocess
 
 import pytest
+from iso_fixtures import FILES, LONG_NAME, have_writer, make_tree, stock_sums
 
+from reactos_liminal import isotree
 from reactos_liminal.fetch import FetchError
 from reactos_liminal.iso import IsoError, build_iso
-from reactos_liminal.isopatch import find_file
+from reactos_liminal.isobuild import detect_writer, freeldr_lookup, read_primary_tree, write_iso
 from reactos_liminal.licences import ChangeRecord, write_licence_files
 from reactos_liminal.mtools import FatImage
 from reactos_liminal.recipe import load
 
-pytestmark = pytest.mark.skipif(shutil.which("xorriso") is None, reason="needs xorriso")
+pytestmark = pytest.mark.skipif(not have_writer(), reason="needs xorriso and an ISO writer (mkisofs or genisoimage)")
 
 
 @pytest.fixture
-def setup(tmp_path, fat):
-	"""A small official ISO, a recipe pinned to it, and an image that holds the licence files. Returns (recipe, work, image, iso)."""
-	source = tmp_path / "source"
-	(source / "i386").mkdir(parents=True)
-	(source / "i386" / "first.txt").write_bytes(b"first session\n" * 500)
-	(source / "readme.txt").write_text("official\n")
-	(source / "loader").mkdir()
-	(source / "loader" / "isoboot.bin").write_bytes(b"\x90" * 2048)
+def setup(tmp_path, fat, monkeypatch):
+	"""A small official disc, a recipe pinned to it, and an image that holds the licence files. Returns (recipe, work, image, iso)."""
+	monkeypatch.setattr(isotree, "STOCK_SUMS", stock_sums())
+	tree = make_tree(tmp_path / "official")
 	iso = tmp_path / "work" / "dl" / "TEST.iso"
-	iso.parent.mkdir(parents=True)
-	subprocess.run(
-		[
-			"xorriso",
-			"-as",
-			"mkisofs",
-			"-iso-level",
-			"3",
-			"-allow-lowercase",
-			"-omit-version-number",
-			"-V",
-			"REACTOS",
-			"-b",
-			"loader/isoboot.bin",
-			"-no-emul-boot",
-			"-o",
-			str(iso),
-			str(source),
-		],
-		check=True,
-		capture_output=True,
-	)
+	write_iso(tree, iso, tmp_path / "official-scratch", detect_writer(), 1756425600)
 	digest = hashlib.sha256(iso.read_bytes()).hexdigest()
 	recipe_path = tmp_path / "recipe.toml"
 	recipe_path.write_text(
@@ -62,63 +38,50 @@ def setup(tmp_path, fat):
 	return recipe, tmp_path / "work", fat.image, iso
 
 
-def test_the_remaster_keeps_the_first_session_and_adds_the_notices(setup, tmp_path):
+def test_the_remaster_is_rebuilt_with_the_menu_the_notices_and_every_name_exact(setup, tmp_path):
 	recipe, work, image, iso = setup
 	out = tmp_path / "out" / "remaster.iso"
 	before = iso.read_bytes()
-	lba_before = find_file(iso, "/i386/first.txt")
 	assert build_iso(recipe, work, image, out) == out
 	assert iso.read_bytes() == before  # the official ISO is only read
-	# The system area (the boot record) and the first session's file data are byte for byte where they were, so the boot loader's view of
-	# the disc is unchanged; only the volume descriptors move on to describe the second session.
-	after = out.read_bytes()
-	assert after[:32768] == before[:32768]
-	assert find_file(out, "/i386/first.txt") == lba_before
-	start, size = lba_before
-	assert after[start * 2048 : start * 2048 + size] == before[start * 2048 : start * 2048 + size] == b"first session\n" * 500
-	boot = subprocess.run(["xorriso", "-indev", str(out), "-report_el_torito", "plain"], capture_output=True, text=True, check=True).stdout
-	assert "/loader/isoboot.bin" in boot  # the boot entry survives the new session
-	listing = subprocess.run(["xorriso", "-indev", str(out), "-find", "/", "-type", "f"], capture_output=True, text=True, check=True).stdout
-	for name in ("/NOTICE.txt", "/CHANGES.txt", "/LICENSES/GPL-2.0.txt", "/LICENSES/LGPL-2.1.txt", "/readme.txt"):
-		assert name in listing, name
+	names = read_primary_tree(out)
+	for path in ("NOTICE.txt", "CHANGES.txt", "LICENSES/GPL-2.0.txt", "LICENSES/LGPL-2.1.txt"):
+		assert path in names, path
+	# Names FreeLoader and the live environment need are as the official disc has them.
+	assert freeldr_lookup(out, "reactos/system32/config/system") is not None
+	assert "Profiles/Default User/ntuser.dat" in names
+	assert f"reactos/winsxs/{LONG_NAME}" in names
 
 
-def directory_names(iso, folder):
-	"""The names stored in an ISO 9660 directory, as the boot loader reads them: the raw directory records of the primary volume."""
-
-	def records(handle, start, size):
-		handle.seek(start * 2048)
-		data = handle.read(size)
-		position = 0
-		while position < len(data):
-			length = data[position]
-			if length == 0:
-				position = (position // 2048 + 1) * 2048
-				continue
-			record = data[position : position + length]
-			yield (
-				record[33 : 33 + record[32]].decode("latin1"),
-				int.from_bytes(record[2:6], "little"),
-				int.from_bytes(record[10:14], "little"),
-			)
-			position += length
-
-	with open(iso, "rb") as handle:
-		handle.seek(16 * 2048 + 156)
-		root = handle.read(34)
-		entries = list(records(handle, int.from_bytes(root[2:6], "little"), int.from_bytes(root[10:14], "little")))
-		for part in folder.strip("/").split("/"):
-			start, size = next((start, size) for name, start, size in entries if name.lower() == part)
-			entries = list(records(handle, start, size))
-	return [name for name, _, _ in entries if name not in ("\x00", "\x01")]
-
-
-def test_the_first_session_keeps_its_lower_case_names_with_no_version_suffix(setup, tmp_path):
+def test_the_remaster_menu_names_afterglow_and_the_answers_are_not_on_it(setup, tmp_path):
 	recipe, work, image, iso = setup
 	out = tmp_path / "out.iso"
 	build_iso(recipe, work, image, out)
-	assert directory_names(iso, "/i386") == ["first.txt"]
-	assert directory_names(out, "/i386") == ["first.txt"]
+	menu = freeldr_lookup(out, "freeldr.ini")
+	data = out.read_bytes()[menu.extent * 2048 : menu.extent * 2048 + menu.size].decode()
+	assert "ReactOS (Afterglow) Live Environment (Graphics Mode)" in data
+	assert "DefaultOS=LiveImg" in data and "DefaultOS=Setup" not in data
+	answers = freeldr_lookup(out, "i386/unattend.inf")
+	assert out.read_bytes()[answers.extent * 2048 : answers.extent * 2048 + answers.size] == FILES["i386/unattend.inf"]
+	text = freeldr_lookup(out, "i386/txtsetup.sif")
+	assert b"/NODEBUG" not in out.read_bytes()[text.extent * 2048 : text.extent * 2048 + text.size]
+
+
+def test_the_remaster_is_reproducible(setup, tmp_path, monkeypatch):
+	recipe, work, image, iso = setup
+	monkeypatch.delenv("SOURCE_DATE_EPOCH", raising=False)
+	build_iso(recipe, work, image, tmp_path / "one.iso")
+	build_iso(recipe, work, image, tmp_path / "two.iso")
+	assert (tmp_path / "one.iso").read_bytes() == (tmp_path / "two.iso").read_bytes()
+	monkeypatch.setenv("SOURCE_DATE_EPOCH", "1700000000")
+	build_iso(recipe, work, image, tmp_path / "three.iso")
+	assert (tmp_path / "three.iso").read_bytes() != (tmp_path / "one.iso").read_bytes()
+
+
+def test_no_tree_is_left_behind(setup, tmp_path):
+	recipe, work, image, iso = setup
+	build_iso(recipe, work, image, tmp_path / "out.iso")
+	assert list((work / "scratch").iterdir()) == []
 
 
 def test_a_wrong_iso_is_refused(setup, tmp_path):

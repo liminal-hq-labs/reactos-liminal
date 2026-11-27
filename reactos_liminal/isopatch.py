@@ -4,8 +4,9 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
-# A rebuilt image (xorriso -map) did not work: the boot loader could not load the registry hive from it. Each edit here is a function
-# from the file's old bytes to its new bytes, which must have the same length.
+# This is the fallback behind `rl install --in-place-iso`; the install CD is normally rebuilt from a tree (`isobuild.py`). Rebuilding
+# was once thought to break the boot loader, but it was the names: FreeLoader does not find `system` stored as `SYSTEM.;1`. Each edit
+# here is a function from the file's old bytes to its new bytes, which must have the same length.
 import re
 import subprocess
 from pathlib import Path

@@ -25,6 +25,14 @@ def sha256_bytes(data: bytes) -> str:
 	return hashlib.sha256(data).hexdigest()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _probed_iso_writers():
+	"""Look for the ISO writers once, before a test forbids starting processes: the golden disk's key names the writer."""
+	from reactos_liminal.isobuild import writers_on_path
+
+	writers_on_path()
+
+
 @pytest.fixture
 def base_recipe_path() -> Path:
 	return REPO / "recipes" / "afterglow.toml"

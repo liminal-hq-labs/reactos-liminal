@@ -51,7 +51,7 @@ If the build has no KVM the release fails rather than skipping the QEMU stages: 
 
 ## What the workflows do
 
-- **`build.yml`** runs on dispatch, on a pull request that touches the pipeline paths and when `release.yml` calls it. It installs its tools with apt on the Ubuntu runner (the shared `ci-dos` image has QEMU and mtools but not xorriso, zstd, the LLVM tools or numpy and Pillow), turns on KVM, restores the caches, checks the pins, then runs `rl install`, `rl image`, `rl parts`, `rl licences` and `rl manifest`, and uploads `release-files` and `v86-parts`.
+- **`build.yml`** runs on dispatch, on a pull request that touches the pipeline paths and when `release.yml` calls it. It installs its tools with apt on the Ubuntu runner, (the shared `ci-dos` image has QEMU and mtools but not xorriso, `genisoimage` (the ISO writer the recipe pins, which writes the install CD), `gcab`, zstd, the LLVM tools or numpy and Pillow), turns on KVM, restores the caches, checks the pins, then runs `rl install`, `rl image`, `rl parts`, `rl licences` and `rl manifest`, and uploads `release-files` and `v86-parts`.
 - **`release.yml`** checks the tag, calls `build.yml` with KVM required, archives this repository and writes the source pointer, and publishes behind the `release` environment.
 
 ### Caches

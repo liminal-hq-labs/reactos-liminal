@@ -3,28 +3,26 @@
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
-# The remaster is the official ISO with a second session appended: nothing already on the disc moves, so the boot record, every file
-# and the boot loader's view of the registry hive are byte for byte as shipped (a rebuilt image broke the boot loader, see
-# `isopatch.py`). The session adds the licence texts, the notice and the list of changes that `rl image` wrote into the disk, taken
-# from the image so the disc and the disk always agree. Setup's own art and the extra cabinet are the next additions to this step.
-import shutil
-import subprocess
+# The disc is rebuilt from a file tree, as ReactOS builds its own (`isobuild.py`): the official disc is extracted, the menu text is
+# changed, the licence texts, the notice and the list of changes that `rl image` wrote into the disk are added (taken from the image so
+# the disc and the disk always agree), and the tree is written with the recipe's pinned ISO writer. The unattended answers are never on
+# this disc: they are the install CD's (`install.py`), and a tree that carries them is refused.
 import tempfile
 from pathlib import Path
 
 from .fetch import FetchError, has_hash
+from .isobuild import IsoBuildError, remove_tree, write_iso
+from .isotree import apply_menu, check_no_answers, pinned_writer, source_epoch, stock_tree
 from .licences import IMAGE_CHANGES, IMAGE_LICENCE_FOLDER, IMAGE_NOTICE
 from .log import log
 from .mtools import FatImage
 from .paths import ensure
 from .recipe import Recipe
 
-# The volume keeps the official label. Names go on the disc in upper case with the ISO 9660 rules, and the Joliet names keep their case.
 DISC_FOLDER = IMAGE_LICENCE_FOLDER
-COMPLIANCE = "iso_9660_level=3:lowercase:omit_version:no_force_dots:deep_paths:long_paths"
 
 
-class IsoError(Exception):
+class IsoError(IsoBuildError):
 	"""The remastered ISO could not be written."""
 
 
@@ -54,7 +52,7 @@ def disc_tree(image: Path, destination: Path) -> list[str]:
 
 
 def build_iso(recipe: Recipe, work: Path, image: Path, out: Path, official_iso: Path | None = None) -> Path:
-	"""Copy the official ISO to `out` and append a session with the notices from `image`. The official ISO is only read, and the result
+	"""Rebuild the official ISO with the Afterglow menu text and the notices from `image`. The official ISO is only read, and the result
 	is never the official ISO's own path."""
 	pin = recipe.section("inputs", "reactos_iso")
 	official = official_iso or work / "dl" / pin["name"]
@@ -62,39 +60,19 @@ def build_iso(recipe: Recipe, work: Path, image: Path, out: Path, official_iso: 
 		raise FetchError(f"{official} is not the pinned ISO (expected SHA-256 {pin['sha256']}); run `rl fetch` first")
 	if out.resolve() == official.resolve():
 		raise IsoError("the output must not be the official ISO")
-	if shutil.which("xorriso") is None:
-		raise IsoError("xorriso is not installed")
-	out.parent.mkdir(parents=True, exist_ok=True)
-	out.unlink(missing_ok=True)
-	copied = subprocess.run(
-		["cp", "--sparse=always", "--reflink=auto", str(official), str(out)], capture_output=True, text=True, check=False
-	)
-	if copied.returncode != 0:
-		raise IsoError(f"cannot copy the official ISO: {copied.stderr.strip()}")
-	out.chmod(0o644)
-	with tempfile.TemporaryDirectory(dir=ensure(work, "scratch")) as scratch_name:
-		tree = Path(scratch_name) / "session"
-		tree.mkdir()
-		names = disc_tree(image, tree)
-		log("iso", f"appending a session with {', '.join(names)}")
-		# `-dev` opens the copy for appending, so the first session stays where it is; `-boot_image any keep` carries the El Torito boot
-		# entry over, which xorriso otherwise drops from the new session.
-		done = subprocess.run(
-			[
-				"xorriso",
-				*["-dev", str(out)],
-				*["-boot_image", "any", "keep"],
-				# The official disc stores lower-case names with no version suffix, and the boot loader opens them by those names (as
-				# `system`, not `SYSTEM.;1`), so the new session must write names the same way.
-				*["-compliance", COMPLIANCE],
-				*["-map", str(tree), "/", "-commit"],
-			],
-			capture_output=True,
-			text=True,
-			check=False,
-		)
-	if done.returncode != 0:
-		out.unlink(missing_ok=True)
-		raise IsoError(f"xorriso failed: {(done.stderr or done.stdout).strip()[-500:]}")
-	log("iso", f"wrote {out}")
+	writer = pinned_writer(recipe)
+	scratch_root = ensure(work, "scratch")
+	with tempfile.TemporaryDirectory(dir=scratch_root) as scratch_name:
+		scratch = Path(scratch_name)
+		tree = scratch / "tree"
+		try:
+			stock_tree(official, tree)
+			apply_menu(tree)
+			names = disc_tree(image, tree)
+			log("iso", f"menu text set; added {', '.join(names)}")
+			check_no_answers(tree)
+			write_iso(tree, out, scratch, writer, source_epoch(recipe), recipe.section("iso")["volume"])
+		finally:
+			remove_tree(tree)
+	log("iso", f"wrote {out} with {writer.identity}")
 	return out
