@@ -1,5 +1,5 @@
 {
-	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md. The `map-icons` family holds the remaining modules the map names, including the ones the `base` trim removes; a patcher leaves a trimmed file alone (RL-53.3).",
+	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md. The `map-icons` family holds the remaining modules the map names, including the ones the `base` trim removes; a patcher leaves a trimmed file alone (RL-53.3). `explorer.exe` and its copy `agexplorer.exe` list group 100 (the program's own icon, the first group in the file, which Explorer's file views draw) because the map names only group 101 (the Start menu entry) for `explorer`.",
 	"families": {
 		"cpl-icons": {
 			"patcher": "afterglow.cpl-icons",
@@ -153,7 +153,13 @@
 				},
 				{
 					"path": "ReactOS/explorer.exe",
-					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "explorer"
+						}
+					]
 				},
 				{
 					"path": "ReactOS/system32/msgina.dll",
@@ -163,7 +169,13 @@
 					"path": "ReactOS/agexplorer.exe",
 					"module": "explorer.exe",
 					"stock_path": "ReactOS/explorer.exe",
-					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "explorer"
+						}
+					]
 				},
 				{
 					"path": "ReactOS/system32/agmsgina.dll",

@@ -143,3 +143,14 @@ def test_the_committed_report_names_only_icons_the_tables_know():
 	if coverage.REPORT_FILE.is_file():
 		text = coverage.REPORT_FILE.read_text()
 		assert text.startswith("# Icon coverage") and "| Icon | Module | Resource |" in text
+
+
+def test_explorer_and_its_copy_replace_the_first_icon_group_the_file_views_draw():
+	"""The map names group 101 of `explorer.exe` (the Start menu entry); group 100 is the first in the file, which is the icon Explorer's
+	file views draw for `explorer.exe` and for `agexplorer.exe`, so this repository's table adds it to both."""
+	files = json.loads(patch_family.FAMILIES_FILE.read_text())["families"]["program-icons"]["files"]
+	rows = {spec["path"]: spec.get("groups") for spec in files if spec["path"].endswith("explorer.exe")}
+	assert rows == {
+		"ReactOS/explorer.exe": [{"group": 100, "afterglow": "explorer"}],
+		"ReactOS/agexplorer.exe": [{"group": 100, "afterglow": "explorer"}],
+	}

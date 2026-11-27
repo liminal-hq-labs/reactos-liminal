@@ -40,9 +40,9 @@
 				"ReactOS/system32/fontsub.exe": "486f1914505cdb2a1b05aa5fcd765fb6a88ec14fef57a85cbe15dace07b9727a",
 				"ReactOS/notepad.exe": "6b2f5c22e20072c5b9bb38c9dc3b9a026f5997cb1dd28c6475d80292ae2d8e34",
 				"ReactOS/system32/stobject.dll": "1ed6223ff078d2fb7d7cb4629f7912d03fdcf7ce435461761025dc8fc77bc716",
-				"ReactOS/explorer.exe": "943395e2d44a426ec51e121648f731fc879e29b777758f056005ff32d770987c",
+				"ReactOS/explorer.exe": "505b3414effcabf62bf3deb29981b23791a62f789dd9805e0c6580bc73cedad9",
 				"ReactOS/system32/msgina.dll": "81e1e3e0d32d9e0d11d2cc88a794d6dcd4ad5d2a5580f8ceb256a733722762d8",
-				"ReactOS/agexplorer.exe": "97f616ff7fc97d03c224846e412832af6f2c62712983f19c06d1552bbd78267d",
+				"ReactOS/agexplorer.exe": "062eb7b7aa4fbf2f264b40d75ce253a0fbb797b71b98ea15f54e2ca39807aecb",
 				"ReactOS/system32/agmsgina.dll": "b02a5dae2af9f7354ab84e464c35f2cf098557fc9228e7d7f9c31755e6e98bd8"
 			}
 		},

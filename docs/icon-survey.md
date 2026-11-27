@@ -224,6 +224,10 @@ The Start menu's Shut Down dialog is loaded from `msgina.dll` by name, and Winlo
 
 The survey of the stock art (Afterglow's `docs/reactos-stock-art-survey.md`) marked 83 resources as drawn and waiting for a patch. All of the ones on the image are now patched: the Control Panel groups above, the Administrative Tools programs, Task Manager, Registry Editor and its file type, Clipboard Viewer, the keyboard indicator, Utility Manager, the volume mixer, the update installer, Font Substitution, the tray states, the Explorer groups (101, 107, 108 and 257, in `explorer.exe` and `agexplorer.exe`), the `msgina.dll` groups (21, 22, 109 and 115), `devmgr.dll` 20, `shell32.dll` 181 and the dialog bitmaps. The `ReactOS/notepad.exe` copy is patched like the one in `system32`.
 
+### The icon of a program file
+
+Explorer's file views draw a program's file icon from the first icon group in the file, by id. `explorer.exe` holds group 100 first (stock: the grey computer), then 101 (the Start menu entry, which the map names as `explorer`). The map names only 101, so this repository's table adds group 100 to `explorer.exe` and to `agexplorer.exe`, the Start copy, with the same `explorer` icon (a row in `icon_families.json`, verified from the stock file; Afterglow can name it in its map and the map then wins). The other Afterglow-added binaries carry no icon group: `afterfetch.exe` and `agntoskr.exe` show the generic program icon, which is `shell32.dll` group 3 and Afterglow's `program`. `agmsgina.dll` is a library and shows the system-file icon (group 154, `library`).
+
 ### Every other module the map names
 
 `afterglow.map-icons` carries the modules the other families do not list. Each is a file with its stock SHA-256 in `icon_families.json` (a `map-icons` entry) and no group id; the groups come from the map, and `rl pin` records what happened to each in [icon-coverage.md](icon-coverage.md) (patched, skipped with the reason, or unverified). The Start menu shortcuts of these programs carry no icon of their own, so they draw the first icon group of the target, which is the group below; the file types listed take theirs from the same group.

@@ -48,7 +48,7 @@ def test_a_scene_needs_its_sum_and_a_guest_path(base_recipe_path, tmp_path):
 	with pytest.raises(RecipeError, match="settings.wallpaper"):
 		load(path)
 	path = tmp_path / "bad-path.toml"
-	path.write_text(text.replace("C:\\\\ReactOS\\\\Web\\\\Wallpaper\\\\Afterglow Dusk (dark, smooth).bmp", "/ReactOS/x.bmp"))
+	path.write_text(text.replace("C:\\\\ReactOS\\\\Web\\\\Wallpaper\\\\Dusk.bmp", "/ReactOS/x.bmp"))
 	with pytest.raises(RecipeError, match="drive C"):
 		load(path)
 
@@ -131,7 +131,7 @@ def test_a_recipe_supplies_its_own_wallpaper_from_a_file_entry(base_recipe_path,
 	child = tmp_path / "child.toml"
 	child.write_text(
 		'[recipe]\nname = "child"\nextends = "rl:recipes/afterglow.toml"\n\n'
-		'[[files]]\nsource = "emblem.bmp"\ndestination = "ReactOS/Web/Wallpaper/Afterglow Dusk (dark, smooth).bmp"\n'
+		'[[files]]\nsource = "emblem.bmp"\ndestination = "ReactOS/Web/Wallpaper/Dusk.bmp"\n'
 	)
 	recipe = load(child)
 	entry = _wallpaper_file_entry(recipe)
@@ -187,9 +187,11 @@ def pinned_set(base_recipe_path, monkeypatch, tmp_path):
 
 
 def test_a_scene_is_named_for_people_and_written_beside_the_picker_s_folder():
-	assert wallpaper.friendly_name("dusk-dark-smooth") == "Afterglow Dusk (dark, smooth)"
-	assert wallpaper.friendly_name("graphite-light-stepped") == "Afterglow Graphite (light, stepped)"
-	assert wallpaper.set_destination("dusk-dark-smooth") == "ReactOS/Web/Wallpaper/Afterglow Dusk (dark, smooth).bmp"
+	assert wallpaper.friendly_name("dusk-dark-smooth") == "Dusk"
+	assert wallpaper.friendly_name("graphite-light-stepped") == "Graphite Light Stepped"
+	assert wallpaper.friendly_name("dusk-light-smooth") == "Dusk Light"
+	assert wallpaper.friendly_name("ember-dark-stepped") == "Ember Stepped"
+	assert wallpaper.set_destination("dusk-dark-smooth") == "ReactOS/Web/Wallpaper/Dusk.bmp"
 
 
 def test_the_base_recipe_offers_every_pinned_afterglow_scene_by_name_order(base_recipe_path):
@@ -197,6 +199,8 @@ def test_the_base_recipe_offers_every_pinned_afterglow_scene_by_name_order(base_
 	names = wallpaper.scenes(recipe)
 	assert len(names) == 20 and set(names) == set(json.loads(wallpaper.PINS_FILE.read_text())["scenes"])
 	assert [wallpaper.friendly_name(name) for name in names] == sorted(wallpaper.friendly_name(name) for name in names)
+	shown = [wallpaper.friendly_name(name) for name in names]
+	assert len(set(shown)) == 20 and all(len(name) < 32 and "-" not in name and "Afterglow" not in name for name in shown)
 	assert names[0] == "aurora-dark-smooth" and "dusk-light-stepped" in names
 	assert wallpaper.wanted(recipe) in names  # the desktop wallpaper is one of the set
 
@@ -325,16 +329,16 @@ def test_rl_pin_measures_every_scene_the_source_draws(pinned_set, tmp_path):
 def test_the_image_step_writes_the_set_in_name_order_and_skips_the_desktop_wallpaper_and_file_entries(pinned_set, tmp_path, fat):
 	recipe, _ = pinned_set
 	recipe.data["wallpapers"]["scenes"] = ["dusk-dark-smooth", "dusk-light-smooth", "aurora-dark-smooth"]
-	recipe.data["settings"]["wallpaper"] = "C:\\ReactOS\\Web\\Wallpaper\\Afterglow Dusk (dark, smooth).bmp"
-	recipe.data["files"] = [{"source": "x.bmp", "destination": "ReactOS/Web/Wallpaper/Afterglow Aurora (dark, smooth).bmp"}]
+	recipe.data["settings"]["wallpaper"] = "C:\\ReactOS\\Web\\Wallpaper\\Dusk.bmp"
+	recipe.data["files"] = [{"source": "x.bmp", "destination": "ReactOS/Web/Wallpaper/Aurora.bmp"}]
 	scratch = tmp_path / "scratch"
 	scratch.mkdir()
 	fat.make_directory("ReactOS")
 	_write_wallpaper_set(recipe, fat, fake_set_tree(tmp_path, SCENES), scratch)
 	folder = "ReactOS/Web/Wallpaper"
-	assert fat.read(f"{folder}/Afterglow Dusk (light, smooth).bmp") == bitmap_of("dusk-light-smooth")
-	assert not fat.exists(f"{folder}/Afterglow Dusk (dark, smooth).bmp")  # written with the desktop wallpaper, not here
-	assert not fat.exists(f"{folder}/Afterglow Aurora (dark, smooth).bmp")  # a [[files]] entry supplies it
+	assert fat.read(f"{folder}/Dusk Light.bmp") == bitmap_of("dusk-light-smooth")
+	assert not fat.exists(f"{folder}/Dusk.bmp")  # written with the desktop wallpaper, not here
+	assert not fat.exists(f"{folder}/Aurora.bmp")  # a [[files]] entry supplies it
 
 
 def test_a_recipe_without_a_set_writes_no_folder(pinned_set, tmp_path, fat):
