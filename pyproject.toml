@@ -1,0 +1,54 @@
+# Project, tool and test configuration for the `rl` command.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[project]
+name = "reactos-liminal"
+version = "0.0.0"
+description = "Build Afterglow-dressed ReactOS disk images, install media and browser snapshots from a recipe."
+requires-python = ">=3.12"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+# The pipeline uses the standard library only; ruff and pytest are for development.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff", "pytest"]
+
+[project.scripts]
+rl = "reactos_liminal.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["reactos_liminal"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 140
+extend-exclude = ["scripts/banner-fit.py"]
+indent-width = 4
+
+[tool.ruff.format]
+indent-style = "tab"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+# Tabs are the project's indent; ruff's W191 would flag every line.
+ignore = ["W191"]
+
+[tool.ruff.lint.per-file-ignores]
+# The job summary carries long lines of Markdown prose.
+"reactos_liminal/manifest.py" = ["E501"]
+# Test data and argument lists run long.
+"tests/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m 'not qemu'"
+markers = [
+	"qemu: needs QEMU (and KVM for a practical run); skipped by default and never run in CI. Run with: pytest -m qemu",
+]

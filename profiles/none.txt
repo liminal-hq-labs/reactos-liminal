@@ -1,0 +1,8 @@
+# Trim profile "none": removes nothing; the golden disk as installed.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# One path per line, under the FAT32 root: "f PATH" removes a file, "d PATH" removes a folder and everything in it. A missing path is
+# logged and skipped. A profile never lists a file a patcher wrote or a licence file (rl trim refuses one that does).
+

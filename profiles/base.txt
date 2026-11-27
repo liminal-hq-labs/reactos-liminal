@@ -1,0 +1,143 @@
+# Trim profile "base": the Afterglow remaster's trim. It removes the games, screensavers, wallpapers, the browser engine stubs, the DirectX
+# helper libraries and the apps and applets a kiosk does not use. The network card drivers and the network stack stay, so the guest keeps its network ability.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# One path per line, under the FAT32 root: "f PATH" removes a file, "d PATH" removes a folder and everything in it. A missing path is
+# logged and skipped. A profile never lists a file a patcher wrote or a licence file (rl trim refuses one that does).
+
+# Batch 1: leftovers, browser engine, wallpapers, games, screensavers, DirectX helper libraries, tools a kiosk does not use.
+d ReactOS/Installer
+d ReactOS/system32/gecko
+d Program Files/Internet Explorer
+f ReactOS/system32/sol.exe
+f ReactOS/system32/spider.exe
+f ReactOS/system32/winmine.exe
+f ReactOS/system32/maze.exe
+f ReactOS/system32/3dtext.scr
+f ReactOS/system32/butterflies.scr
+f ReactOS/system32/circles.scr
+f ReactOS/system32/cylfrac.scr
+f ReactOS/system32/matrix.scr
+f ReactOS/system32/mazescr.scr
+f ReactOS/system32/ssstars.scr
+f ReactOS/system32/starfield.scr
+f ReactOS/system32/mspaint.exe
+f ReactOS/system32/wordpad.exe
+f ReactOS/system32/write.exe
+f ReactOS/system32/mplay32.exe
+f ReactOS/system32/sndrec32.exe
+f ReactOS/system32/dxdiag.exe
+f ReactOS/system32/mstsc.exe
+f ReactOS/system32/rapps.exe
+f ReactOS/system32/rapps.com
+f ReactOS/system32/magnify.exe
+f ReactOS/system32/osk.exe
+f ReactOS/system32/charmap.exe
+f ReactOS/system32/calc.exe
+f ReactOS/system32/mmc.exe
+f ReactOS/system32/progman.exe
+f ReactOS/system32/screenshot.exe
+f ReactOS/system32/wined3dcfg.cpl
+f ReactOS/system32/openglcfg.cpl
+f ReactOS/system32/telephon.cpl
+f ReactOS/system32/joy.cpl
+f ReactOS/system32/bthprops.cpl
+f ReactOS/system32/usrmgr.cpl
+f ReactOS/system32/ftp.exe
+f ReactOS/system32/telnet.exe
+f ReactOS/system32/telnetd.exe
+f ReactOS/system32/tftpd.exe
+f ReactOS/system32/roshttpd.exe
+f ReactOS/system32/ncftp.exe
+f ReactOS/system32/rosperf.exe
+f ReactOS/system32/gdb2.exe
+f ReactOS/system32/regexpl.exe
+f ReactOS/system32/vgafontedit.exe
+f ReactOS/system32/vcdcli.exe
+f ReactOS/system32/vcdcontroltool.exe
+f ReactOS/system32/vfd.exe
+f ReactOS/system32/wlanconf.exe
+f ReactOS/system32/wlansvc.exe
+f ReactOS/system32/nfsd.exe
+f ReactOS/system32/d3dx9_24.dll
+f ReactOS/system32/d3dx9_25.dll
+f ReactOS/system32/d3dx9_26.dll
+f ReactOS/system32/d3dx9_27.dll
+f ReactOS/system32/d3dx9_28.dll
+f ReactOS/system32/d3dx9_29.dll
+f ReactOS/system32/d3dx9_30.dll
+f ReactOS/system32/d3dx9_31.dll
+f ReactOS/system32/d3dx9_32.dll
+f ReactOS/system32/d3dx9_33.dll
+f ReactOS/system32/d3dx9_34.dll
+f ReactOS/system32/d3dx9_35.dll
+f ReactOS/system32/d3dx9_36.dll
+f ReactOS/system32/d3dx9_37.dll
+f ReactOS/system32/d3dx9_38.dll
+f ReactOS/system32/d3dx9_39.dll
+f ReactOS/system32/d3dx9_40.dll
+f ReactOS/system32/d3dx9_41.dll
+f ReactOS/system32/d3dx9_42.dll
+f ReactOS/system32/d3dx9_43.dll
+f ReactOS/Web/Wallpaper/Angelus.txt
+f ReactOS/Web/Wallpaper/Backwoods.jpg
+f ReactOS/Web/Wallpaper/Borealis Dark.jpg
+f ReactOS/Web/Wallpaper/Borealis.jpg
+f ReactOS/Web/Wallpaper/Deep Sea.jpg
+f ReactOS/Web/Wallpaper/Grass.jpg
+f ReactOS/Web/Wallpaper/Mizu (4x3).png
+f ReactOS/Web/Wallpaper/Mizu.png
+f ReactOS/Web/Wallpaper/Nebula.bmp
+f ReactOS/Web/Wallpaper/Polarlicht.jpg
+f ReactOS/Web/Wallpaper/README.txt
+f ReactOS/Web/Wallpaper/Silhouette Dark.png
+f ReactOS/Web/Wallpaper/Silhouette.png
+# Batch 2: fonts a kiosk does not use (Arial, Times New Roman, Courier New, Tahoma, Marlett, Symbol, Wingdings, MS Sans Serif, FreeSans and the console font stay), filesystem drivers and drivers for hardware a virtual machine does not have.
+f ReactOS/Fonts/comicbd.ttf
+f ReactOS/Fonts/comic.ttf
+f ReactOS/Fonts/framdit.ttf
+f ReactOS/Fonts/framd.ttf
+f ReactOS/Fonts/georgiab.ttf
+f ReactOS/Fonts/georgiai.ttf
+f ReactOS/Fonts/georgia.ttf
+f ReactOS/Fonts/georgiaz.ttf
+f ReactOS/Fonts/lucon.ttf
+f ReactOS/Fonts/palabi.ttf
+f ReactOS/Fonts/palab.ttf
+f ReactOS/Fonts/palai.ttf
+f ReactOS/Fonts/pala.ttf
+f ReactOS/Fonts/trebucbd.ttf
+f ReactOS/Fonts/trebucbi.ttf
+f ReactOS/Fonts/trebucit.ttf
+f ReactOS/Fonts/trebuc.ttf
+f ReactOS/Fonts/verdanab.ttf
+f ReactOS/Fonts/verdanai.ttf
+f ReactOS/Fonts/verdana.ttf
+f ReactOS/Fonts/verdanaz.ttf
+f ReactOS/Fonts/ariblk.ttf
+f ReactOS/Fonts/DroidSansFallback.ttf
+f ReactOS/Fonts/FreeSansBoldOblique.ttf
+f ReactOS/Fonts/FreeSansBold.ttf
+f ReactOS/Fonts/FreeSansOblique.ttf
+f ReactOS/system32/drivers/btrfs.sys
+f ReactOS/system32/shellbtrfs.dll
+f ReactOS/system32/drivers/ext2fs.sys
+f ReactOS/system32/drivers/nfs41_driver.sys
+f ReactOS/system32/drivers/fbtusb.sys
+f ReactOS/system32/drivers/cmipci.sys
+f ReactOS/system32/drivers/cmicpl.cpl
+f ReactOS/system32/drivers/cmicontrol.exe
+# Batch 3: unused visual styles (the guest runs the classic look, ThemeActive is 0) and start menu entries for programs removed above.
+d ReactOS/Resources/Themes/Lautus
+d ReactOS/Resources/Themes/Lunar
+d ReactOS/Resources/Themes/Mizu
+d ReactOS/Resources/Themes/Modern
+d Documents and Settings/Administrator/Start Menu/Programs/Games
+f Documents and Settings/Administrator/Start Menu/Programs/Wine Internet Explorer.lnk
+f Documents and Settings/Administrator/Start Menu/Programs/ReactOS Applications Manager.lnk
+f Documents and Settings/Administrator/Start Menu/Programs/Accessories/Paint.lnk
+f Documents and Settings/Administrator/Start Menu/Programs/Accessories/WordPad.lnk
+f Documents and Settings/Administrator/Start Menu/Programs/Accessories/Calculator.lnk
+f Documents and Settings/Administrator/Recent/LETTER.RTF.lnk
