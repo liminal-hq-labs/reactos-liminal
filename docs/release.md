@@ -20,7 +20,7 @@ The release body is `docs/releases/X.Y.Z.md`, which must exist and be non-empty.
 ## Before you start
 
 1. The licence checklist in [SPEC.md](../SPEC.md#licence-checklist) is complete. The workflow cannot check it; approving the environment is the owner's statement that it is.
-2. `main` holds the commit to release and CI is green. Run `./rl lock recipes/afterglow.toml` and commit the result before tagging, so `./rl verify recipes/afterglow.toml` passes: any pin or trim-list change since the last lock leaves it stale.
+2. `main` holds the commit to release and CI is green. Run `./rl lock recipes/afterglow.toml` and `./rl lock recipes/afterglow-compact.toml` and commit the results before tagging, so `./rl verify` passes for both: any pin or trim-list change since the last lock leaves it stale.
 3. `docs/releases/X.Y.Z.md` is written. Check that what it says is in the build.
 4. The WineVDM (otvdm) release that ReactOS 0.4.16 installs is identified, and `SOURCE.txt` and `NOTICE.txt` name it. The workflow points at the project but cannot know the release.
 

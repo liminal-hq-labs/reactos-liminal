@@ -80,7 +80,7 @@ class Component:
 	licence: str
 	text: str  # the file in `LICENSES/` that holds the text, or a note where this build does not carry one
 	where: str  # where the component is on the image
-	trimmed_by_base: bool = False  # the `base` trim profile removes it, so the notice names it only for an untrimmed image
+	trimmed_by_base: bool = False  # a trim profile (`base`) removes it, so the notice names it only for an untrimmed image
 
 
 COMPONENTS = (
@@ -331,8 +331,9 @@ def licences_page(recipe: Recipe) -> str:
 		afterglow = recipe.section("inputs", "afterglow")
 		out.append(f"- **Afterglow:** [`{afterglow['repo']}`](https://github.com/{afterglow['repo']}) at commit `{afterglow['commit']}`.")
 	out += ["", "## Components and licences", "", "| Component | Licence | Text | Where |", "|---|---|---|---|"]
+	profile = recipe.section("trim", "profile")
 	for component in COMPONENTS:
-		where = component.where + (" (removed by the `base` trim profile)" if component.trimmed_by_base else "")
+		where = component.where + (f" (removed by the `{profile}` trim profile)" if profile != "none" and component.trimmed_by_base else "")
 		out.append(f"| {component.name} | {component.licence} | {component.text} | {where} |")
 	out += [
 		"",

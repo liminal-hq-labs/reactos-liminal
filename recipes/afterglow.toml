@@ -1,4 +1,4 @@
-# The base recipe: ReactOS 0.4.16 with the Afterglow desktop, installed unattended from the official ISO.
+# The base recipe: the full ReactOS 0.4.16 with the Afterglow desktop, installed unattended from the official ISO. Nothing is removed.
 #
 # Other recipes extend this one and change what they need (a trim profile, a payload, the names). Every input is pinned by SHA-256.
 #
@@ -7,7 +7,7 @@
 
 [recipe]
 name = "afterglow"
-description = "ReactOS 0.4.16 with the Afterglow desktop, from the official install ISO"
+description = "The full ReactOS 0.4.16 with the Afterglow desktop, from the official install ISO"
 
 # The official release, as published on SourceForge: the zip, and the ISO inside it.
 [inputs.reactos_iso]
@@ -50,12 +50,13 @@ page_file = "64 64"
 icon_size = 32
 wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
 wallpaper_style = "stretch"
-reg_files = ["display", "quiet", "watermark-off", "afterglow-logon"]
+reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]
 
-# Which files the trim removes: none, or base (the Afterglow remaster's trim; keeps the network drivers and stack). A downstream
-# recipe adds its own removals with `extra`, a list of trim files beside that recipe.
+# Which files the trim removes: none, or base (the compact trim; keeps the network drivers and stack). This recipe is the full
+# ReactOS and removes nothing; afterglow-compact.toml extends it with the base profile. A downstream recipe adds its own removals with
+# `extra`, a list of trim files beside that recipe.
 [trim]
-profile = "base"
+profile = "none"
 
 # Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
 # pointers (it patches a copy of user32.dll). The Start patch writes agexplorer.exe, a copy of explorer.exe with the Afterglow Start orb

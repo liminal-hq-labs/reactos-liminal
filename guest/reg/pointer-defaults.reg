@@ -1,0 +1,22 @@
+Windows Registry Editor Version 5.00
+
+; Pointer defaults. The pointer shadow is on: the Pointer tab's "Enable pointer shadow" box is SPI_GETCURSORSHADOW, bit 0x2000 of the
+; DWORD HKCU\Control Panel\Desktop\UserPreferencesMask (the second byte's 0x20). The stock value is 10,00,00,80 (gradient captions and
+; UI effects) and has the bit off, so the box is clear; this sets 0x2000 and nothing else.
+;
+; The scheme list is the user's schemes (HKCU\Control Panel\Cursors\Schemes, where Afterglow is) followed by the system schemes in
+; HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\Cursors\Schemes, each with " (system scheme)" added, then "(None)". The
+; applet skips a value whose data is empty, so the one stock system scheme, "ReactOS Default", is emptied and the list is "Afterglow"
+; and "(None)".
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"UserPreferencesMask"=hex:10,20,00,80
+
+[HKEY_USERS\.DEFAULT\Control Panel\Desktop]
+"UserPreferencesMask"=hex:10,20,00,80
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\Cursors\Schemes]
+"ReactOS Default"=""

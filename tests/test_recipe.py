@@ -36,7 +36,16 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 		"afterglow.logon",
 		"afterglow.boot",
 	]
-	assert recipe.section("trim", "profile") == "base"
+	assert recipe.section("trim", "profile") == "none"  # the full ReactOS; the compact recipe sets "base"
+
+
+def test_the_compact_recipe_is_the_base_recipe_with_the_base_trim(base_recipe_path, compact_recipe_path):
+	full, compact = load(base_recipe_path), load(compact_recipe_path)
+	assert compact.name == "afterglow-compact" and compact.section("trim", "profile") == "base"
+	assert compact.section("patchers", "list") == full.section("patchers", "list")
+	assert compact.section("settings", "reg_files") == full.section("settings", "reg_files")
+	assert compact.section("inputs", "afterglow") == full.section("inputs", "afterglow")
+	assert compact.data["files"] == full.data["files"]
 
 
 def test_chunk_size_defaults_to_eight_mebibytes(base_recipe_path, tmp_path):
@@ -83,7 +92,7 @@ def test_malformed_hash_is_refused(base_recipe_path, tmp_path):
 
 
 def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path):
-	text = base_recipe_path.read_text().replace('profile = "base"', 'profile = "tiny"')
+	text = base_recipe_path.read_text().replace('profile = "none"', 'profile = "tiny"')
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
 	text = base_recipe_path.read_text().replace(
@@ -151,7 +160,7 @@ def test_a_reg_path_is_resolved_beside_the_recipe_that_lists_it(base_recipe_path
 		child_folder, "child.toml", f'[recipe]\nname = "child"\nextends = "{base_recipe_path}"\n[settings]\nreg_files = ["extra.reg"]\n'
 	)
 	listed = load(child).section("settings", "reg_files")
-	assert listed[:-1] == ["display", "quiet", "watermark-off", "afterglow-logon"]
+	assert listed[:-1] == ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]
 	assert listed[-1] == str(child_folder / "extra.reg")
 
 

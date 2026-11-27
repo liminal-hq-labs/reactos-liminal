@@ -20,7 +20,7 @@
 	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
 	"trim_lists": {
-		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1"
+		"profile:none": "605f008fd7a6ed0db5f2d60ee926db9060199d247c144398a95bd639b98c7455"
 	},
 	"files": {
 		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a",

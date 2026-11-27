@@ -60,7 +60,10 @@ def test_every_static_reg_file_is_a_registry_file_with_a_header():
 def test_an_unknown_reg_file_is_refused_by_the_recipe(base_recipe_path, tmp_path):
 	path = tmp_path / "r.toml"
 	path.write_text(
-		base_recipe_path.read_text().replace('reg_files = ["display", "quiet", "watermark-off", "afterglow-logon"]', 'reg_files = ["nope"]')
+		base_recipe_path.read_text().replace(
+			'reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]',
+			'reg_files = ["nope"]',
+		)
 	)
 	with pytest.raises(RecipeError, match="reg_files"):
 		load(path)
@@ -131,3 +134,48 @@ def test_a_recipes_own_reg_file_is_applied_after_the_named_files(base_recipe_pat
 	assert names.index("quill") > names.index("afterglow-logon")
 	assert '"On"=dword:00000001' in files["quill"]
 	assert "quill.reg" not in "".join(settings.write_settings_cd_tree(load(child), tmp_path / "cd"))
+
+
+def _reg_values(name):
+	"""The `"name"="value"` lines of a static registry file, as `{section: {name: raw value}}`."""
+	found, section = {}, None
+	for line in (settings.REG_DIR / f"{name}.reg").read_text(encoding="utf-8").splitlines():
+		if line.startswith("["):
+			section = line.strip("[]")
+			found[section] = {}
+		elif section and line.startswith('"') and "=" in line:
+			key, _, value = line.partition("=")
+			found[section][key.strip('"')] = value
+	return found
+
+
+def test_the_regional_file_sets_english_canada_with_24_hour_time_for_the_user_and_the_default_profile():
+	found = _reg_values("regional-canada")
+	for root in ("HKEY_CURRENT_USER", "HKEY_USERS\\.DEFAULT"):
+		international = found[f"{root}\\Control Panel\\International"]
+		assert international["Locale"] == '"00001009"' and international["LocaleName"] == '"en-CA"'
+		assert international["iCountry"] == '"1"' and international["sCountry"] == '"Canada"'
+		assert international["sShortDate"] == '"yyyy-MM-dd"' and international["sCurrency"] == '"$"'
+		# the taskbar clock and the Regional Options sample both format with sTimeFormat
+		assert international["sTimeFormat"] == '"HH:mm:ss"' and international["iTime"] == '"1"'
+		assert international["iTLZero"] == '"1"' and international["iTimePrefix"] == '"0"'
+		assert found[f"{root}\\Control Panel\\International\\Geo"] == {"Nation": '"39"', "Name": '"CA"'}
+	assert found["HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Nls\\Language"] == {"Default": '"1009"'}
+
+
+def test_the_pointer_file_turns_the_shadow_on_and_empties_the_stock_system_scheme():
+	found = _reg_values("pointer-defaults")
+	mask = found["HKEY_CURRENT_USER\\Control Panel\\Desktop"]["UserPreferencesMask"]
+	stock = bytes.fromhex("10000080")  # boot/bootdata/hivedef.inf in ReactOS 0.4.16
+	bytes_written = bytes(int(part, 16) for part in mask.removeprefix("hex:").split(","))
+	changed = int.from_bytes(bytes_written, "little") ^ int.from_bytes(stock, "little")
+	assert changed == 0x2000  # UPM_CURSORSHADOW, and no other bit
+	assert found["HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Control Panel\\Cursors\\Schemes"] == {
+		"ReactOS Default": '""'
+	}
+
+
+def test_both_recipes_apply_the_regional_and_pointer_files_before_the_afterglow_files(base_recipe_path, compact_recipe_path):
+	for path in (base_recipe_path, compact_recipe_path):
+		names = list(settings.settings_files(load(path), None))
+		assert names.index("regional-canada") < names.index("pointer-defaults")

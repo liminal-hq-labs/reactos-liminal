@@ -160,3 +160,9 @@ def test_the_lock_records_a_recipes_own_reg_file_by_relative_path(fake_iso_recip
 	assert list(lock["reg_files"]) == ["reg:own.reg"]
 	reg_file.write_text("Windows Registry Editor Version 5.00\n; changed\n")
 	assert build_lock(recipe) != lock
+
+
+def test_the_committed_lock_matches_the_compact_recipe():
+	recipe = load(REPO / "recipes" / "afterglow-compact.toml")
+	assert [check.status for check in check_lock(recipe)] == ["ok"]
+	assert recipe.section("trim", "profile") == "base"
