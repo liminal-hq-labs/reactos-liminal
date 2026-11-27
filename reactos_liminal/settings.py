@@ -65,6 +65,8 @@ def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[
 	"""The registry files to apply, in order, as `{name: text}`: the recipe's own settings, the static files it lists, and the
 	Afterglow files that select the style and the pointer scheme."""
 	settings = recipe.section("settings")
+	if "afterglow-logon" in settings["reg_files"] and "afterglow.logon" not in recipe.section("patchers", "list"):
+		raise SettingsError("settings.reg_files names afterglow-logon, which selects agmsgina.dll, but patchers.list lacks afterglow.logon")
 	files = {"display": display_reg(settings["display_width"], settings["display_height"])}
 	files["appearance"] = appearance_reg(settings["icon_size"], settings.get("wallpaper"), settings["wallpaper_style"])
 	for name in settings["reg_files"]:

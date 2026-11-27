@@ -25,7 +25,7 @@ from .fetch import sha256_file
 from .icon_survey import load_table
 from .log import log
 from .mtools import FatImage
-from .patchers import PatchedFile, PatchError
+from .patch_base import PatchedFile, PatchError
 from .pe_resources import RT_GROUP_ICON, RT_ICON, GroupFrame, PeError, PeFile, build_group, parse_group, read_ico
 
 SHELL32 = "ReactOS/system32/shell32.dll"

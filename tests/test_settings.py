@@ -39,6 +39,17 @@ def test_the_recipe_chooses_the_static_files(fake_iso_recipe, tmp_path):
 	assert list(settings.settings_files(recipe, files))[-2:] == ["afterglow-afterglow", "afterglow-pointers"]
 
 
+def test_the_logon_file_selects_the_patched_dll_and_needs_its_patcher(fake_iso_recipe):
+	recipe, _, _ = fake_iso_recipe
+	recipe.data["settings"]["reg_files"] = ["display", "afterglow-logon"]
+	recipe.data["patchers"] = {"list": []}
+	with pytest.raises(settings.SettingsError, match="afterglow.logon"):
+		settings.settings_files(recipe)
+	recipe.data["patchers"] = {"list": ["afterglow.logon"]}
+	text = settings.settings_files(recipe)["afterglow-logon"]
+	assert 'Winlogon]\n"GinaDLL"="agmsgina.dll"' in text
+
+
 def test_every_static_reg_file_is_a_registry_file_with_a_header():
 	for name in settings.STATIC_REG_FILES:
 		text = (settings.REG_DIR / f"{name}.reg").read_text()
@@ -48,7 +59,9 @@ def test_every_static_reg_file_is_a_registry_file_with_a_header():
 
 def test_an_unknown_reg_file_is_refused_by_the_recipe(base_recipe_path, tmp_path):
 	path = tmp_path / "r.toml"
-	path.write_text(base_recipe_path.read_text().replace('reg_files = ["display", "quiet", "watermark-off"]', 'reg_files = ["nope"]'))
+	path.write_text(
+		base_recipe_path.read_text().replace('reg_files = ["display", "quiet", "watermark-off", "afterglow-logon"]', 'reg_files = ["nope"]')
+	)
 	with pytest.raises(RecipeError, match="reg_files"):
 		load(path)
 
@@ -103,5 +116,5 @@ def test_the_start_patcher_selects_its_shell(base_recipe_path):
 	files = settings.settings_files(recipe)
 	assert '"Shell"="agexplorer.exe"' in files["shell-agexplorer"]
 	assert 'Wallpaper"="C:\\\\ReactOS\\\\afterglow-wallpaper.bmp"' in files["appearance"]
-	recipe.data["patchers"]["list"] = ["afterglow.pointers"]
+	recipe.data["patchers"]["list"] = ["afterglow.pointers", "afterglow.logon"]
 	assert "shell-agexplorer" not in settings.settings_files(recipe)

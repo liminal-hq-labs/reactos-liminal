@@ -10,17 +10,17 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[inputs.reactos_iso]` | `name`, `url`, `zip_sha256`, `sha256` (all required) | — |
 | `[inputs.afterglow]` | `repo`, `commit`, `tar_sha256`, `msstyles_sha256` (required), `apply_reg`, `wallpaper`, `wallpaper_sha256` | `desktop/install/afterglow-original.reg`, none, none |
 | `[install]` | `locale`, `time_zone_index`, `computer_name`, `owner_name`, `classic_shell`, `memory_mb`, `disk_size_mb` | `0409`, `85`, `REACTOS`, `ReactOS user`, `true`, `768`, `4096` |
-| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"stretch"`, `["display", "quiet", "watermark-off"]`, none |
+| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"stretch"`, `["display", "quiet", "watermark-off"]` (the base recipe adds `afterglow-logon`), none |
 | `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
-| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps` | `[]` (the base recipe lists both patchers) |
+| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
 
 Hashes are 64 lowercase hex digits; the Afterglow commit is the full 40 digits. A size is a number of bytes or a string such as `"8MiB"`. `chunk_size` is a power of two of at least 64 KiB.
 
-`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear` and `hide-desktop-icons`. The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
+`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons` and `afterglow-logon` (selects `agmsgina.dll`; needs the `afterglow.logon` patcher). The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
 
 ### Wallpaper
 

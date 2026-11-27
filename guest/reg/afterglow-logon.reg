@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+; Select the patched logon DLL, agmsgina.dll (the `afterglow.logon` patcher writes it beside the stock msgina.dll). To go back to the
+; stock logon boxes, delete this one value; msgina.dll is still on the disk, untouched.
+; Applied once, inside the guest, by apply-settings.cmd.
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]
+"GinaDLL"="agmsgina.dll"

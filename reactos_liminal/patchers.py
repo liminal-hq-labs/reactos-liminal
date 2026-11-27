@@ -4,24 +4,19 @@
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
-import importlib
 import subprocess
-from dataclasses import dataclass
 from pathlib import Path
 
 from .fetch import sha256_file
 from .log import log
 from .mtools import FatImage
-
-
-class PatchError(Exception):
-	"""A patcher refused its input or produced a file that does not match its pin."""
-
-
-@dataclass(frozen=True)
-class PatchedFile:
-	image_path: str  # where the file goes on the disk, under the FAT32 root
-	local_file: Path  # the patched copy in the work directory
+from .patch_base import PatchedFile, PatchError  # noqa: F401  (re-exported: cli and the tests import them from here)
+from .patch_bitmaps import toolbar_bitmaps
+from .patch_boot import afterglow_boot
+from .patch_family import cpl_icons, program_icons
+from .patch_icons import afterglow_icons
+from .patch_logon import afterglow_logon
+from .patch_start import afterglow_start
 
 
 def _afterglow_pointers(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
@@ -48,34 +43,15 @@ def _afterglow_pointers(golden: FatImage, source_tree: Path, files: Path, scratc
 	return [PatchedFile("ReactOS/system32/user32.dll", patched)]
 
 
-def _afterglow_start(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
-	from .patch_start import afterglow_start  # imported here: the module imports this one for PatchError and PatchedFile
-
-	return afterglow_start(golden, source_tree, files, scratch)
-
-
-def _afterglow_icons(*arguments) -> list[PatchedFile]:
-	from .patch_icons import afterglow_icons  # imported here because patch_icons imports this module
-
-	return afterglow_icons(*arguments)
-
-
-def _lazy(module: str, function: str):
-	"""A patcher that lives in a module which imports this one: import it when it runs."""
-
-	def run(*arguments) -> list[PatchedFile]:
-		return getattr(importlib.import_module(f".{module}", __package__), function)(*arguments)
-
-	return run
-
-
 PATCHERS = {
 	"afterglow.pointers": _afterglow_pointers,
-	"afterglow.start": _afterglow_start,
-	"afterglow.icons": _afterglow_icons,
-	"afterglow.cpl-icons": _lazy("patch_family", "cpl_icons"),
-	"afterglow.program-icons": _lazy("patch_family", "program_icons"),
-	"afterglow.toolbar-bitmaps": _lazy("patch_bitmaps", "toolbar_bitmaps"),
+	"afterglow.start": afterglow_start,
+	"afterglow.icons": afterglow_icons,
+	"afterglow.cpl-icons": cpl_icons,
+	"afterglow.program-icons": program_icons,
+	"afterglow.toolbar-bitmaps": toolbar_bitmaps,
+	"afterglow.logon": afterglow_logon,
+	"afterglow.boot": afterglow_boot,
 }
 
 

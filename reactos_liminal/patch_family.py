@@ -13,8 +13,8 @@ from pathlib import Path
 from .fetch import sha256_file
 from .log import log
 from .mtools import FatImage
+from .patch_base import PatchedFile, PatchError
 from .patch_icons import _afterglow_sums, icon_set_digest, patch_icon_groups, render_icons
-from .patchers import PatchedFile, PatchError
 
 FAMILIES_FILE = Path(__file__).resolve().parent / "icon_families.json"
 PINS_FILE = Path(__file__).resolve().parent.parent / "pins" / "icon-families.json"

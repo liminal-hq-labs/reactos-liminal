@@ -18,7 +18,7 @@ from pathlib import Path
 from .fetch import sha256_file
 from .log import log
 from .mtools import FatImage
-from .patchers import PatchedFile, PatchError
+from .patch_base import PatchedFile, PatchError
 
 STOCK_PATH = "ReactOS/explorer.exe"
 PATCHED_PATH = "ReactOS/agexplorer.exe"
