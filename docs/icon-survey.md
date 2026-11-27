@@ -48,6 +48,7 @@ Afterglow's `map.json` says, for each of its icons, which ReactOS resource it re
 
 - **`afterglow.icons`** replaces every `shell32.dll` group the map names, `also` entries included.
 - **`afterglow.cpl-icons` and `afterglow.program-icons`** replace every group the map names for each file listed in `icon_families.json` (the Control Panel applets, `cmd.exe`, `notepad.exe`, `cabview.dll`, `shimgvw.dll` and `netshell.dll`, the Network Connections folder).
+- **`afterglow.dialog-icons`** replaces every `user32.dll` group the map names (the message-box icons and the default program icon), on top of the pointer copy ([Message-box icons](#message-box-icons-in-user32dll)).
 - **`afterglow.toolbar-bitmaps`** replaces every `browseui.dll` cell the map names for strips 214 to 217.
 
 The tables in this repository hold only what the map cannot say: the SHA-256 of each stock file that guards its patch, the strip sizes, the frames each group holds, and any group the map does not name that is replaced anyway (`afterglow` on a row, which the map overrides if it later names that group) or left alone (`reason`). A new icon set, such as a redrawn drive icon or a hand-tuned 16 px frame, is therefore a new Afterglow pin and `rl pin` ([Afterglow pin](afterglow-pin.md)), with no code or table change. A group the map verifies that the stock file cannot take (fewer than three frame ids of its own) stops the build rather than being skipped.
@@ -167,6 +168,22 @@ Two icons Afterglow draws are on the image under resources the map still lists a
 | `browser`, the **Internet Browser** icon on the desktop | `shell32.dll` group 512 (`IDI_SHELL_WEB_BROWSER`) | The desktop item is the CLSID `{871C5380-42A0-1069-A2EA-08002B30309D}` ("Internet Browser"), not a shortcut file, and its `DefaultIcon` in the stock `SOFTWARE` hive is `%SystemRoot%\system32\shell32.dll,-512`. `shresdef.h` defines `IDI_SHELL_WEB_BROWSER` as 512 and `icon_res.rc` binds it to `res/icons/512.ico`. The stock group holds `16@8 32@8 48@8 16@32 32@32 48@32`, three ids of its own. The map names `browser` only for `iexplore.exe` group 1, which is the program's own icon (the window and a program shortcut), not this desktop item |
 | `console`, the **Console** Control Panel applet | `console.dll` group 40 (`IDC_CPLICON`) | `dll/cpl/console/resource.h` defines `IDC_CPLICON` as 40, `console.rc` binds it to `res/terminal.ico`, and `console.c` answers `CPL_INQUIRE` with `idIcon = IDC_CPLICON`. The stock `console.dll` (SHA-256 `cf5e98424dbc0204f3aabe43c277ae64e3e637943020d966445dce6707b6793f`, in `ReactOS/system32`, which the Control Panel loads as an applet) holds one group, 40, with `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32`. The map has `console` with a `null` resource; the Command Prompt shortcut shows the Afterglow terminal because that is `cmd.exe` group 1 (`cmd`), a different icon |
 
+### Message-box icons in `user32.dll`
+
+`user32.dll` draws the message-box icons from its own groups: `IDI_EXCLAMATION` (101), `IDI_QUESTION` (102), `IDI_HAND` (103, the error icon) and `IDI_ASTERISK` (104), and `IDI_APPLICATION` (100), the default program icon. The map verifies all five against the source and the binary (`warning`, `question`, `error`, `info` and `program`), and `afterglow.dialog-icons` replaces whatever groups the map names for `user32.dll`, so the ids are not written anywhere in this repository. The stock file (SHA-256 `8ddd64afb96b576f899e3d73ea3a44355474f6c74a3ccd3ff75caa696b711958`, 1,604,096 bytes, the one Afterglow's own pointer tool accepts) holds:
+
+| Group | Name | Stock frames | Afterglow icon |
+|---|---|---|---|
+| 100 | `IDI_APPLICATION` | `32@8 16@8 32@32 16@32` | `program` |
+| 101 | `IDI_EXCLAMATION` | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `warning` |
+| 102 | `IDI_QUESTION` | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `question` |
+| 103 | `IDI_HAND` | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `error` |
+| 104 | `IDI_ASTERISK` | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `info` |
+
+A message box draws its icon at 32 px; 16 and 48 px frames serve captions and task switching. Group 100 has no 48 px frame in the stock file, so the new group takes the third stock frame id it owns. Group 105 holds nine frames too and is not named by the map, so it stays.
+
+`afterglow.pointers` writes the same file, from the stock copy, with the Afterglow pointers. `afterglow.dialog-icons` therefore starts from the copy that patcher leaves in the build's scratch directory and not from the golden file (`base` in `icon_families.json`), so one `user32.dll` carries both. It must be listed after `afterglow.pointers`, which the recipe loader enforces. The stock file is still checked against its SHA-256, and the pin is keyed by the digest of the icons plus the SHA-256 of that base copy, so a change to either needs `rl pin`.
+
 ### Verified by the map but not patched
 
 The map verifies these resources, and none is patched today. Adding one is a stock-file SHA-256 in `icon_families.json` (a `files` entry), then `rl pin`; the patcher takes the groups from the map.
@@ -174,4 +191,3 @@ The map verifies these resources, and none is patched today. Adding one is a sto
 - **Removed by the `base` trim**, which refuses to remove a patched file (RL-19): Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file.
 - **On the image, not yet listed:** Registry Editor and its file type (`regedit.exe` 100, 101), Task Manager, Event Viewer, Device Manager, Services, System Configuration, Utility Manager, Clipboard Viewer, the Windows Update installer, `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `sndvol32.exe`, and Explorer (`explorer.exe` 101, which `afterglow.start` copies as `agexplorer.exe` from the stock file, so a second patch there needs the two combined). Each needs its stock SHA-256 from the golden disk and a check that its groups have three frame ids of their own.
 - **Tray:** `stobject.dll` (volume, battery, hotplug), `ctfmon.exe` and `kbswitch.exe` (keyboard layout). Afterglow draws a state per icon here; the patcher would take them from the map the same way.
-- **Dialogs and the program icon in `user32.dll`:** `user32.dll` already carries the Afterglow pointers from `afterglow.pointers`, which patches the stock file in its own pass. Patching icons into the same file needs the two patchers combined or run in sequence on one copy, which the pipeline does not do (each patcher starts from the golden file); left for a decision (RL-26.4).

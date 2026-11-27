@@ -1,10 +1,8 @@
-# The icon patchers for files other than shell32.dll: `afterglow.cpl-icons` (the Control Panel applets) and `afterglow.program-icons`
-# (the programs ReactOS puts on the desktop and Start menu, and the file types whose icon comes from a program or library).
+# The icon patchers for files other than shell32.dll: `afterglow.cpl-icons`, `afterglow.program-icons` and `afterglow.dialog-icons`.
 #
-# Each file is taken from the golden disk, guarded by the SHA-256 of the stock 0.4.16 file listed in `icon_families.json`, and has the
-# groups Afterglow's icon map verifies for it replaced by Afterglow's icons, the way `patch_icons` does it. The result of each file is
-# checked against `pins/icon-families.json`, keyed by the family and a digest of the icons used. Patched files stay in the work
-# directory, never in git.
+# The applets, the programs and file-type libraries, and the message-box icons of user32.dll (patched on top of the copy
+# `afterglow.pointers` leaves). Each file is taken from the golden disk, guarded by the SHA-256 of the stock 0.4.16 file in
+# `icon_families.json`, has the groups Afterglow's icon map verifies replaced, and is checked against `pins/icon-families.json`.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -42,12 +40,29 @@ def family_groups(entries: dict[str, dict], file_spec: dict) -> dict[int, str]:
 	return groups
 
 
+def base_file(file_spec: dict, scratch: Path) -> Path | None:
+	"""The file a family patches instead of the stock one, when the file also goes through an earlier patcher: `base` names the copy
+	that patcher leaves in the scratch directory. The stock file is still checked against its hash; the base only replaces it as the
+	input. A missing base means the earlier patcher did not run first, which would lose its work, so it is an error."""
+	name = file_spec.get("base")
+	if name is None:
+		return None
+	path = scratch / name
+	if not path.is_file():
+		raise PatchError(f"{file_spec['path']} builds on {name}, which the earlier patcher has not written; list that patcher first")
+	return path
+
+
 def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: Path) -> list[PatchedFile]:
 	family = load_families()[family_name]
 	pins = load_pins()["families"].get(family_name, {})
 	entries = load_map(source_tree)
 	wanted = {file_spec["path"]: family_groups(entries, file_spec) for file_spec in family["files"]}
 	icons_by_id, icon_sums = verified_icons(source_tree, scratch, {icon_id for groups in wanted.values() for icon_id in groups.values()})
+	bases = {file_spec["path"]: base_file(file_spec, scratch) for file_spec in family["files"]}
+	for image_path, base in bases.items():
+		if base is not None:  # a file built on another patcher's result is pinned against that result too
+			icon_sums[f"base/{image_path}"] = sha256_file(base)
 	digest = icon_set_digest(icon_sums)
 	expected_by_file = pins.get(digest)
 	require_pin(digest, expected_by_file, family_name, PINS_FILE.name)
@@ -65,7 +80,8 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 			)
 		icons = {group: icons_by_id[icon_id] for group, icon_id in wanted[image_path].items()}
 		try:
-			patched_bytes, report = patch_icon_groups(stock_file.read_bytes(), icons)
+			input_file = bases[image_path] or stock_file
+			patched_bytes, report = patch_icon_groups(input_file.read_bytes(), icons)
 		except PatchError as error:
 			raise PatchError(f"{image_path}: {error}") from error
 		patched = scratch / f"{family_name}-{base}.patched"
@@ -89,3 +105,9 @@ def cpl_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -
 def program_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
 	"""Patch the icons of the desktop and Start menu programs and of the file types that take theirs from a program or library."""
 	return run_family("program-icons", golden, source_tree, scratch)
+
+
+def dialog_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
+	"""Patch the message-box icons (the warning, question, error and information icons, and the default program icon) of user32.dll,
+	on top of the copy `afterglow.pointers` made."""
+	return run_family("dialog-icons", golden, source_tree, scratch)

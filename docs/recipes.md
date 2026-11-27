@@ -15,7 +15,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[[files]]` | `source` (relative to the recipe, or `built:NAME` for a `[builds]` output), `destination` (under the disk root) | none (the base recipe writes `afterfetch.exe` and `afterfetch.cmd`; a recipe that extends it keeps those entries and merges its own by destination, see [Extending a recipe](#extending); `built:afterfetch` works in a consumer recipe because the base recipe declares the build) |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
-| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them) |
+| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.dialog-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
 

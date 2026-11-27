@@ -32,6 +32,7 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 		"afterglow.icons",
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
+		"afterglow.dialog-icons",
 		"afterglow.toolbar-bitmaps",
 		"afterglow.logon",
 		"afterglow.boot",
@@ -96,11 +97,26 @@ def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
 	text = base_recipe_path.read_text().replace(
-		'list = [\n\t"afterglow.pointers",\n\t"afterglow.start",\n\t"afterglow.icons",\n\t"afterglow.cpl-icons",\n\t"afterglow.program-icons",\n\t"afterglow.toolbar-bitmaps",\n\t"afterglow.logon",\n\t"afterglow.boot",\n]',
+		'list = [\n\t"afterglow.pointers",\n\t"afterglow.start",\n\t"afterglow.icons",\n\t"afterglow.cpl-icons",\n\t"afterglow.program-icons",\n\t"afterglow.dialog-icons",\n\t"afterglow.toolbar-bitmaps",\n\t"afterglow.logon",\n\t"afterglow.boot",\n]',
 		'list = ["made.up"]',
 	)
 	with pytest.raises(RecipeError, match="patchers.list"):
 		load(write(tmp_path, "patch.toml", text))
+
+
+def test_the_dialog_icon_patcher_must_follow_the_pointer_patcher(base_recipe_path, tmp_path):
+	"""Both patch user32.dll, and the later one's file is the one written to the image."""
+	text = base_recipe_path.read_text()
+	assert text.index('"afterglow.pointers"') < text.index('"afterglow.dialog-icons"')
+	load(write(tmp_path, "ordered.toml", text))
+	swapped = text.replace('\t"afterglow.pointers",\n', "", 1).replace(
+		'\t"afterglow.dialog-icons",\n', '\t"afterglow.dialog-icons",\n\t"afterglow.pointers",\n'
+	)
+	with pytest.raises(RecipeError, match="listed before it"):
+		load(write(tmp_path, "swapped.toml", swapped))
+	missing = text.replace('\t"afterglow.pointers",\n', "", 1)
+	with pytest.raises(RecipeError, match="listed before it"):
+		load(write(tmp_path, "missing.toml", missing))
 
 
 def test_a_recipe_without_the_iso_pin_is_refused(tmp_path):

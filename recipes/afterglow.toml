@@ -71,6 +71,7 @@ list = [
 	"afterglow.icons",
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
+	"afterglow.dialog-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.logon",
 	"afterglow.boot",

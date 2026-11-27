@@ -92,6 +92,16 @@
 					"stock_sha256": "9630e1a7a506c15e19586fa1502a192c55d4148c7fbb2f459752d2681d435a47"
 				}
 			]
+		},
+		"dialog-icons": {
+			"patcher": "afterglow.dialog-icons",
+			"files": [
+				{
+					"path": "ReactOS/system32/user32.dll",
+					"stock_sha256": "8ddd64afb96b576f899e3d73ea3a44355474f6c74a3ccd3ff75caa696b711958",
+					"base": "user32-afterglow.dll"
+				}
+			]
 		}
 	}
 }

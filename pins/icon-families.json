@@ -31,6 +31,11 @@
 			"1d80ad49665023554ff33639c05b4eabe56557e28e2f634f0e8b907b3d9bd908": {
 				"ReactOS/system32/browseui.dll": "33ce1c37cb587ea2e5ce5e5df6e5f4418609400c43a990104d119099d88ed995"
 			}
+		},
+		"dialog-icons": {
+			"4b0ffc55d1ad478c565f6fb5cf114198f756917bdfd6ed3f448b134e9d6cb8af": {
+				"ReactOS/system32/user32.dll": "e299bf3692bddce54b9f5458c4e3d5f613d27bf014b2d0a1fe0eadd26abeeac6"
+			}
 		}
 	}
 }

@@ -117,6 +117,49 @@ def test_a_file_with_no_group_in_the_map_is_checked_and_its_groups_stay_as_they_
 	assert group_of(PeFile(patched[0].local_file.read_bytes()), 4) == group_of(PeFile(cpl_bytes), 4)
 
 
+def dialog_family(monkeypatch, cpl_bytes):
+	"""Make the test applet stand in for user32.dll: a family whose file is built on another patcher's copy, `test-base.cpl`."""
+	families = {
+		"dialog-icons": {
+			"files": [{"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest(), "base": "test-base.cpl"}],
+		}
+	}
+	monkeypatch.setattr(patch_family, "load_families", lambda: families)
+
+
+def test_a_family_built_on_another_patchers_copy_patches_that_copy_and_pins_against_it(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, cpl_bytes, *_ = setup
+	dialog_family(monkeypatch, cpl_bytes)
+	base = cpl_bytes[:-1] + b"\x01"  # the earlier patcher's copy: still the stock file's layout, not its bytes
+	(scratch / "test-base.cpl").write_bytes(base)
+	with patch_base.recording() as recorder:
+		patched = run_patchers(["afterglow.dialog-icons"], fat, tree, tmp_path, scratch)
+	assert patched[0].local_file.read_bytes() == patch_icons.patch_icon_groups(base, {4: ico(0x40)})[0]
+	assert patched[0].local_file.read_bytes() != patch_icons.patch_icon_groups(cpl_bytes, {4: ico(0x40)})[0]
+	(digest,) = recorder.results["dialog-icons"]
+	icon_only = patch_icons.icon_set_digest({"ico/mouse.ico": hashlib.sha256(ico(0x40)).hexdigest()})
+	assert digest != icon_only  # the pin is keyed by the base copy as well as the icons
+
+
+def test_a_family_built_on_another_patchers_copy_is_refused_without_it(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, cpl_bytes, *_ = setup
+	dialog_family(monkeypatch, cpl_bytes)
+	with pytest.raises(PatchError, match="list that patcher first"):
+		run_patchers(["afterglow.dialog-icons"], fat, tree, tmp_path, scratch)
+
+
+def test_the_dialog_icons_are_user32_and_take_their_groups_from_the_map():
+	"""The family names only the file, its stock sum and the copy it builds on: the four message-box groups come from the map."""
+	(file_spec,) = patch_family.load_families()["dialog-icons"]["files"]
+	assert file_spec["path"] == "ReactOS/system32/user32.dll" and file_spec["base"] == "user32-afterglow.dll"
+	assert "groups" not in file_spec
+	entries = {
+		name: {"id": name, "resource": {"module": "user32.dll", "group": group}}
+		for name, group in (("warning", 101), ("question", 102), ("error", 103), ("info", 104))
+	}
+	assert patch_family.family_groups(entries, file_spec) == {101: "warning", 102: "question", 103: "error", 104: "info"}
+
+
 def test_the_group_table_adds_only_groups_the_map_does_not_name(monkeypatch):
 	entries = {"mouse": MOUSE, "keys": {"id": "keys"}}
 	spec = {"path": CPL, "groups": [{"group": 4, "afterglow": "keys"}, {"group": 7, "afterglow": "keys"}]}
@@ -205,12 +248,12 @@ def test_halving_averages_by_alpha_and_keeps_transparent_pixels_clear():
 
 def test_the_cell_and_family_tables_are_consistent():
 	families = patch_family.FAMILIES_FILE.read_text()
-	assert json.loads(families)["families"].keys() == {"cpl-icons", "program-icons"}
+	assert json.loads(families)["families"].keys() == {"cpl-icons", "program-icons", "dialog-icons"}
 	spec = patch_bitmaps.load_strips()["files"][0]
 	assert {strip["cell"] for strip in spec["strips"]} == {16, 24}
 	assert all(0 <= cell["index"] < 47 for cell in spec.get("cells", []))
 	pins = json.loads(patch_family.PINS_FILE.read_text())["families"]
-	assert set(pins) == {"cpl-icons", "program-icons", "toolbar-bitmaps"}
+	assert set(pins) == {"cpl-icons", "program-icons", "dialog-icons", "toolbar-bitmaps"}
 
 
 def test_no_patched_file_is_one_the_base_trim_removes():
