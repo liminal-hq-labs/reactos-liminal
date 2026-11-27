@@ -68,6 +68,7 @@ def build_lock(recipe: Recipe) -> dict:
 		for entry in recipe.section("settings", "reg_files")
 		if is_reg_path(entry)
 	}
+	builds = {name: table["sha256"] for name, table in recipe.data.get("builds", {}).items()}
 	files = {entry["source"]: sha256_file(base / entry["source"]) for entry in recipe.data["files"] if (base / entry["source"]).is_file()}
 	return {
 		"schema": LOCK_SCHEMA,
@@ -77,6 +78,7 @@ def build_lock(recipe: Recipe) -> dict:
 		"trim_lists": trim_lists,
 		"files": files,
 		**({"reg_files": reg_files} if reg_files else {}),
+		**({"builds": builds} if builds else {}),
 	}
 
 

@@ -1,0 +1,10 @@
+# Pins the Rust toolchain for afterfetch.exe. `rust-src` is for building `core` from source for a Pentium; `llvm-tools` brings
+# llvm-objdump for the checks on the finished executable.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[toolchain]
+channel = "1.98.0"
+components = ["rustfmt", "clippy", "rust-src", "llvm-tools"]
+profile = "minimal"

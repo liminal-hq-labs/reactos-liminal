@@ -99,6 +99,7 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 
 - **SPEC first.** A change to behaviour, interfaces, recipes, settings or defaults updates `SPEC.md` in the same change.
 - **Recipes declare, code acts.** A recipe chooses and parameterizes steps and pins inputs; it cannot add a new kind of write. Every input is pinned by SHA-256 and every build writes a lock file.
+- **Rust is for `afterfetch.exe` alone.** `tools/afterfetch` is `no_std`, has no C runtime and no dependencies, and is built from source at image time with the toolchain it pins; its output is pinned by SHA-256 (`[builds.afterfetch]`) and never committed. Rust uses tabs (`rustfmt.toml`), and every `.rs` file has the SPDX header.
 - **Hash-guarded patches.** Every patcher accepts only the exact upstream file it was written for (an SHA-256 allow-list in `pins/`), writes same-size in place, checks a table pattern is unique before editing it, keeps copyright and version strings, and records its undo. A test proves a one-byte-changed input is refused.
 - **Art lives in Afterglow.** No art or art generator here; Afterglow's release and manifest are a pinned input. Afterglow keeps vector masters with scripted renders.
 - **No consumer content.** Nothing Quill-specific (or specific to any other consumer) lives here; consumers extend a base recipe.
@@ -125,6 +126,7 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 ## Testing
 
 - `bash scripts/check-headers.sh` — SPDX headers
+- `bash tools/afterfetch/check.sh [--reproducible]` — `afterfetch.exe`: rustfmt, clippy, the host unit tests, the build, and the PE, import and Pentium checks (needs the toolchain `tools/afterfetch/rust-toolchain.toml` pins, with `rust-src` and `llvm-tools`)
 - `bash scripts/check-banner.sh` — hero banner rules and text fit (needs `xmllint`, `rsvg-convert`, `python3` and Chromium; `--shots DIR` writes frames to look at)
 - `docker run --rm -v "$PWD:/workdir" davidanson/markdownlint-cli2:v0.17.2 "**/*.md"` — markdown
 - `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh tools/*.sh` — shell scripts
@@ -150,7 +152,7 @@ assets/        hero banner
 docs/          decisions and project notes
 reactos_liminal/  the `rl` package (Python, standard library only); `rl` is its shim
 recipes/       recipes; `afterglow.toml` is the base
-tools/         helper scripts (`fetch-v86.sh`)
+tools/         helper scripts (`fetch-v86.sh`) and `afterfetch/`, the Rust project for `afterfetch.exe` (its own pinned toolchain, tabs, `check.sh`)
 profiles/      trim profiles (`none`, `base`); a downstream project keeps its own removals in an `extra` list in its own repository
 guest/         files that go to the guest: answers template, registry files, the settings script
 tests/         pytest tests (synthetic fixtures only)

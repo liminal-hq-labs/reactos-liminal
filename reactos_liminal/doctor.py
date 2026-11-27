@@ -7,6 +7,9 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
+
+from .paths import REPO
 
 
 @dataclass(frozen=True)
@@ -28,6 +31,8 @@ TOOLS = (
 	Tool("zstd", "compresses the v86 disk parts and state"),
 	Tool("fallocate", "punches holes in the finished image so it is sparse", required=False),
 	Tool("bash", "runs the helper scripts"),
+	Tool("rustup", "installs the pinned Rust toolchain for the programs built from source (afterfetch.exe)", required=False),
+	Tool("cargo", "builds the programs built from source (afterfetch.exe)", required=False),
 	Tool("llvm-rc", "builds the Afterglow visual style", required=False),
 	Tool("lld-link", "builds the Afterglow visual style", required=False),
 	Tool("rsvg-convert", "renders Afterglow's vector art", required=False),
@@ -45,6 +50,29 @@ def _version(tool: Tool, path: str) -> str:
 		return ""
 	text = (done.stdout or done.stderr).strip()
 	return text.splitlines()[0][:80] if text else ""
+
+
+def _rust_line() -> str:
+	"""Whether the toolchain `tools/afterfetch` pins is installed with `rust-src` (the build compiles `core` for a Pentium) and its own
+	`rust-lld`. Checked in that project's folder, where `rust-toolchain.toml` selects the version."""
+	folder = REPO / "tools" / "afterfetch"
+	if shutil.which("rustc") is None:
+		return (
+			"absent  rust toolchain: builds afterfetch.exe (rustup fetches the pinned one: `rustup toolchain install` in tools/afterfetch)"
+		)
+	try:
+		done = subprocess.run(["rustc", "--print", "sysroot"], capture_output=True, text=True, timeout=60, check=False, cwd=folder)
+	except (OSError, subprocess.TimeoutExpired):
+		return "absent  rust toolchain: could not run rustc in tools/afterfetch"
+	sysroot = Path(done.stdout.strip())
+	if done.returncode != 0 or not sysroot.is_dir():
+		return "absent  rust toolchain: the pinned toolchain is not installed (run `rustup toolchain install` in tools/afterfetch)"
+	missing = [name for name, path in (("rust-src", "lib/rustlib/src/rust/library"),) if not (sysroot / path).is_dir()]
+	if not list(sysroot.glob("lib/rustlib/*/bin/rust-lld")):
+		missing.append("rust-lld")
+	if missing:
+		return f"absent  rust toolchain {sysroot.name}: missing {', '.join(missing)} for afterfetch.exe (`rustup component add rust-src`)"
+	return f"ok      rust toolchain {sysroot.name}: rust-src and rust-lld present for afterfetch.exe"
 
 
 def check() -> tuple[list[str], bool]:
@@ -78,6 +106,7 @@ def check() -> tuple[list[str], bool]:
 			lines.append(f"ok      python {module}: {purpose}")
 		except ImportError:
 			lines.append(f"absent  python {module}: {purpose} (optional)")
+	lines.append(_rust_line())
 	kvm = "/dev/kvm"
 	if os.access(kvm, os.W_OK):
 		lines.append(f"ok      {kvm}: hardware acceleration for the install and the build VM")

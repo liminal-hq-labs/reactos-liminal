@@ -86,7 +86,7 @@ jobs:
           persist-credentials: false
 
       - name: Run shellcheck
-        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh tools/*.sh
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/mnt" -w /mnt koalaman/shellcheck:stable rl scripts/*.sh tools/*.sh tools/afterfetch/*.sh
 
   actionlint:
     name: Workflows
@@ -159,3 +159,28 @@ jobs:
 
       - name: Check git holds no ReactOS binary or image
         run: bash scripts/check-no-binaries.sh
+
+  # afterfetch.exe, the coloured system-information command, built from source in the shared ci-rust image (pinned by digest). The
+  # project pins its own toolchain (1.98.0 with rust-src and llvm-tools), which rustup installs here; no system package is needed because
+  # the linker and objdump come with the toolchain. The job formats, lints, runs the unit tests of the pure parts on the host, builds
+  # the executable, checks it (subsystem 4.0, no C runtime, Pentium instructions, imports on the allowlist) and builds it twice to
+  # prove the output does not depend on the directory.
+  afterfetch:
+    name: afterfetch.exe
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/liminal-hq/ci-rust@sha256:f12097be8cc22eb5145a46bc9f75b38a67fedd5833add4392e11ce85023e64df
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install the pinned Rust toolchain
+        working-directory: tools/afterfetch
+        run: rustup toolchain install
+
+      - name: Check, test and build afterfetch.exe
+        working-directory: tools/afterfetch
+        run: bash check.sh --reproducible

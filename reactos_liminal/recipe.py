@@ -244,6 +244,12 @@ SCHEMA: dict[str, Any] = {
 			"pre_merge": (_str, None),
 		},
 	},
+	"builds": {
+		"afterfetch": {
+			"source": (_str, _REQ),
+			"sha256": (_sha256, _REQ),
+		},
+	},
 	"install": {
 		"locale": (_locale, "0409"),
 		"time_zone_index": (_int(0, 999), 85),
@@ -427,6 +433,9 @@ def load(path: str | Path) -> Recipe:
 		raise RecipeError("inputs.afterglow: wallpaper and wallpaper_sha256 go together")
 	if "wallpaper" in pin and "wallpaper" not in data["settings"]:
 		raise RecipeError("settings.wallpaper: required when inputs.afterglow.wallpaper names a scene (the path the BMP is written to)")
+	for entry in data["files"]:
+		if entry["source"].startswith("built:") and entry["source"][len("built:") :] not in data.get("builds", {}):
+			raise RecipeError(f"files: {entry['source']} names a build that no [builds] table declares")
 	if "reactos_iso" not in data.get("inputs", {}):
 		raise RecipeError("inputs.reactos_iso: required (the pinned ISO)")
 	return Recipe(data=data, chain=chain)
