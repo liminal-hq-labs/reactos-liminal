@@ -23,6 +23,10 @@ The patchers take their list of groups from Afterglow's `desktop/icons/map.json`
 
 Review the diff, run `python3 -m pytest` and `ruff check`, and commit the recipe and both `pins/` files together. The golden disk does not change with the pin.
 
+## The savers pin
+
+The Afterglow screensavers are a second pinned source, `[builds.afterglow-savers]` in the base recipe, and move on their own: `./rl pin recipes/afterglow.toml --savers [REF]` (see [recipes.md](recipes.md#screensavers)). It touches no icon table and needs no golden disk.
+
 ## A pin on an unmerged branch
 
 A pin may name a commit that is on an Afterglow branch that has not merged, to build against art that is still in review. Mark it:

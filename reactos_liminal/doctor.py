@@ -46,8 +46,8 @@ TOOLS = (
 	Tool("zstd", "compresses the v86 disk parts and state"),
 	Tool("fallocate", "punches holes in the finished image so it is sparse", required=False),
 	Tool("bash", "runs the helper scripts"),
-	Tool("rustup", "installs the pinned Rust toolchain for the programs built from source (afterfetch.exe)", required=False),
-	Tool("cargo", "builds the programs built from source (afterfetch.exe)", required=False),
+	Tool("rustup", "installs the pinned Rust toolchain for the programs built from source (afterfetch.exe, the savers)", required=False),
+	Tool("cargo", "builds the programs built from source (afterfetch.exe, the Afterglow savers)", required=False),
 	Tool("llvm-rc", "builds the Afterglow visual style", required=False),
 	Tool("lld-link", "builds the Afterglow visual style", required=False),
 	Tool("rsvg-convert", "renders Afterglow's vector art", required=False),
@@ -99,9 +99,14 @@ def _rust_line() -> str:
 	missing = [name for name, path in (("rust-src", "lib/rustlib/src/rust/library"),) if not (sysroot / path).is_dir()]
 	if not list(sysroot.glob("lib/rustlib/*/bin/rust-lld")):
 		missing.append("rust-lld")
+	if not list(sysroot.glob("lib/rustlib/*/bin/llvm-objdump")):
+		missing.append("llvm-tools")
 	if missing:
-		return f"absent  rust toolchain {sysroot.name}: missing {', '.join(missing)} for afterfetch.exe (`rustup component add rust-src`)"
-	return f"ok      rust toolchain {sysroot.name}: rust-src and rust-lld present for afterfetch.exe"
+		return (
+			f"absent  rust toolchain {sysroot.name}: missing {', '.join(missing)} for afterfetch.exe and the Afterglow savers "
+			"(`rustup component add rust-src llvm-tools`)"
+		)
+	return f"ok      rust toolchain {sysroot.name}: rust-src, rust-lld and llvm-tools present for afterfetch.exe and the Afterglow savers"
 
 
 def check() -> tuple[list[str], bool]:

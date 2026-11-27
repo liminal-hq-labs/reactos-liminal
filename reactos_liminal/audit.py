@@ -32,7 +32,7 @@ SEARCH_FOLDERS = ("ReactOS/system32", "ReactOS")  # where a bare file name is fo
 USER_PROFILES = ("Default User", "Administrator", "NetworkService", "All Users")
 SHORTCUT_FOLDERS = ("start menu", "desktop", "quick launch")  # the folders whose links a user sees
 
-BLOCKING_KINDS = ("shortcut", "run", "winlogon", "applet")
+BLOCKING_KINDS = ("shortcut", "run", "winlogon", "applet", "screensaver")
 RUN_KEYS = ("Run", "RunOnce", "RunServices", "RunServicesOnce")
 EXECUTABLE_END = re.compile(r"\.(exe|com|bat|cmd|scr|cpl|msc|dll)\b", re.IGNORECASE)
 ENVIRONMENT_USE = re.compile(r"%([^%]+)%")
@@ -289,11 +289,47 @@ def audit_desktop_ini(disk: Disk, report: AuditReport) -> None:
 				report.findings.append(Finding("desktop.ini", f"{path} {key}", file_name, status, note))
 
 
-def audit_image(image: FatImage) -> AuditReport:
-	"""Check every shortcut, registry launch point and desktop.ini on the image."""
+SCREENSAVER_FOLDER = "ReactOS/system32"
+
+
+def audit_screensavers(disk: Disk, report: AuditReport, expected: tuple[str, ...] = ()) -> None:
+	"""The screensavers Display Properties lists. It lists every `.scr` file in the system folder (the saver's own string 1 is its
+	name), so a saver is listed when it is there and no registry entry is needed. Each file found is one `ok` finding; each name in
+	`expected` (the savers the recipe writes) that is not there is `dead`, which fails the audit, and so is a selected saver
+	(`SCRNSAVE.EXE`) that is not there, which `audit_hive` already reports."""
+	prefix = SCREENSAVER_FOLDER.lower() + "/"
+	present = {}
+	for path in disk.paths:
+		lowered = path.lower()
+		if lowered.startswith(prefix) and lowered.endswith(".scr") and "/" not in lowered[len(prefix) :]:
+			present[lowered[len(prefix) :]] = path
+	for name, path in sorted(present.items()):
+		report.findings.append(Finding("screensaver", path, name, OK, "listed in Display Properties (every .scr in the system folder is)"))
+	for name in expected:
+		if name.lower() not in present:
+			report.findings.append(
+				Finding("screensaver", f"{SCREENSAVER_FOLDER}/{name}", name, DEAD, "the recipe writes it but it is not on the disk")
+			)
+
+
+def audit_image(image: FatImage, expected_savers: tuple[str, ...] = ()) -> AuditReport:
+	"""Check every shortcut, registry launch point, screensaver and desktop.ini on the image. `expected_savers` are the `.scr` file names
+	the recipe writes into the system folder."""
 	disk = Disk(image)
 	report = AuditReport(files=len(disk.paths))
 	audit_shortcuts(disk, report)
 	audit_registry(disk, report)
+	audit_screensavers(disk, report, expected_savers)
 	audit_desktop_ini(disk, report)
 	return report
+
+
+def expected_savers(recipe) -> tuple[str, ...]:
+	"""The `.scr` file names a recipe's `[[files]]` write into the system folder."""
+	prefix = SCREENSAVER_FOLDER.lower() + "/"
+	names = []
+	for entry in recipe.data["files"]:
+		destination = entry["destination"].replace("\\", "/").strip("/")
+		if destination.lower().startswith(prefix) and destination.lower().endswith(".scr"):
+			names.append(destination[len(prefix) :])
+	return tuple(names)

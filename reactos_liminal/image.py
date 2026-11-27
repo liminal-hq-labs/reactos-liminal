@@ -33,7 +33,7 @@ from .patch_base import skipping
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
-from .rustbuild import BUILT_PREFIX, build_programs, used_builds
+from .rustbuild import BUILT_PREFIX, build_programs, built_file, used_builds
 from .trim import LICENCE_PATHS, SHORTCUTS_SOURCE, TrimReport, apply_profile, build_profile, check_profile, removes
 from .vm import PrivateVm
 from .wallpaper import FOLDER as wallpaper_folder_path
@@ -195,7 +195,7 @@ def _write_payload(
 	_write_wallpaper_set(recipe, disk, source_tree, scratch)
 	for entry in recipe.data["files"]:
 		if entry["source"].startswith(BUILT_PREFIX):
-			source = (built or {})[entry["source"][len(BUILT_PREFIX) :]]
+			source = built_file(built or {}, entry["source"])
 		else:
 			source = (base / entry["source"]).resolve()
 		if not source.is_file():

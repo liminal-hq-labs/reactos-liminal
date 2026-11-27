@@ -60,6 +60,19 @@
 		"stock_list": "87e25ea7f861dbb68d68072833e8183bd37cf10510099b43abb62f3969f4a3a4"
 	},
 	"builds": {
-		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
+		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2",
+		"afterglow-savers": {
+			"repo": "liminal-hq-labs/afterglow-savers",
+			"commit": "74147cf8618a97d6060b41e1ebca4b7de742234a",
+			"tar_sha256": "e0353e35f026bfab9f786140906f90e56209fd916ef4fa892e537fffda6a8633",
+			"script": "scripts/build-scr.sh",
+			"outputs": {
+				"AGMAZE.SCR": "3190ba861c78fe4bfa8b1da7997eca950c8d610a0715491d29c101040c71bdd0",
+				"AGCRACK.SCR": "fe8c59997518853872272221397e204bd9f250e84adb59c8bd1d19f1a92b08fd",
+				"AGTWILIT.SCR": "c01b8ec68c95d78ea14e1870f630c309043a2300dec74a7b7c932db35d5b59b0",
+				"AGINK.SCR": "9ba120f8825ea69786cd019b3a59d5798c95bb52a6bc648922c68154b7d65302",
+				"AGCOLLCT.SCR": "0b2f6e3d88c359889f7b3ff196fadd3a4b949cf8780c9d896c8e7895f3fdd9b9"
+			}
+		}
 	}
 }

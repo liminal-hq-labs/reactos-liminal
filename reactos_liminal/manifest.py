@@ -85,6 +85,13 @@ def build_manifest(
 	if "afterglow" in recipe.data["inputs"]:
 		afterglow = recipe.section("inputs", "afterglow")
 		pinned["afterglow"] = {"repo": afterglow["repo"], "commit": afterglow["commit"], "msstyles_sha256": afterglow["msstyles_sha256"]}
+	remote = {
+		name: {"repo": table["repo"], "commit": table["commit"], "tar_sha256": table["tar_sha256"], "outputs": dict(table["outputs"])}
+		for name, table in recipe.data.get("builds", {}).items()
+		if "repo" in table
+	}
+	if remote:
+		pinned["builds"] = remote
 	outputs, parts = list_outputs(dist, manifest_name)
 	return {
 		"built": built,
@@ -127,6 +134,8 @@ def job_summary(manifest: dict) -> str:
 	]
 	if "afterglow" in pin:
 		out.append(f"- **Afterglow:** `{pin['afterglow']['repo']}` at `{pin['afterglow']['commit']}`")
+	for name, build in pin.get("builds", {}).items():
+		out.append(f"- **{name}:** `{build['repo']}` at `{build['commit']}`, {len(build['outputs'])} outputs")
 	out += [f"- **{name}:** `{value[:16]}…`" for name, value in pin["inputs"].items()]
 	out += [f"- **{name}:** `{value}`" for name, value in pin["extra"].items()]
 	out += [

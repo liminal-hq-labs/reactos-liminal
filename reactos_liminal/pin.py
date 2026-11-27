@@ -10,6 +10,8 @@ the pin, run `rl pin`.
     rl pin RECIPE                       measure the pin the recipe already names and rewrite any hash that is stale
     rl pin RECIPE --afterglow REF       first move the pin to REF: a commit, a tag or a branch of the recipe's repository
     rl pin RECIPE --check               change nothing; exit 1 if any hash is stale
+    rl pin RECIPE --savers [REF]        move the pin of the builds from other repositories (the Afterglow savers) instead: the commit,
+                                        the source tar sum and the SHA-256 of each output; `--check` lists the stale ones
 
 The new sums are measured, not trusted: the source is fetched at the commit, the style and the wallpaper are built, and the icon
 patchers run against the golden disk in a recording mode that keeps each result instead of comparing it. The finished pins are then
@@ -37,8 +39,8 @@ from .patch_family import load_families, module_name
 from .patch_icons import PINS_FILE as SHELL32_PINS_FILE
 from .patchers import run_patchers
 from .paths import ensure
-from .recipe import Recipe, load
-from .rustbuild import build_program, declaring_file
+from .recipe import Recipe, is_remote_build, load
+from .rustbuild import build_program, declaring_file, remote_builds
 from .trim import build_profile
 from .wallpaper import PINS_FILE as WALLPAPER_PINS_FILE
 from .wallpaper import discover_scenes, render_set, render_wallpaper, wanted
@@ -221,6 +223,8 @@ def pin_afterglow(
 	changes = [f"{key}: {pin.get(key)} -> {value}" for key, value in measured.items() if pin.get(key) != value]
 	built_sums: dict[str, str] = {}
 	for name, table in recipe.data.get("builds", {}).items():
+		if is_remote_build(table):
+			continue  # `rl pin --savers` pins the builds from other repositories
 		sums: dict[str, str] = {}
 		build_program(recipe, work, name, sums)
 		built_sums[name] = sums["sha256"]
@@ -266,4 +270,43 @@ def pin_afterglow(
 				f"the pin and the icon results are updated, but a patcher still refuses: {error}. A patcher that pins its own result in "
 				"code (logon, Start, colours, boot) needs that constant moved by hand for the new art."
 			) from error
+	return changes
+
+
+def pin_savers(
+	recipe_path: str | Path,
+	work: Path,
+	ref: str | None = None,
+	tarball: Path | None = None,
+	check: bool = False,
+) -> list[str]:
+	"""Move the pin of each build from another repository (the Afterglow savers) to `ref` if given, build it, and rewrite the commit, the
+	source tar sum and the SHA-256 of each output that is stale. The pin is one `commit` line of `[builds.NAME]`; every sum is measured
+	from the build at that commit, never trusted. Returns a line for each change; with `check` nothing is written."""
+	recipe = load(recipe_path)
+	names = remote_builds(recipe)
+	if not names:
+		raise PinError("the recipe has no [builds] table with a repo, a commit and outputs")
+	changes: list[str] = []
+	writes: list[tuple[Path, str, dict[str, str]]] = []
+	for name in names:
+		table = recipe.section("builds", name)
+		commit = resolve_ref(table["repo"], ref) if ref else table["commit"]
+		if ref:
+			log("pin", f"{name}: {ref} is {commit}")
+		trial = load(recipe_path)
+		trial.data["builds"][name]["commit"] = commit
+		measured: dict = {}
+		build_program(trial, work, name, measured, tarball)
+		pinned = {"commit": commit, "tar_sha256": measured["tar_sha256"]}
+		changes += [f"builds.{name}.{key}: {table[key]} -> {value}" for key, value in pinned.items() if table[key] != value]
+		writes.append((declaring_file(recipe, name, key="commit"), f"[builds.{name}]", pinned))
+		for file_name, digest in measured["outputs"].items():
+			if table["outputs"][file_name] != digest:
+				changes.append(f"builds.{name}.outputs.{file_name}: {table['outputs'][file_name]} -> {digest}")
+			writes.append((declaring_file(recipe, name, output=file_name), f"[builds.{name}.outputs]", {f'"{file_name}"': digest}))
+	if check:
+		return changes
+	for path, section, values in writes:
+		path.write_text(set_pins(path.read_text(), values, section))
 	return changes

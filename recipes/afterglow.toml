@@ -102,6 +102,26 @@ list = [
 source = "../tools/afterfetch"
 sha256 = "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
 
+# The Afterglow screensavers, built from source at a pinned commit of their own repository: six i586 `.scr` files from one workspace
+# (docs/recipes.md, Screensavers). The commit is the one line to swap, `./rl pin recipes/afterglow.toml --savers REF` moves it and measures
+# the tar sum and every output's SHA-256, and each `.scr` is a standalone file (no shared DLL). The build also makes AGQUILL.SCR, the Quill
+# Ghostwriter saver; a recipe that carries it (the Quill remix) declares its sum in its own `[builds.afterglow-savers.outputs]` and writes it.
+# No saver is selected: the Screen Saver list shows "(None)" until someone picks one, and ReactOS lists every `.scr` in the system folder
+# by its own name, so the five show with no registry entry. The full image keeps ReactOS's own savers beside them; the compact image's trim
+# removes those and leaves the Afterglow five.
+[builds.afterglow-savers]
+repo = "liminal-hq-labs/afterglow-savers"
+commit = "74147cf8618a97d6060b41e1ebca4b7de742234a"
+tar_sha256 = "e0353e35f026bfab9f786140906f90e56209fd916ef4fa892e537fffda6a8633"
+script = "scripts/build-scr.sh"
+
+[builds.afterglow-savers.outputs]
+"AGMAZE.SCR" = "3190ba861c78fe4bfa8b1da7997eca950c8d610a0715491d29c101040c71bdd0"
+"AGCRACK.SCR" = "fe8c59997518853872272221397e204bd9f250e84adb59c8bd1d19f1a92b08fd"
+"AGTWILIT.SCR" = "c01b8ec68c95d78ea14e1870f630c309043a2300dec74a7b7c932db35d5b59b0"
+"AGINK.SCR" = "9ba120f8825ea69786cd019b3a59d5798c95bb52a6bc648922c68154b7d65302"
+"AGCOLLCT.SCR" = "0b2f6e3d88c359889f7b3ff196fadd3a4b949cf8780c9d896c8e7895f3fdd9b9"
+
 # Files written into the image. `afterfetch` is a small system-information command with an Afterglow logo, run from the command prompt;
 # it sits in system32, so it is on the PATH. The native program in colour is `afterfetch.exe`, which the command prompt finds before the
 # batch file; `afterfetch.cmd` stays as the plain-text fallback. `neofetch`, `fastfetch`, `screenfetch` and `winfetch` are one-line shims that
@@ -129,6 +149,26 @@ destination = "ReactOS/system32/screenfetch.cmd"
 [[files]]
 source = "../guest/cmd/winfetch.cmd"
 destination = "ReactOS/system32/winfetch.cmd"
+
+[[files]]
+source = "built:afterglow-savers/AGMAZE.SCR"
+destination = "ReactOS/system32/AGMAZE.SCR"
+
+[[files]]
+source = "built:afterglow-savers/AGCRACK.SCR"
+destination = "ReactOS/system32/AGCRACK.SCR"
+
+[[files]]
+source = "built:afterglow-savers/AGTWILIT.SCR"
+destination = "ReactOS/system32/AGTWILIT.SCR"
+
+[[files]]
+source = "built:afterglow-savers/AGINK.SCR"
+destination = "ReactOS/system32/AGINK.SCR"
+
+[[files]]
+source = "built:afterglow-savers/AGCOLLCT.SCR"
+destination = "ReactOS/system32/AGCOLLCT.SCR"
 
 [outputs.disk]
 zero_free = true

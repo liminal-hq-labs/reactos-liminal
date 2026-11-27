@@ -24,6 +24,7 @@ REACTOS_TAG = "0.4.16-release"
 REACTOS_COMMIT = "822e8647792a2c43f033e3e00ed273d59f163c7b"
 WINEVDM_URL = "https://github.com/otya128/winevdm"
 AFTERGLOW_URL = "https://github.com/liminal-hq/afterglow-themes"
+SAVERS_URL = "https://github.com/liminal-hq-labs/afterglow-savers"
 
 LICENCES_DIR = REPO / "licences"
 IMAGE_LICENCE_FOLDER = "LICENSES"
@@ -82,6 +83,7 @@ class Component:
 	where: str  # where the component is on the image
 	trimmed_by_base: bool = False  # a trim profile (`base`) removes it, so the notice names it only for an untrimmed image
 	replaced_wallpapers: bool = False  # a recipe with `wallpapers.replace_stock` removes it too, and its credits files go with it
+	needs_build: str = ""  # the `[builds]` name a recipe must declare for the component to be on its image
 
 
 COMPONENTS = (
@@ -130,6 +132,13 @@ COMPONENTS = (
 		"Apache-2.0 OR MIT",
 		"Apache-2.0.txt and MIT.txt",
 		"ReactOS\\Resources\\Themes\\Afterglow; the wallpapers in ReactOS\\Web\\Wallpaper or ReactOS\\afterglow-wallpaper.bmp",
+	),
+	Component(
+		"Afterglow screensavers (Maze, Cracktro, Twilight, Ink and Collection), built from source at a pinned commit",
+		"Apache-2.0 OR MIT",
+		"Apache-2.0.txt and MIT.txt",
+		"ReactOS\\system32 (AGMAZE.SCR, AGCRACK.SCR, AGTWILIT.SCR, AGINK.SCR and AGCOLLCT.SCR)",
+		needs_build="afterglow-savers",
 	),
 	Component(
 		"ReactOS Liminal's own settings, shortcuts and scripts",
@@ -181,6 +190,11 @@ def source_offer_lines() -> list[str]:
 	]
 
 
+def _absent(recipe: Recipe, component: Component) -> bool:
+	"""True when the component needs a build the recipe does not declare, so it is not on the image and no document names it."""
+	return bool(component.needs_build) and component.needs_build not in recipe.data.get("builds", {})
+
+
 def _removed(recipe: Recipe, component: Component) -> bool:
 	"""True when the recipe takes the component off the image: the compact trim removes it, or `wallpapers.replace_stock` replaces
 	ReactOS's wallpapers with Afterglow's."""
@@ -215,7 +229,7 @@ def notice_text(recipe: Recipe) -> bytes:
 	lines += [f"  {IMAGE_LICENCE_FOLDER}\\{text.image_name}  {text.title}" for text in TEXTS]
 	lines += ["", "Components and their licences:"]
 	for component in COMPONENTS:
-		if not _removed(recipe, component):
+		if not _removed(recipe, component) and not _absent(recipe, component):
 			lines.append(f"  - {component.name}: {component.licence}")
 	lines += ["", "Source code", "-----------", *source_offer_lines(), ""]
 	lines += [
@@ -225,6 +239,7 @@ def notice_text(recipe: Recipe) -> bytes:
 		"Much of its user mode comes from the Wine project and its contributors.",
 		f"WineVDM (otvdm) is by otya128 and its contributors ({WINEVDM_URL}).",
 		f"The Afterglow desktop theme is by Liminal HQ ({AFTERGLOW_URL}).",
+		*([f"The Afterglow screensavers are by Liminal HQ ({SAVERS_URL})."] if "afterglow-savers" in recipe.data.get("builds", {}) else []),
 		f"This remaster is built with ReactOS Liminal ({PROJECT_URL}).",
 	]
 	return _crlf("\n".join(lines) + "\n")
@@ -352,8 +367,13 @@ def licences_page(recipe: Recipe) -> str:
 	if "afterglow" in recipe.data["inputs"]:
 		afterglow = recipe.section("inputs", "afterglow")
 		out.append(f"- **Afterglow:** [`{afterglow['repo']}`](https://github.com/{afterglow['repo']}) at commit `{afterglow['commit']}`.")
+	for name, table in recipe.data.get("builds", {}).items():
+		if "repo" in table:
+			out.append(f"- **{name}:** [`{table['repo']}`](https://github.com/{table['repo']}) at commit `{table['commit']}`, built from source.")
 	out += ["", "## Components and licences", "", "| Component | Licence | Text | Where |", "|---|---|---|---|"]
 	for component in COMPONENTS:
+		if _absent(recipe, component):
+			continue
 		where = component.where + (_removal_note(recipe, component) if _removed(recipe, component) else "")
 		out.append(f"| {component.name} | {component.licence} | {component.text} | {where} |")
 	out += [

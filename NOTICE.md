@@ -7,6 +7,7 @@ ReactOS Liminal is an unofficial Liminal HQ Labs project. It is not made, endors
 - Code, recipes and docs: `Apache-2.0 OR MIT` ([LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT)).
 - Source patches in [`patches/`](patches/README.md): GPL-2.0-or-later.
 - Afterglow art, fetched at build time from [liminal-hq/afterglow-themes](https://github.com/liminal-hq/afterglow-themes): `Apache-2.0 OR MIT`, original work with a clean-room record in Afterglow's `PROVENANCE.md`.
+- Afterglow screensavers, built from source at a pinned commit of [liminal-hq-labs/afterglow-savers](https://github.com/liminal-hq-labs/afterglow-savers) (`[builds.afterglow-savers]`): `Apache-2.0 OR MIT`; the built `.scr` files are never committed.
 
 ## Components in built media (to be confirmed)
 
