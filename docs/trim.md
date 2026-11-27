@@ -20,6 +20,12 @@ Patchers run before the trim. The trim then refuses to remove, and `rl` checks b
 
 A list that reaches one is an error, not a skipped line, and that includes every `extra` list. To keep that true when a recipe removes more, the patchers run knowing the recipe's trim (the profile and its `extra` lists): a patcher that would write a file the trim removes leaves it alone and logs it (RL-53.3). The patch list is the same for the full and the compact recipe, and the pins do not change with the trim. The `base` profile removes none of the files the patchers write; a test checks it. Gecko's own licence file goes with Gecko: the full image keeps both, and the compact image removes both. After the trim, every patched file is confirmed to be on the disk.
 
+## Shortcuts of removed programs
+
+A removed program leaves its shortcuts behind, so the Start menu would list Calculator, the games and the rest with nothing to run. `profiles/shortcuts/stock.txt` lists the shortcuts the stock ReactOS install writes into each user's profile (Start menu, Desktop and Quick Launch), one `PATH => TARGET` line each, the path under a profile folder and the target under the FAT32 root. When the trim is built, every shortcut whose target the profile or an `extra` list removes is removed too, from `Default User`, `Administrator`, `NetworkService` and `All Users`, and so is a Start menu folder when all its shortcuts go (`Games`, `Accessories/Communications`). A user who does not have the shortcut is not reported as a missing path. `rl image --dry-run` and the build log name the count.
+
+The list is the stock install's, so it is complete until the install changes: `rl audit` on the full image names any shortcut the list does not know, and on a trimmed image any link whose target is gone ([shortcut-audit.md](shortcut-audit.md)). A shortcut a recipe adds with `[[shortcuts]]` is the recipe's own and is not in the list.
+
 ## Adding your own removals
 
 A recipe adds to a profile with `[trim] extra`, a list of files in the same `f PATH` / `d PATH` format:
@@ -34,6 +40,7 @@ extra = ["trim/network-cards.txt"]
 - Extra lists are applied after the named profile, in order. An entry an earlier list already removes is not repeated.
 - They go through the same protection check as a profile: an entry that removes a patched file or a licence file, or a folder that holds one, is refused before anything is removed.
 - `rl image --dry-run` and the trim report name each extra list and its entry count, and `rl explain` shows the resolved paths.
+- An extra list that removes a program also removes its stock shortcuts ([above](#shortcuts-of-removed-programs)).
 - A file that is missing or malformed is an error that names `trim.extra` and the entry.
 
 A downstream project keeps its own removals in its own repository rather than here. Quill, for example, is a consumer of the Afterglow remaster and removes the six network card drivers v86 does not emulate (`e1000`, `rtl8139`, `pcnet`, `dc21x4`, `nvnet`, `netkvm`); that list is an `extra` file in the Quill repository, named by Quill's recipe.

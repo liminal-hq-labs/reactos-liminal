@@ -43,6 +43,8 @@ Turns the golden disk into the finished image in a fixed order: copy, patchers, 
 5. **Licences** `LICENSES/`, `NOTICE.txt` and `CHANGES.txt` are written to the root of the disk ([Licence files](#licence-files)).
 6. **Settings** the build VM boots the image with a settings CD in drive D:, starts `APPLY.CMD` from the Run box (sent again until the script reports, because the first Run box after a boot is sometimes ignored), and the script applies every registry file and the page file and shuts the guest down.
 
+When the image is finished, `rl image` audits it and logs how many shortcuts and registry entries name a file that is not on the disk ([shortcut-audit.md](shortcut-audit.md)); the count is reported, not fatal.
+
 `--no-settings` skips step 5; `--dry-run` prints the plan and runs nothing.
 
 ### Licence files
