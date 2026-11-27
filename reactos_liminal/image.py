@@ -9,7 +9,8 @@
 #   2. patchers   each patcher takes a stock file from the golden disk and yields a patched copy, which is written to the image
 #   3. trim       the recipe's trim profile removes files; it never removes a patched file or a licence file
 #   4. files      the recipe's own files, the Afterglow style and pointer files, and the shortcuts
-#   5. settings   the build VM applies the registry settings and the page file, then shuts down
+#   5. licences   `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`, made from the recipe and from what steps 2 to 4 did
+#   6. settings   the build VM applies the registry settings and the page file, then shuts down
 #
 # Patchers run before the trim so that each one is checked against the stock file, and so that the trim cannot remove what a patcher
 # wrote. A recipe cannot change this order.
@@ -20,7 +21,9 @@ from pathlib import Path
 
 from . import settings as settings_module
 from .afterglow import fetch_afterglow, prepare_afterglow
+from .fetch import sha256_file
 from .install import golden_path
+from .licences import TEXTS, ChangeRecord, PatchChange, write_licence_files
 from .lnk import make_lnk
 from .log import log
 from .mtools import FatImage
@@ -31,7 +34,7 @@ from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check
 from .vm import PrivateVm
 from .wallpaper import WallpaperError, image_path, render_wallpaper, wanted
 
-PIPELINE = ("copy", "patchers", "trim", "files", "settings")
+PIPELINE = ("copy", "patchers", "trim", "files", "licences", "settings")
 DESKTOP = "Documents and Settings/Administrator/Desktop"
 
 
@@ -75,6 +78,10 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		extras.append(f"the {wanted(recipe)} wallpaper rendered from its SVG master to {recipe.section('settings', 'wallpaper')}")
 	extras.append(f"{len(recipe.section('settings', 'remove_desktop_shortcuts'))} stock desktop shortcuts removed")
 	plan.steps.append("files: " + ", ".join(extras))
+	plan.steps.append(
+		f"licences: {', '.join(text.image_name for text in TEXTS)} in LICENSES, then NOTICE.txt and CHANGES.txt (the list of patched files "
+		"with their sums, the trim and the settings)"
+	)
 	if with_settings:
 		names = list(settings_module.settings_files(recipe))
 		plan.steps.append(
@@ -151,6 +158,18 @@ def _write_payload(recipe: Recipe, disk: FatImage, afterglow_files: Path | None,
 		disk.copy_in(link, f"{DESKTOP}/{shortcut['name']}.lnk")
 
 
+def _written_paths(recipe: Recipe, afterglow_files: Path | None) -> list[str]:
+	"""The paths the files step added, for `CHANGES.txt`."""
+	paths = [entry["destination"] for entry in recipe.data["files"]]
+	if afterglow_files is not None:
+		paths.append("ReactOS/Resources/Themes/Afterglow/afterglow.msstyles")
+		cursors = afterglow_files / "cursors"
+		if cursors.is_dir():
+			paths += [f"ReactOS/Cursors/Afterglow/{path.name}" for path in sorted(cursors.iterdir())]
+	paths += [f"{DESKTOP}/{shortcut['name']}.lnk" for shortcut in recipe.data["shortcuts"]]
+	return paths
+
+
 def _make_path(disk: FatImage, path: str) -> None:
 	built = ""
 	for part in path.split("/"):
@@ -193,7 +212,19 @@ def build_image(
 		disk = FatImage(out)
 
 		log("image", f"2. patchers: {', '.join(patcher_names) or 'none'}")
-		patched = run_patchers(patcher_names, FatImage(golden), source_tree, afterglow_files, scratch)
+		record = ChangeRecord(trim_profile=profile.name, settings_applied=with_settings)
+		golden_disk = FatImage(golden)
+		patched = []
+		for patcher_name in patcher_names:
+			for item in run_patchers([patcher_name], golden_disk, source_tree, afterglow_files, scratch):
+				before = "(not on the stock disk)"
+				if golden_disk.exists(item.image_path):
+					stock = scratch / "stock.bin"
+					golden_disk.copy_out(item.image_path, stock)
+					before = sha256_file(stock)
+					stock.unlink()
+				record.patched.append(PatchChange(patcher_name, item.image_path, before, sha256_file(item.local_file)))
+				patched.append(item)
 		for item in patched:
 			if item.attributes:  # a hidden, system or read-only file (freeldr.ini) is unlocked for the write and locked again after
 				disk.set_attributes(item.image_path, "-r -h -s")
@@ -204,15 +235,20 @@ def build_image(
 
 		log("image", f"3. trim profile {profile.name}")
 		report: TrimReport = apply_profile(disk, profile, patched_paths)
+		record.trim = report
 		for name, count in report.sources[1:]:
 			log("image", f"   extra trim list {name}: {count} entries")
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
 		_write_payload(recipe, disk, afterglow_files, scratch, source_tree)
+		record.written_files = _written_paths(recipe, afterglow_files)
+
+		log("image", "5. licences, notice and changes")
+		write_licence_files(disk, recipe, record, scratch)
 
 		if with_settings:
-			log("image", "5. settings in the build VM")
+			log("image", "6. settings in the build VM")
 			tree = scratch / "cd"
 			settings_module.write_settings_cd_tree(recipe, tree, afterglow_files)
 			iso = scratch / "setup.iso"

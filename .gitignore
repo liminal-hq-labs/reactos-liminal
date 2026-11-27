@@ -8,6 +8,8 @@
 /dist/
 /snap-*/
 *.lock.json
+# The recipe's lock file is committed: it records the inputs a build resolves to.
+!/recipes/*.lock.json
 
 # Images, media and VM state: never in git.
 *.iso

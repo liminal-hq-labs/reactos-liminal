@@ -43,6 +43,8 @@ ignore = ["W191"]
 [tool.ruff.lint.per-file-ignores]
 # The job summary carries long lines of Markdown prose.
 "reactos_liminal/manifest.py" = ["E501"]
+# The licence and notice text is prose.
+"reactos_liminal/licences.py" = ["E501"]
 # Test data and argument lists run long.
 "tests/*" = ["E501"]
 
