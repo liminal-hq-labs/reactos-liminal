@@ -21,12 +21,12 @@ sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 # (classic scroll bars). Afterglow's icon map decides which icons the icon patchers replace, so a new icon set is a new commit here and
 # `./rl pin recipes/afterglow.toml --afterglow REF`, which measures every hash that follows from the pin; see docs/afterglow-pin.md.
 #
-# This is a commit on Afterglow `main` (the icon set v2 with the hand-tuned 16 px frames, the taskbar tray fix and the keyline tier: page icons, toolbar glyphs and light objects). A pin on an unmerged
+# This is a commit on Afterglow `main` (the icon set v2 with the hand-tuned 16 px frames, the keyline tier, and the dialog art pass: icons for the Control Panel, tray and Administrative Tools, and the About, Shut Down and Log Off bitmaps). A pin on an unmerged
 # branch carries a `pre_merge` note (docs/afterglow-pin.md); a published image pins a commit on `main` or a tag (RL-24).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "0ab3b272046f0e4e777653945c03238e5040b5cb"
-tar_sha256 = "bfc0d57a0a280646d7c787dd1dbb700f66a90272f47992d4afa01d37ca7f0460"
+commit = "abad4b3e3766150acae2b9a1229499662befeb45"
+tar_sha256 = "68a988bbd5d4df8141e3ef040f7e28c7e7875bbaf9891748d3f5d9831668f45b"
 msstyles_sha256 = "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
