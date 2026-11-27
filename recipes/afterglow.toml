@@ -54,9 +54,10 @@ profile = "base"
 
 # Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
 # pointers (it patches a copy of user32.dll). The Start patch writes agexplorer.exe, a copy of explorer.exe with the Afterglow Start orb
-# and menu banner, and the settings step makes it the Winlogon shell.
+# and menu banner, and the settings step makes it the Winlogon shell. The icon patch puts the Afterglow icon set in a copy of
+# shell32.dll.
 [patchers]
-list = ["afterglow.pointers", "afterglow.start"]
+list = ["afterglow.pointers", "afterglow.start", "afterglow.icons"]
 
 [outputs.disk]
 zero_free = true

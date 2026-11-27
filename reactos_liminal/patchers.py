@@ -53,7 +53,13 @@ def _afterglow_start(golden: FatImage, source_tree: Path, files: Path, scratch: 
 	return afterglow_start(golden, source_tree, files, scratch)
 
 
-PATCHERS = {"afterglow.pointers": _afterglow_pointers, "afterglow.start": _afterglow_start}
+def _afterglow_icons(*arguments) -> list[PatchedFile]:
+	from .patch_icons import afterglow_icons  # imported here because patch_icons imports this module
+
+	return afterglow_icons(*arguments)
+
+
+PATCHERS = {"afterglow.pointers": _afterglow_pointers, "afterglow.start": _afterglow_start, "afterglow.icons": _afterglow_icons}
 
 
 def run_patchers(names: list[str], golden: FatImage, source_tree: Path | None, files: Path | None, scratch: Path) -> list[PatchedFile]:

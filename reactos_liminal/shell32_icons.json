@@ -1,0 +1,309 @@
+{
+	"note": "Icon groups in ReactOS 0.4.16 shell32.dll (SHA-256 below). tier core: Afterglow's map.json names the same group; extra: verified in the survey (docs/icon-survey.md) but not yet in Afterglow's map; not replaced: left as ReactOS draws it. frames are width@bits per pixel.",
+	"stock_sha256": "88858710130e8e97eecfc246e61dd1aaf45b410718f4b818be39a9a69a01cf72",
+	"groups": [
+		{
+			"group": 4,
+			"name": "IDI_SHELL_FOLDER",
+			"afterglow": "folder",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Every plain folder: closed, the tree's selected state, the desktop, all views",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 5,
+			"name": "IDI_SHELL_FOLDER_OPEN",
+			"afterglow": "folderopen",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Open folder; in 0.4.16 only the file dialog's Look in list and regedit",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 7,
+			"name": "IDI_SHELL_3_14_FLOPPY",
+			"afterglow": "floppy",
+			"apply": true,
+			"tier": "extra",
+			"used_by": "Floppy drive",
+			"stock_frames": "16@4 16@8 16@32 32@4 32@8 32@32 48@4 48@8 48@32"
+		},
+		{
+			"group": 8,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Removable drive",
+			"reason": "no Afterglow icon for a removable drive",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 9,
+			"name": "IDI_SHELL_DRIVE",
+			"afterglow": "hdd",
+			"apply": true,
+			"tier": "extra",
+			"used_by": "Fixed disk",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 10,
+			"name": "IDI_SHELL_NETDRIVE",
+			"afterglow": "netdrive",
+			"apply": true,
+			"tier": "extra",
+			"used_by": "Network drive",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 12,
+			"name": "IDI_SHELL_CDROM",
+			"afterglow": "cd",
+			"apply": true,
+			"tier": "extra",
+			"used_by": "CD-ROM drive",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 13,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "RAM disk",
+			"reason": "no Afterglow icon for a RAM disk; the stock group has no 16 px frame",
+			"stock_frames": "48@8 48@32 32@4 32@32"
+		},
+		{
+			"group": 15,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "NetHood folder",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 16,
+			"name": "IDI_SHELL_MY_COMPUTER",
+			"afterglow": "mycomputer",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Computer",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 18,
+			"name": "IDI_SHELL_MY_NETWORK_PLACES",
+			"afterglow": "network",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Network Places",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 20,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Programs folder (by id)",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 21,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Recent",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 29,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Share hand",
+			"reason": "never drawn by 0.4.16",
+			"stock_frames": "16@4 32@4 48@4 16@8 32@8 48@8 16@32 32@32 48@32"
+		},
+		{
+			"group": 30,
+			"name": "IDI_SHELL_SHORTCUT",
+			"afterglow": "arrow",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Shortcut arrow overlay, copied over the target's icon by the icon cache",
+			"stock_frames": "32@8 16@8 32@32 16@32"
+		},
+		{
+			"group": 31,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Folder wait",
+			"reason": "unused by 0.4.16",
+			"stock_frames": "32@8 16@8 32@32 16@32"
+		},
+		{
+			"group": 32,
+			"name": "IDI_SHELL_EMPTY_RECYCLE_BIN",
+			"afterglow": "recycle",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Recycle Bin, empty",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 33,
+			"name": "IDI_SHELL_FULL_RECYCLE_BIN",
+			"afterglow": "recyclefull",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Recycle Bin, full",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 35,
+			"name": "IDI_SHELL_DESKTOP",
+			"afterglow": "desktop",
+			"apply": true,
+			"tier": "core",
+			"used_by": "Desktop root in the tree and in file dialogs",
+			"stock_frames": "48@32 32@32 16@32"
+		},
+		{
+			"group": 38,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Printers folder (CSIDL)",
+			"reason": "Afterglow has a printers icon, but its group is not verified against Afterglow's map",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 39,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Fonts folder",
+			"reason": "Afterglow has a fonts icon, but its group is not verified against Afterglow's map",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 40,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Start Menu folder",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 43,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "CSIDL_DRIVES folder entry",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 44,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Favorites",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@4 32@4 16@4 48@24 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 54,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Drive not connected",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 137,
+			"name": "IDI_SHELL_CONTROL_PANEL3",
+			"afterglow": "controlpanel",
+			"apply": true,
+			"tier": "extra",
+			"used_by": "Control Panel",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 138,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Printers",
+			"reason": "Afterglow has a printers icon, but its group is not verified against Afterglow's map",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 172,
+			"name": null,
+			"afterglow": null,
+			"apply": false,
+			"tier": "not replaced",
+			"used_by": "Items under Entire Network",
+			"reason": "no Afterglow icon",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 235,
+			"name": "IDI_SHELL_MY_DOCUMENTS",
+			"afterglow": "mydocs",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Documents (desktop item and folder), Shared Documents",
+			"stock_frames": "48@4 32@4 16@4 48@32 32@8 16@8 48@24 32@32 16@32"
+		},
+		{
+			"group": 236,
+			"name": "IDI_SHELL_MY_PICTURES",
+			"afterglow": "mypictures",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Pictures, Shared Pictures",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 237,
+			"name": "IDI_SHELL_MY_MUSIC",
+			"afterglow": "mymusic",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Music, Shared Music",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 238,
+			"name": "IDI_SHELL_MY_MOVIES",
+			"afterglow": "myvideos",
+			"apply": true,
+			"tier": "core",
+			"used_by": "My Videos, Shared Videos",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		}
+	]
+}

@@ -14,7 +14,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
-| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start` | `[]` (the base recipe lists both) |
+| `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons` | `[]` (the base recipe lists all three) |
 | `[outputs.disk]` | `zero_free` | `true` |
 | `[outputs.parts]` | `chunk_size`, `zstd_level` | `8MiB`, `19` |
 
