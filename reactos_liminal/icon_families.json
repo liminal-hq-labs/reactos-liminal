@@ -76,6 +76,10 @@
 					"stock_sha256": "175d46c9c5a6092c2615f2c0e5545569f6159208facdff3f104d45bc4373d240"
 				},
 				{
+					"path": "ReactOS/system32/rapps.exe",
+					"stock_sha256": "cfa5081f68b60a4fcb11767ae5caa76294a4a80519912c561af5b34e945c8968"
+				},
+				{
 					"path": "ReactOS/system32/cabview.dll",
 					"stock_sha256": "73dceb891465f2213c923d683e1fac2064588835c4ea3951af569529ba3a9453"
 				},

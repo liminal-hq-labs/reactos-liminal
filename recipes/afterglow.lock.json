@@ -10,8 +10,8 @@
 		},
 		"afterglow": {
 			"repo": "liminal-hq/afterglow-themes",
-			"commit": "c5f39dc6efd658653152845fa8c41e8a1bf2a374",
-			"tar_sha256": "cc901842db01020d564407cf971405a20af6ca0989825b8fd0050a667fc1b70b",
+			"commit": "78fa9d57805a993eaa8162b17a154e73bcd8c319",
+			"tar_sha256": "68825efcf02e5fcea3c575b408ad439d3ea99326c41109803f2113ec956f652b",
 			"msstyles_sha256": "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d",
 			"apply_reg": "desktop/install/afterglow-original.reg",
 			"wallpaper": "dusk-dark-smooth",
@@ -21,7 +21,7 @@
 	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
 	"trim_lists": {
-		"profile:base": "09dabed9a0e787fb2f21e234a83b496d4b3f28dd10067839fd7a6b0f2a243e33"
+		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1"
 	},
 	"files": {
 		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a"

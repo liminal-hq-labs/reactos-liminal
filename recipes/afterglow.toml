@@ -22,13 +22,13 @@ sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 # `./rl pin recipes/afterglow.toml --afterglow REF`, which measures every hash that follows from the pin; see docs/afterglow-pin.md.
 #
 # `pre_merge` marks a pin on an unmerged Afterglow branch. This one is the tip of the branch of the icon set v2 (the redrawn system
-# icons and the hand-tuned 16 px frames) and does not yet have the taskbar tray fix that is on Afterglow main. Bump it to the merged
+# icons and the hand-tuned 16 px frames) and does not have the taskbar tray fix that is on Afterglow main (that commit is not an ancestor of this one). Bump it to the merged
 # main commit or a tag once those pull requests land, and `rl pin` drops the note.
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "c5f39dc6efd658653152845fa8c41e8a1bf2a374"
+commit = "78fa9d57805a993eaa8162b17a154e73bcd8c319"
 pre_merge = "liminal-hq/afterglow-themes feat/icons-v2-16px (pull request 56); bump to the merged main commit or tag once #55 and #56 land"
-tar_sha256 = "cc901842db01020d564407cf971405a20af6ca0989825b8fd0050a667fc1b70b"
+tar_sha256 = "68825efcf02e5fcea3c575b408ad439d3ea99326c41109803f2113ec956f652b"
 msstyles_sha256 = "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
