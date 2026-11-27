@@ -77,7 +77,7 @@ profile = "none"
 # and menu banner, and the settings step makes it the Winlogon shell. The logon patch writes agmsgina.dll with the Afterglow banner and bar, and the
 # afterglow-logon registry file above selects it (delete that one value for the stock logon). The icon patchers put the Afterglow icon set in copies of shell32.dll,
 # the Control Panel applets and the programs (including agexplorer.exe and agmsgina.dll, on top of the copies the Start and logon patchers made, so those are listed
-# first), and write the Explorer toolbar cells in place; the dialog bitmaps patch writes the About, Log Off and Shut Down art last. Patchers leave alone a file the
+# first), and write the Explorer toolbar cells in place; the dialog bitmaps patch writes the About, Log Off and Shut Down art last. The colours patch puts the Afterglow desktop colours in the colour table of win32k.sys, so the screen is never ReactOS's blue before the logon (RL-57). Patchers leave alone a file the
 # trim removes (RL-53.3). The boot patch writes agntoskr.exe with
 # the Afterglow boot logo and a boot menu whose first entry, "ReactOS (Afterglow)", starts it; the stock entry stays as the fallback.
 [patchers]
@@ -92,6 +92,7 @@ list = [
 	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
+	"afterglow.colours",
 	"afterglow.boot",
 ]
 

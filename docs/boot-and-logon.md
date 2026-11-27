@@ -12,7 +12,17 @@ The `afterglow-logon` registry file (`guest/reg/afterglow-logon.reg`, listed in 
 
 **Off switch.** Delete the `GinaDLL` value (or leave `afterglow-logon` out of `reg_files`): winlogon falls back to the stock `msgina.dll`. No other file changes.
 
-**Not patched.** The friendly Shut Down dialog art, the cold-boot backdrop colours (`win32k.sys`) and the Setup bitmaps (`reactos.exe`, `syssetup.dll`) need art Afterglow has not drawn yet; they follow when it does.
+**Not patched.** The Setup bitmaps (`reactos.exe`, `syssetup.dll`) need art Afterglow has not drawn yet; they follow when it does. The Shut Down dialog art is `afterglow.dialog-bitmaps`'s, and the cold-boot backdrop colours are below.
+
+## Cold-boot colours: `afterglow.colours`
+
+From the moment the display mode is set (1024 × 768) until `userinit.exe` runs for the signed-in user, the screen is drawn with the colour table built into `win32k.sys`, whose desktop colour is ReactOS's blue, RGB 58, 110, 165. In a private QEMU on the full image that was the whole screen for about half a second on every boot, with the "Loading your personal settings" box over it, between the black first frame and the Afterglow desktop. The registry cannot fix it: `win32k.sys` reads no `Control Panel\Colors` value, and `userinit.exe` (`SetUserSysColors`) applies only the signed-in user's `HKCU`, so setting `HKU\.DEFAULT` changes nothing (tried, and recorded in RL-57).
+
+The patcher writes the nine values Afterglow's style file sets under `Control Panel\Colors` (the Dusk title colours, `Background`, `Hilight`, `HilightText`) over the same entries of the 31-entry table in a copy of `win32k.sys`, in place at the same size, and recomputes the PE checksum. The stock file must be the exact 0.4.16 `win32k.sys`, the stock table must occur once in it, and the result must match the sum pinned in the code (`rl pin --check` runs it, so a new Afterglow pin that moves a colour is caught). `smss` loads `win32k.sys` by a fixed name, so the patched copy replaces the file on the image; the golden disk keeps the stock one. Every other entry stays ReactOS's classic value, which the user's registry colours overwrite anyway.
+
+**Off switch.** Leave `afterglow.colours` out of the recipe's `patchers.list`: the stock blue returns.
+
+**Check.** `screendump` frames every 20 ms from power on show no frame with the stock blue: the boot logo's navy, one black frame at the mode set, the Afterglow navy with the settings box, and then the wallpaper.
 
 ## Boot: `afterglow.boot`
 
@@ -29,10 +39,11 @@ The kernel's boot screen is FreeLoader's menu, then the kernel's own logo at 640
 
 ## The boot guard
 
-`tests/test_boot_qemu.py` (`pytest -m qemu`, never in CI) boots a built image in a private QEMU and takes `screendump` frames of the boot menu, the kernel logo and the logon screen:
+`tests/test_boot_qemu.py` (`pytest -m qemu`, never in CI) boots a built image in a private QEMU and takes `screendump` frames of the boot menu, the kernel logo, the start of the desktop and the logon screen:
 
 - the menu frame must show the gold selection bar on a black screen;
 - the kernel logo frame must hold the Afterglow logo at (113, 23), pixel for pixel through the DAC's colours, everywhere but the progress bar's box;
 - the logon frame must hold the Afterglow banner, found by its first row, with no pixel different.
+- no frame from the display mode being set to the settled desktop may show ReactOS's stock blue (58, 110, 165), which is what `afterglow.colours` removes (the guard fails on an image built without it).
 
 Set `RL_TEST_IMAGE` to the built image. The test copies it, so the image is not written. Run it through `flock ~/.cache/reactos-liminal/qemu.lock` so only one QEMU runs at a time.

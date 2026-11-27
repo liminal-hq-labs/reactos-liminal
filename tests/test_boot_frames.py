@@ -11,6 +11,14 @@ def blank(width, height, colour=(0, 0, 0)):
 	return width, height, bytes(colour) * (width * height)
 
 
+def test_stock_blue_is_found_only_where_the_stock_colour_is():
+	assert frames.stock_blue_share(blank(4, 4, (58, 110, 165))) == 1.0
+	assert frames.stock_blue_share(blank(4, 4, (61, 108, 170))) == 1.0
+	assert frames.stock_blue_share(blank(4, 4, (9, 14, 42))) == 0.0
+	half = put(blank(2, 1, (9, 14, 42)), 0, 0, (58, 110, 165))
+	assert frames.stock_blue_share(half) == 0.5
+
+
 def put(frame, x, y, colour):
 	width, height, data = frame
 	data = bytearray(data)

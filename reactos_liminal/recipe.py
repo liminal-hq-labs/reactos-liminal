@@ -47,6 +47,7 @@ PATCHERS = (
 	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
+	"afterglow.colours",
 	"afterglow.boot",
 )
 REG_FILES = (

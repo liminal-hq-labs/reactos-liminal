@@ -43,7 +43,8 @@ from .wallpaper import PINS_FILE as WALLPAPER_PINS_FILE
 from .wallpaper import discover_scenes, render_set, render_wallpaper, wanted
 
 # The patchers that record a result, with the ones whose copies they build on first (they record nothing themselves): the pointers
-# copy of user32.dll, the Start copy of explorer.exe and the logon copy of msgina.dll, in the order of the recipe.
+# copy of user32.dll, the Start copy of explorer.exe and the logon copy of msgina.dll, in the order of the recipe. The colours patcher
+# is last: it records nothing, but a move of the Afterglow pin that changes the desktop colours makes it refuse its pinned result.
 ICON_PATCHERS = (
 	"afterglow.pointers",
 	"afterglow.start",
@@ -55,6 +56,7 @@ ICON_PATCHERS = (
 	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
+	"afterglow.colours",
 )
 SECTION = "[inputs.afterglow]"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -191,7 +193,7 @@ def pin_afterglow(
 			run_patchers(list(ICON_PATCHERS), FatImage(golden), tree, work / "afterglow-files", Path(scratch_name))
 		except PatchError as error:
 			raise PinError(
-				f"a patcher refuses the art at {commit}: {error}. A patcher that pins its own result in code (logon, Start, boot) "
+				f"a patcher refuses the art at {commit}: {error}. A patcher that pins its own result in code (logon, Start, colours, boot) "
 				"needs that constant moved by hand for new art."
 			) from error
 	shell32_pins, family_pins = merged_icon_pins(recorder.results)
@@ -243,6 +245,6 @@ def pin_afterglow(
 		except PatchError as error:
 			raise PinError(
 				f"the pin and the icon results are updated, but a patcher still refuses: {error}. A patcher that pins its own result in "
-				"code (logon, Start, boot) needs that constant moved by hand for the new art."
+				"code (logon, Start, colours, boot) needs that constant moved by hand for the new art."
 			) from error
 	return changes

@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 import pytest
-from boot_frames import find_banner, logo_differences, menu_looks_minimal_gold_on_black
+from boot_frames import find_banner, logo_differences, menu_looks_minimal_gold_on_black, pixel, stock_blue_share
 
 from reactos_liminal.ppm import ppm_to_png, read_ppm
 from reactos_liminal.recipe import load
@@ -34,6 +34,7 @@ pytestmark = [
 ]
 
 
+BLUE_ALLOWANCE = 0.01  # share of a frame that may be the stock blue: none, bar the pointer and a few edge pixels
 POINTER_ALLOWANCE = 400  # pixels: the guest draws the mouse pointer (about 15 x 20) into the frame, over the banner
 
 
@@ -107,9 +108,21 @@ def test_the_boot_menu_the_kernel_logo_and_the_logon_banner_are_afterglow(tmp_pa
 		_frame, logo = wait_for(vm, "reactos-liminal-art-boot-logon-kernel-logo", logo_ok, 60)
 		# The automatic logon passes through the Please wait box in a couple of seconds, too fast to catch reliably; wait for the
 		# desktop's resolution, let the shell settle, and log off to get the Welcome and Logon boxes, which stay on screen.
-		wait_for(
-			vm, "reactos-liminal-art-boot-logon-desktop", lambda frame: (frame[:2] == (1024, 768), f"a {frame[0]} x {frame[1]} frame"), 120
-		)
+		# Every frame from the display mode being set to the settled desktop is checked for ReactOS's stock blue (RL-57): the colour
+		# table in win32k.sys is patched, so nothing shows it. The desktop has settled when a frame is no longer one flat colour.
+		blue_seen = []
+
+		def desktop_up(frame):
+			if frame[:2] != (1024, 768):
+				return False, f"a {frame[0]} x {frame[1]} frame"
+			share = stock_blue_share(frame)
+			if share > BLUE_ALLOWANCE:
+				blue_seen.append(f"{share:.0%}")
+			samples = {pixel(frame, x, y) for x in range(32, 1024, 64) for y in range(24, 768, 48)}
+			return len(samples) > 8, f"{share:.0%} stock blue, {len(samples)} colours sampled"
+
+		wait_for(vm, "reactos-liminal-art-boot-logon-desktop", desktop_up, 120, interval=0.0)
+		assert not blue_seen, f"ReactOS's stock blue (58, 110, 165) was on screen before the desktop: {blue_seen}"
 		time.sleep(25)
 		vm.run_dialog("logoff")
 		welcome_frame, welcome = wait_for(vm, "reactos-liminal-art-boot-logon-logon-welcome", banner_ok, 90, interval=0.5)
