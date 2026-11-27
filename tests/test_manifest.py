@@ -50,12 +50,13 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 	assert pin["trim_profile"] == "none" and pin["patchers"] == [
 		"afterglow.pointers",
 		"afterglow.start",
+		"afterglow.logon",
 		"afterglow.icons",
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
 		"afterglow.dialog-icons",
 		"afterglow.toolbar-bitmaps",
-		"afterglow.logon",
+		"afterglow.dialog-bitmaps",
 		"afterglow.boot",
 	]
 	assert (

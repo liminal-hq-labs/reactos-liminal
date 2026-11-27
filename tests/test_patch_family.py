@@ -9,7 +9,7 @@ import struct
 import pytest
 from pe_fixtures import group_of, ico, make_dll, stock_dll
 
-from reactos_liminal import patch_base, patch_bitmaps, patch_family, patch_icons
+from reactos_liminal import patch_base, patch_bitmaps, patch_dialog_bitmaps, patch_family, patch_icons
 from reactos_liminal.patchers import PatchError, run_patchers
 from reactos_liminal.pe_resources import RT_BITMAP, PeFile
 
@@ -105,8 +105,10 @@ def test_the_group_to_replace_is_the_one_the_map_names(setup, tmp_path):
 	fat, tree, scratch, _c, _b, icons_dir, _p = setup
 	moved = {**MOUSE, "resource": {"module": "test.cpl", "group": 30}}
 	(icons_dir / "map.json").write_text(json.dumps({"icons": [moved]}))
-	with patch_base.recording(), pytest.raises(PatchError, match="group 30 has 2 frame ids"):
-		run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	with patch_base.recording():
+		patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	frames = group_of(PeFile(patched[0].local_file.read_bytes()), 30)
+	assert [frame.width for frame in frames] == [32, 16]  # a two-frame group is fitted, not refused
 
 
 def test_a_file_with_no_group_in_the_map_is_checked_and_its_groups_stay_as_they_were(setup, tmp_path):
@@ -118,40 +120,92 @@ def test_a_file_with_no_group_in_the_map_is_checked_and_its_groups_stay_as_they_
 
 
 def dialog_family(monkeypatch, cpl_bytes):
-	"""Make the test applet stand in for user32.dll: a family whose file is built on another patcher's copy, `test-base.cpl`."""
+	"""Make the test applet stand in for user32.dll: a family whose file an earlier patcher has already written."""
 	families = {
 		"dialog-icons": {
-			"files": [{"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest(), "base": "test-base.cpl"}],
+			"files": [{"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest()}],
 		}
 	}
 	monkeypatch.setattr(patch_family, "load_families", lambda: families)
+
+
+def earlier_copy(scratch, content):
+	"""A copy of the test applet as an earlier patcher of the same build leaves it."""
+	local = scratch / "earlier.cpl"
+	local.write_bytes(content)
+	patch_base.remember_patched(scratch, patch_base.PatchedFile(CPL, local))
 
 
 def test_a_family_built_on_another_patchers_copy_patches_that_copy_and_pins_against_it(setup, tmp_path, monkeypatch):
 	fat, tree, scratch, cpl_bytes, *_ = setup
 	dialog_family(monkeypatch, cpl_bytes)
 	base = cpl_bytes[:-1] + b"\x01"  # the earlier patcher's copy: still the stock file's layout, not its bytes
-	(scratch / "test-base.cpl").write_bytes(base)
+	earlier_copy(scratch, base)
 	with patch_base.recording() as recorder:
 		patched = run_patchers(["afterglow.dialog-icons"], fat, tree, tmp_path, scratch)
 	assert patched[0].local_file.read_bytes() == patch_icons.patch_icon_groups(base, {4: ico(0x40)})[0]
 	assert patched[0].local_file.read_bytes() != patch_icons.patch_icon_groups(cpl_bytes, {4: ico(0x40)})[0]
 	(digest,) = recorder.results["dialog-icons"]
 	icon_only = patch_icons.icon_set_digest({"ico/mouse.ico": hashlib.sha256(ico(0x40)).hexdigest()})
-	assert digest != icon_only  # the pin is keyed by the base copy as well as the icons
+	assert digest != icon_only  # the pin is keyed by the earlier copy as well as the icons
 
 
-def test_a_family_built_on_another_patchers_copy_is_refused_without_it(setup, tmp_path, monkeypatch):
+def test_a_patchers_result_is_the_next_patchers_input(setup, tmp_path, monkeypatch):
+	"""run_patchers notes each result, so two patchers on one file build on each other and nothing is lost."""
 	fat, tree, scratch, cpl_bytes, *_ = setup
-	dialog_family(monkeypatch, cpl_bytes)
-	with pytest.raises(PatchError, match="list that patcher first"):
-		run_patchers(["afterglow.dialog-icons"], fat, tree, tmp_path, scratch)
+	spec = {"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest()}
+	monkeypatch.setattr(patch_family, "load_families", lambda: {"cpl-icons": {"files": [spec]}, "dialog-icons": {"files": [spec]}})
+	first = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	assert patch_base.latest_patched(scratch, CPL) == first[0].local_file
+	with patch_base.recording() as recorder:
+		second = run_patchers(["afterglow.dialog-icons"], fat, tree, tmp_path, scratch)
+	assert second[0].local_file.read_bytes() == patch_icons.patch_icon_groups(first[0].local_file.read_bytes(), {4: ico(0x40)})[0]
+	assert "dialog-icons" in recorder.results
+
+
+def test_a_copy_of_a_stock_file_is_left_alone_when_no_earlier_patcher_wrote_it(setup, tmp_path, monkeypatch):
+	"""`agexplorer.exe` and `agmsgina.dll` exist only when `afterglow.start` and `afterglow.logon` wrote them."""
+	fat, tree, scratch, cpl_bytes, *_ = setup
+	copy = "ReactOS/system32/ag.cpl"
+	spec = {"path": copy, "module": "test.cpl", "stock_path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest()}
+	monkeypatch.setattr(patch_family, "load_families", lambda: {"cpl-icons": {"files": [spec]}})
+	with patch_base.recording():
+		assert run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch) == []
+		local = scratch / "ag.cpl"
+		local.write_bytes(cpl_bytes)
+		patch_base.remember_patched(scratch, patch_base.PatchedFile(copy, local))
+		patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	assert [item.image_path for item in patched] == [copy]
+	assert group_of(PeFile(patched[0].local_file.read_bytes()), 4)[0].icon_id == 4
+
+
+def test_a_copy_still_checks_the_stock_file_it_is_made_from(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, cpl_bytes, *_ = setup
+	spec = {"path": "ReactOS/system32/ag.cpl", "stock_path": CPL, "module": "test.cpl", "stock_sha256": "0" * 64}
+	monkeypatch.setattr(patch_family, "load_families", lambda: {"cpl-icons": {"files": [spec]}})
+	local = scratch / "ag.cpl"
+	local.write_bytes(cpl_bytes)
+	patch_base.remember_patched(scratch, patch_base.PatchedFile(spec["path"], local))
+	with pytest.raises(PatchError, match="not the stock file"), patch_base.recording():
+		run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+
+
+def test_a_file_the_trim_removes_is_left_alone_and_the_pin_does_not_change(setup, tmp_path):
+	"""The patch list is the same for the full and the compact image: a file the trim removes is skipped, and the pin, keyed by the
+	icons and the earlier copies, is the one the full image uses."""
+	fat, tree, scratch, *_ = setup
+	with patch_base.skipping(lambda path: path == CPL):
+		assert run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch) == []
+	assert not list(scratch.glob("*.patched"))
+	with patch_base.skipping(lambda path: False):
+		patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)  # the pin is checked, and is the same
+	assert [item.image_path for item in patched] == [CPL]
 
 
 def test_the_dialog_icons_are_user32_and_take_their_groups_from_the_map():
-	"""The family names only the file, its stock sum and the copy it builds on: the four message-box groups come from the map."""
+	"""The family names only the file and its stock sum: the message-box groups come from the map."""
 	(file_spec,) = patch_family.load_families()["dialog-icons"]["files"]
-	assert file_spec["path"] == "ReactOS/system32/user32.dll" and file_spec["base"] == "user32-afterglow.dll"
+	assert file_spec["path"] == "ReactOS/system32/user32.dll" and "base" not in file_spec
 	assert "groups" not in file_spec
 	entries = {
 		name: {"id": name, "resource": {"module": "user32.dll", "group": group}}
@@ -253,7 +307,7 @@ def test_the_cell_and_family_tables_are_consistent():
 	assert {strip["cell"] for strip in spec["strips"]} == {16, 24}
 	assert all(0 <= cell["index"] < 47 for cell in spec.get("cells", []))
 	pins = json.loads(patch_family.PINS_FILE.read_text())["families"]
-	assert set(pins) == {"cpl-icons", "program-icons", "dialog-icons", "toolbar-bitmaps"}
+	assert set(pins) == {"cpl-icons", "program-icons", "dialog-icons", "toolbar-bitmaps", "dialog-bitmaps"}
 
 
 def test_no_patched_file_is_one_the_base_trim_removes():
@@ -262,6 +316,7 @@ def test_no_patched_file_is_one_the_base_trim_removes():
 
 	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
 	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
+	paths += [file_spec["path"] for file_spec in patch_dialog_bitmaps.load_spec()["files"]]
 	check_profile(build_profile("base", []), paths)
 
 

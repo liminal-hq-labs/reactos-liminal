@@ -21,12 +21,12 @@ sha256 = "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
 # (classic scroll bars). Afterglow's icon map decides which icons the icon patchers replace, so a new icon set is a new commit here and
 # `./rl pin recipes/afterglow.toml --afterglow REF`, which measures every hash that follows from the pin; see docs/afterglow-pin.md.
 #
-# This is a commit on Afterglow `main` (the icon set v2 with the hand-tuned 16 px frames, the taskbar tray fix and the keyline tier: page icons, toolbar glyphs and light objects). A pin on an unmerged
+# This is a commit on Afterglow `main` (the icon set v2 with the hand-tuned 16 px frames, the keyline tier, and the dialog art pass: icons for the Control Panel, tray and Administrative Tools, and the About, Shut Down and Log Off bitmaps). A pin on an unmerged
 # branch carries a `pre_merge` note (docs/afterglow-pin.md); a published image pins a commit on `main` or a tag (RL-24).
 [inputs.afterglow]
 repo = "liminal-hq/afterglow-themes"
-commit = "0ab3b272046f0e4e777653945c03238e5040b5cb"
-tar_sha256 = "bfc0d57a0a280646d7c787dd1dbb700f66a90272f47992d4afa01d37ca7f0460"
+commit = "abad4b3e3766150acae2b9a1229499662befeb45"
+tar_sha256 = "68a988bbd5d4df8141e3ef040f7e28c7e7875bbaf9891748d3f5d9831668f45b"
 msstyles_sha256 = "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f"
 apply_reg = "desktop/install/afterglow-original.reg"
 # The desktop wallpaper: the Dusk scheme (the one apply_reg selects) is dark, so its signature scene, the smooth dusk wallpaper, rendered
@@ -60,20 +60,23 @@ profile = "none"
 
 # Patchers run before the trim, each on the stock file it was written for. The pointer patch makes the Afterglow pointers the system
 # pointers (it patches a copy of user32.dll). The Start patch writes agexplorer.exe, a copy of explorer.exe with the Afterglow Start orb
-# and menu banner, and the settings step makes it the Winlogon shell. The icon patchers put the Afterglow icon set in copies of shell32.dll,
-# the Control Panel applets and the programs, and write the Explorer toolbar cells in place. The logon patch writes agmsgina.dll with the Afterglow banner and bar, and the
-# afterglow-logon registry file above selects it (delete that one value for the stock logon). The boot patch writes agntoskr.exe with
+# and menu banner, and the settings step makes it the Winlogon shell. The logon patch writes agmsgina.dll with the Afterglow banner and bar, and the
+# afterglow-logon registry file above selects it (delete that one value for the stock logon). The icon patchers put the Afterglow icon set in copies of shell32.dll,
+# the Control Panel applets and the programs (including agexplorer.exe and agmsgina.dll, on top of the copies the Start and logon patchers made, so those are listed
+# first), and write the Explorer toolbar cells in place; the dialog bitmaps patch writes the About, Log Off and Shut Down art last. Patchers leave alone a file the
+# trim removes (RL-53.3). The boot patch writes agntoskr.exe with
 # the Afterglow boot logo and a boot menu whose first entry, "ReactOS (Afterglow)", starts it; the stock entry stays as the fallback.
 [patchers]
 list = [
 	"afterglow.pointers",
 	"afterglow.start",
+	"afterglow.logon",
 	"afterglow.icons",
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
 	"afterglow.toolbar-bitmaps",
-	"afterglow.logon",
+	"afterglow.dialog-bitmaps",
 	"afterglow.boot",
 ]
 

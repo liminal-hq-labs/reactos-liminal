@@ -90,6 +90,86 @@
 				{
 					"path": "ReactOS/system32/netshell.dll",
 					"stock_sha256": "9630e1a7a506c15e19586fa1502a192c55d4148c7fbb2f459752d2681d435a47"
+				},
+				{
+					"path": "ReactOS/system32/devmgr.dll",
+					"stock_sha256": "0670f9388529d74252a08d0c4b25a93be6a971f0ab770600bf448278cbbf2fd3"
+				},
+				{
+					"path": "ReactOS/system32/devmgmt.exe",
+					"stock_sha256": "7cc79d3a2c1a2d52f3eba7a8306e9478f745d25cce61d8a2ede3b4e26058e0d8"
+				},
+				{
+					"path": "ReactOS/system32/eventvwr.exe",
+					"stock_sha256": "3f0c1bd6542f913991452165c8fed30bd9745f76edcb3d8ad33d4dda0f026c12"
+				},
+				{
+					"path": "ReactOS/system32/servman.exe",
+					"stock_sha256": "fedc937af119f17ef243407e02f777f994488bba6dae785610d04f3cf7931668"
+				},
+				{
+					"path": "ReactOS/system32/msconfig.exe",
+					"stock_sha256": "02030816cca7c289a5ed53b548ccf070b99ef609198aa9cb3b61a8d6e0b68b62"
+				},
+				{
+					"path": "ReactOS/system32/taskmgr.exe",
+					"stock_sha256": "579a15a60994106506c673ffa92a2c15d7cb156e294b7c005c2e4b27e94e4975"
+				},
+				{
+					"path": "ReactOS/regedit.exe",
+					"stock_sha256": "7abee39f6daa53a0d0fed7464ab5b6a5228b98d7035a5bddf59b39ecbcecd58b"
+				},
+				{
+					"path": "ReactOS/system32/clipbrd.exe",
+					"stock_sha256": "3f07112479426bb55770f88bfe590b198cd1a2030803892e0eab2c6ab3573b8a"
+				},
+				{
+					"path": "ReactOS/system32/kbswitch.exe",
+					"stock_sha256": "203c36281691c4e5c80d851c4dd79f40f44f411f103e2e7d626c2d6930da7230"
+				},
+				{
+					"path": "ReactOS/system32/utilman.exe",
+					"stock_sha256": "3045783db1595bdb3d0d64d39db9d8a607147105ba2d47d5a66c0e4d9117cd96"
+				},
+				{
+					"path": "ReactOS/system32/sndvol32.exe",
+					"stock_sha256": "22c72feebf88dcdbc2f11054d6add67cd79865c98853bfc4f5db28bea872b8ce"
+				},
+				{
+					"path": "ReactOS/system32/wusa.exe",
+					"stock_sha256": "989cf594e4323c9efd7c53d02a053e750f436e15ca4331912e3f0b749f0eace5"
+				},
+				{
+					"path": "ReactOS/system32/fontsub.exe",
+					"stock_sha256": "04e3bb96444842e561e52e4ca6df4afbe8831b00d22c164e312d3f098bcd2b98"
+				},
+				{
+					"path": "ReactOS/notepad.exe",
+					"stock_sha256": "90b2639e7462461879cf8302804c2c7436fb2062e4c2302a12412674bf3348e3"
+				},
+				{
+					"path": "ReactOS/system32/stobject.dll",
+					"stock_sha256": "7c8776d0ca106e67b624a7843f5a57fe62cd5682ab72693d39078a64a68e70f3"
+				},
+				{
+					"path": "ReactOS/explorer.exe",
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+				},
+				{
+					"path": "ReactOS/system32/msgina.dll",
+					"stock_sha256": "95863449bd6af48e256708624ccc9b96ee91c931c4ac8eeb59b174c475dfca77"
+				},
+				{
+					"path": "ReactOS/agexplorer.exe",
+					"module": "explorer.exe",
+					"stock_path": "ReactOS/explorer.exe",
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+				},
+				{
+					"path": "ReactOS/system32/agmsgina.dll",
+					"module": "msgina.dll",
+					"stock_path": "ReactOS/system32/msgina.dll",
+					"stock_sha256": "95863449bd6af48e256708624ccc9b96ee91c931c4ac8eeb59b174c475dfca77"
 				}
 			]
 		},
@@ -98,8 +178,7 @@
 			"files": [
 				{
 					"path": "ReactOS/system32/user32.dll",
-					"stock_sha256": "8ddd64afb96b576f899e3d73ea3a44355474f6c74a3ccd3ff75caa696b711958",
-					"base": "user32-afterglow.dll"
+					"stock_sha256": "8ddd64afb96b576f899e3d73ea3a44355474f6c74a3ccd3ff75caa696b711958"
 				}
 			]
 		}

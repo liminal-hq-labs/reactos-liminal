@@ -32,12 +32,13 @@ MIN_CHUNK_SIZE = 64 * 1024
 PATCHERS = (
 	"afterglow.pointers",
 	"afterglow.start",
+	"afterglow.logon",
 	"afterglow.icons",
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
 	"afterglow.toolbar-bitmaps",
-	"afterglow.logon",
+	"afterglow.dialog-bitmaps",
 	"afterglow.boot",
 )
 REG_FILES = (
@@ -181,14 +182,31 @@ def _name_list(allowed: tuple[str, ...] | None):
 	return check
 
 
+# Patchers that build on the copy another patcher writes of the same file, as (earlier, later) pairs: when both are listed, `earlier`
+# must come first, or the later write would replace the earlier from the stock file and lose its work. The pointers copy of
+# user32.dll, the Start copy of explorer.exe and the logon copy of msgina.dll are made from the stock files; the icon patchers and the
+# dialog bitmaps then take the newest copy of each path they patch.
+PATCHER_ORDER = (
+	("afterglow.pointers", "afterglow.dialog-icons"),
+	("afterglow.start", "afterglow.program-icons"),
+	("afterglow.logon", "afterglow.program-icons"),
+	("afterglow.icons", "afterglow.dialog-bitmaps"),
+	("afterglow.program-icons", "afterglow.dialog-bitmaps"),
+	("afterglow.start", "afterglow.dialog-bitmaps"),
+	("afterglow.logon", "afterglow.dialog-bitmaps"),
+)
+
+
 def _patcher_list(value: Any, key: str) -> list[str]:
 	"""The patcher names, in order. `afterglow.dialog-icons` patches the user32.dll that `afterglow.pointers` writes, so it needs that
-	patcher listed before it; the other way round, the pointers copy would replace the icons."""
+	patcher listed before it; the other way round, the pointers copy would replace the icons. The other pairs in PATCHER_ORDER need
+	only the order, and only when both are listed."""
 	names = _name_list(PATCHERS)(value, key)
-	if "afterglow.dialog-icons" in names and (
-		"afterglow.pointers" not in names or names.index("afterglow.pointers") > names.index("afterglow.dialog-icons")
-	):
+	if "afterglow.dialog-icons" in names and "afterglow.pointers" not in names:
 		raise RecipeError(f"{key}: afterglow.dialog-icons builds on the user32.dll of afterglow.pointers, which must be listed before it")
+	for earlier, later in PATCHER_ORDER:
+		if earlier in names and later in names and names.index(earlier) > names.index(later):
+			raise RecipeError(f"{key}: {later} builds on the file {earlier} writes, so {earlier} must be listed before it")
 	return names
 
 

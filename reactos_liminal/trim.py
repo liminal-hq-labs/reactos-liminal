@@ -125,6 +125,16 @@ def protection_conflicts(entry: TrimEntry, patched_paths: set[str] | list[str] =
 	return None
 
 
+def removes(profile: Profile, path: str) -> bool:
+	"""True when the profile removes the file at `path`: a `f` entry for it, or a `d` entry for a folder that holds it."""
+	target = _normal(path)
+	for entry in profile.entries:
+		name = _normal(entry.path)
+		if target == name or (entry.kind == "d" and target.startswith(name + "/")):
+			return True
+	return False
+
+
 def check_profile(profile: Profile, patched_paths: set[str] | list[str] = ()) -> None:
 	"""Refuse a profile that reaches a protected file, before anything is removed."""
 	for entry in profile.entries:

@@ -16,7 +16,7 @@ Patchers run before the trim. The trim then refuses to remove, and `rl` checks b
 - a file a patcher wrote, or a folder that holds one;
 - a licence file or folder: `LICENSES/`, `NOTICE.txt`, `CHANGES.txt` and `Program Files/otvdm/LICENSE`.
 
-A list that reaches one is an error, not a skipped line, and that includes every `extra` list. Gecko's own licence file goes with Gecko: the full image keeps both, and the compact image removes both. After the trim, every patched file is confirmed to be on the disk.
+A list that reaches one is an error, not a skipped line, and that includes every `extra` list. To keep that true when a recipe removes more, the patchers run knowing the recipe's trim (the profile and its `extra` lists): a patcher that would write a file the trim removes leaves it alone and logs it (RL-53.3). The patch list is the same for the full and the compact recipe, and the pins do not change with the trim. The `base` profile removes none of the files the patchers write; a test checks it. Gecko's own licence file goes with Gecko: the full image keeps both, and the compact image removes both. After the trim, every patched file is confirmed to be on the disk.
 
 ## Adding your own removals
 

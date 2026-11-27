@@ -10,9 +10,10 @@ from pathlib import Path
 from .fetch import sha256_file
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError  # noqa: F401  (re-exported: cli and the tests import them from here)
+from .patch_base import PatchedFile, PatchError, remember_patched  # noqa: F401  (re-exported: cli and the tests import them from here)
 from .patch_bitmaps import toolbar_bitmaps
 from .patch_boot import afterglow_boot
+from .patch_dialog_bitmaps import dialog_bitmaps
 from .patch_family import cpl_icons, dialog_icons, program_icons
 from .patch_icons import afterglow_icons
 from .patch_logon import afterglow_logon
@@ -51,6 +52,7 @@ PATCHERS = {
 	"afterglow.program-icons": program_icons,
 	"afterglow.dialog-icons": dialog_icons,
 	"afterglow.toolbar-bitmaps": toolbar_bitmaps,
+	"afterglow.dialog-bitmaps": dialog_bitmaps,
 	"afterglow.logon": afterglow_logon,
 	"afterglow.boot": afterglow_boot,
 }
@@ -62,5 +64,8 @@ def run_patchers(names: list[str], golden: FatImage, source_tree: Path | None, f
 	for name in names:
 		if source_tree is None or files is None:
 			raise PatchError(f"patcher {name} needs the Afterglow files")
-		results += PATCHERS[name](golden, source_tree, files, scratch)
+		made = PATCHERS[name](golden, source_tree, files, scratch)
+		for item in made:
+			remember_patched(scratch, item)
+		results += made
 	return results

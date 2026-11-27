@@ -47,11 +47,12 @@ Two `shell32.dll` groups are left alone, and each has a `reason` row in `shell32
 Afterglow's `map.json` says, for each of its icons, which ReactOS resource it replaces: a module and an icon group (or, for the Explorer toolbar, the four bitmap strips and a cell), with more resources under `also`. A resource is null unless Afterglow verified it against the ReactOS 0.4.16 source and the stock file, so nothing is guessed. The patchers read it on every run:
 
 - **`afterglow.icons`** replaces every `shell32.dll` group the map names, `also` entries included.
-- **`afterglow.cpl-icons` and `afterglow.program-icons`** replace every group the map names for each file listed in `icon_families.json` (the Control Panel applets, `cmd.exe`, `notepad.exe`, `cabview.dll`, `shimgvw.dll` and `netshell.dll`, the Network Connections folder).
+- **`afterglow.cpl-icons` and `afterglow.program-icons`** replace every group the map names for each file listed in `icon_families.json`: the Control Panel applets, the programs (`cmd.exe`, both `notepad.exe` files, `regedit.exe`, `taskmgr.exe`, `eventvwr.exe`, `devmgmt.exe`, `servman.exe`, `msconfig.exe`, `clipbrd.exe`, `kbswitch.exe`, `utilman.exe`, `sndvol32.exe`, `wusa.exe`, `fontsub.exe`), the libraries (`cabview.dll`, `shimgvw.dll`, `netshell.dll`, `devmgr.dll`, `stobject.dll`) and the copies that carry a stock file's resources: `explorer.exe` and `agexplorer.exe`, `msgina.dll` and `agmsgina.dll`.
+- **`afterglow.dialog-bitmaps`** writes the bitmaps of the map's `bitmaps` list ([Dialog bitmaps](#dialog-bitmaps)).
 - **`afterglow.dialog-icons`** replaces every `user32.dll` group the map names (the message-box icons and the default program icon), on top of the pointer copy ([Message-box icons](#message-box-icons-in-user32dll)).
 - **`afterglow.toolbar-bitmaps`** replaces every `browseui.dll` cell the map names for strips 214 to 217.
 
-The tables in this repository hold only what the map cannot say: the SHA-256 of each stock file that guards its patch, the strip sizes, the frames each group holds, and any group the map does not name that is replaced anyway (`afterglow` on a row, which the map overrides if it later names that group) or left alone (`reason`). A new icon set, such as a redrawn drive icon or a hand-tuned 16 px frame, is therefore a new Afterglow pin and `rl pin` ([Afterglow pin](afterglow-pin.md)), with no code or table change. A group the map verifies that the stock file cannot take (fewer than three frame ids of its own) stops the build rather than being skipped.
+The tables in this repository hold only what the map cannot say: the SHA-256 of each stock file that guards its patch, the strip sizes, the frames each group holds, and any group the map does not name that is replaced anyway (`afterglow` on a row, which the map overrides if it later names that group) or left alone (`reason`). A new icon set, such as a redrawn drive icon or a hand-tuned 16 px frame, is therefore a new Afterglow pin and `rl pin` ([Afterglow pin](afterglow-pin.md)), with no code or table change. A group the map verifies that the stock file lacks, or whose frames are all shared with another group, stops the build rather than being skipped. A group with fewer than three frame ids is fitted ([Groups with one or two frames](#groups-with-one-or-two-frames)).
 
 Two groups changed icon when the map became the source: group 20 (the Programs folder by id) is now `programsfolder`, and group 21 (the Recent folder) `recent`, as the map names them; the Start menu entries 326 and 327 keep `programs` and `documents`.
 
@@ -184,10 +185,48 @@ A message box draws its icon at 32 px; 16 and 48 px frames serve captions and ta
 
 `afterglow.pointers` writes the same file, from the stock copy, with the Afterglow pointers. `afterglow.dialog-icons` therefore starts from the copy that patcher leaves in the build's scratch directory and not from the golden file (`base` in `icon_families.json`), so one `user32.dll` carries both. It must be listed after `afterglow.pointers`, which the recipe loader enforces. The stock file is still checked against its SHA-256, and the pin is keyed by the digest of the icons plus the SHA-256 of that base copy, so a change to either needs `rl pin`.
 
+### Groups with one or two frames
+
+Many applet, tray and dialog groups hold one or two 32 px frames, not nine. The patcher keeps the sizes the stock group holds, so the dialog or code that loads it gets the size it asks for, and spends a spare frame id on the next size down. Nothing is added to the resource directory.
+
+| Stock group | Frame ids of its own | Written |
+|---|---|---|
+| `shell32.dll` 181 (the Explorer status bar's My Computer zone) | 1 (`32@32`) | `32` |
+| `sysdm.cpl` 51, 52, 2502 (the Hardware tab's Device Manager, Hardware Profiles and Add Hardware) | 1 (`32@32`) | `32` |
+| `utilman.exe` 30 | 1 (`32@32`) | `32` |
+| `main.cpl` 105, 106, 108, 602, 603 (keyboard and mouse tab pictures) | 2 (`32` at two depths) | `32`, `16` |
+| `main.cpl` 600 (mouse trails) | 2 (`32@1`, `32@1`) | `32`, `16` |
+| `main.cpl` 109, 110, 605, 606 (the Button tab pictures) | 2 (`48` at two depths) | `48`, `32` |
+| `netshell.dll` 105 to 109 (Network Connections, tray states) | 2 (`32@32`, `16@32`) | `32`, `16` |
+| `stobject.dll` 406 to 410, 420, 421 (tray states) | 2 (`16@8`, `16@32`) | `32`, `16` |
+| `msgina.dll` and `agmsgina.dll` 115 | 2 (`32@8`, `32@32`) | `32`, `16` |
+
+Every other group named in this pass has three or more frame ids and gets 48, 32 and 16 px. `main.cpl` 104, 601 and 607, `stobject.dll` 230, 231 and 400 to 405, 412 and 413, the programs' groups and `devmgr.dll` 20 are in that case. A group's frames at a size the stock group holds twice (a 32 px 8-bit and 32-bit pair) become one 32-bit frame, so the group lists fewer frames than before.
+
+### Dialog bitmaps
+
+Afterglow's `map.json` lists eight dialog bitmaps (`bitmaps`), each with its module, id, stock size and depth and the art that replaces it. `afterglow.dialog-bitmaps` writes them in place as DIBs (the `.bmp` without its 14-byte file header; the stock resource has the same BITMAPINFOHEADER, 24 bits, bottom-up rows).
+
+| Module | Id | Name | Size | Shown by | Art |
+|---|---|---|---|---|---|
+| `shell32.dll` | 131 | `IDB_REACTOS` | 413 x 72 | the About box banner (`ShellAbout`) | `about-banner` |
+| `shell32.dll` | 138 | `IDB_LINEBAR` | 413 x 5 | the line under it | `afterglow-bar` (the logon bar) |
+| `shell32.dll` | 500 | `IDB_DLG_BG` | 312 x 198 | the Log Off dialog | `shutdown-bg` |
+| `shell32.dll` | 501 | `IDB_REACTOS_FLAG` | 48 x 40 | the Log Off dialog's mark | `shutdown-mark` |
+| `shell32.dll` | 502 | `IDB_IMAGE_STRIP` | 33 x 231 | the Log Off dialog's seven buttons | `logoff-strip` |
+| `msgina.dll`, `agmsgina.dll` | 20003 | `IDI_DLG_BG` | 312 x 198 | the Shut Down dialog | `shutdown-bg` |
+| `msgina.dll`, `agmsgina.dll` | 20002 | `IDI_ROSLOGO_FLAG` | 48 x 40 | the Shut Down dialog's mark | `shutdown-mark` |
+| `msgina.dll`, `agmsgina.dll` | 20004 | `IDB_IMAGE_STRIP` | 33 x 330 | the Shut Down dialog's ten buttons | `shutdown-strip` |
+
+The Start menu's Shut Down dialog is loaded from `msgina.dll` by name, and Winlogon loads the one in the GINA the registry names (`agmsgina.dll`), so both files are patched; the stock `msgina.dll` keeps the stock logon banner and bar. The logon bitmaps 20000 and 20001 are `afterglow.logon`'s and are not in the list.
+
+### Patched, and what is left
+
+The survey of the stock art (Afterglow's `docs/reactos-stock-art-survey.md`) marked 83 resources as drawn and waiting for a patch. All of the ones on the image are now patched: the Control Panel groups above, the Administrative Tools programs, Task Manager, Registry Editor and its file type, Clipboard Viewer, the keyboard indicator, Utility Manager, the volume mixer, the update installer, Font Substitution, the tray states, the Explorer groups (101, 107, 108 and 257, in `explorer.exe` and `agexplorer.exe`), the `msgina.dll` groups (21, 22, 109 and 115), `devmgr.dll` 20, `shell32.dll` 181 and the dialog bitmaps. The `ReactOS/notepad.exe` copy is patched like the one in `system32`.
+
 ### Verified by the map but not patched
 
 The map verifies these resources, and none is patched today. Adding one is a stock-file SHA-256 in `icon_families.json` (a `files` entry), then `rl pin`; the patcher takes the groups from the map.
 
-- **Removed by the `base` trim**, which refuses to remove a patched file (RL-19): Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file.
-- **On the image, not yet listed:** Registry Editor and its file type (`regedit.exe` 100, 101), Task Manager, Event Viewer, Device Manager, Services, System Configuration, Utility Manager, Clipboard Viewer, the Windows Update installer, `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `sndvol32.exe`, and Explorer (`explorer.exe` 101, which `afterglow.start` copies as `agexplorer.exe` from the stock file, so a second patch there needs the two combined). Each needs its stock SHA-256 from the golden disk and a check that its groups have three frame ids of their own.
-- **Tray:** `stobject.dll` (volume, battery, hotplug), `ctfmon.exe` and `kbswitch.exe` (keyboard layout). Afterglow draws a state per icon here; the patcher would take them from the map the same way.
+- **Removed by the `base` trim**: Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file; a patcher leaves alone a file the recipe's trim removes (RL-53.3), so the list can name one without breaking the compact image.
+- **On the image, not yet listed:** `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `ctfmon.exe`. Each needs its stock SHA-256 from the golden disk.
