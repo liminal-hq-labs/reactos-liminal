@@ -35,6 +35,7 @@ On Linux with Python 3.12 and QEMU, mtools, xorriso and zstd on the path:
 ./rl fetch recipes/afterglow.toml            # download and check the pinned ISO (or pass --iso FILE)
 ./rl install recipes/afterglow.toml --dry-run  # the plan and the QEMU commands
 ./rl install recipes/afterglow.toml          # unattended install in a private QEMU; minutes with KVM
+./rl pin recipes/afterglow.toml --afterglow REF   # move the Afterglow pin and refresh its hashes
 ./rl image recipes/afterglow.toml            # patch, trim, dress and configure a copy of the golden disk
 ./rl parts recipes/afterglow.toml ~/.cache/reactos-liminal/images/afterglow.img   # v86 disk parts and manifest.json
 ./rl manifest recipes/afterglow.toml ~/.cache/reactos-liminal/dist               # build-manifest.json

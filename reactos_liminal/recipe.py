@@ -241,6 +241,7 @@ SCHEMA: dict[str, Any] = {
 			"apply_reg": (_str, "desktop/install/afterglow-original.reg"),
 			"wallpaper": (_scene, None),
 			"wallpaper_sha256": (_sha256, None),
+			"pre_merge": (_str, None),
 		},
 	},
 	"install": {

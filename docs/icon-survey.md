@@ -1,6 +1,6 @@
 # Icon survey
 
-Which icon groups in ReactOS 0.4.16's `shell32.dll` the Afterglow icon set replaces, what frames each one holds, and how that matches Afterglow's `desktop/icons/map.json`. The machine-readable table is [`reactos_liminal/shell32_icons.json`](../reactos_liminal/shell32_icons.json); `reactos_liminal/icon_survey.py` regenerates the frame columns from a stock file. How ReactOS chooses and draws folder icons (and why a folder never changes with its contents) is written up in the owner's "ReactOS folder icon behaviour" note; the facts this patcher depends on are repeated below.
+Which icon groups in ReactOS 0.4.16's `shell32.dll` and other files the Afterglow icon set replaces, what frames each one holds, and how that follows Afterglow's `desktop/icons/map.json`. **Which groups are replaced is decided by the map**, not by the tables in this repository (see [How the map and the tables divide the work](#how-the-map-and-the-tables-divide-the-work)); the tables below are the survey of what the stock files hold, written when each group was first checked. The machine-readable table is [`reactos_liminal/shell32_icons.json`](../reactos_liminal/shell32_icons.json); `reactos_liminal/icon_survey.py` regenerates the frame columns from a stock file. How ReactOS chooses and draws folder icons (and why a folder never changes with its contents) is written up in the owner's "ReactOS folder icon behaviour" note; the facts this patcher depends on are repeated below.
 
 The stock file is `shell32.dll` of the 0.4.16 i386 install, 10,935,296 bytes, SHA-256 `88858710130e8e97eecfc246e61dd1aaf45b410718f4b818be39a9a69a01cf72`. It holds 237 icon groups and 1,445 icon frames, every group has one language, and no two groups share a frame id (checked on the file).
 
@@ -39,30 +39,26 @@ Frames are `size@bits per pixel`, in the stock order.
 
 ## Groups left as ReactOS draws them
 
-Nine groups remain after the second phase (see [Start menu, file types and the rest of shell32](#start-menu-file-types-and-the-rest-of-shell32)). Afterglow has no art for any of them.
+Two `shell32.dll` groups are left alone, and each has a `reason` row in `shell32_icons.json`: 29 (the share hand, never drawn by 0.4.16) and 31 (the folder-wait icon, unused by 0.4.16). Every other group the survey lists is replaced, because Afterglow's icon set v2 draws the removable drive (8), the RAM disk (13), Favourites (44, 322), the CSIDL_DRIVES folder (43), the NetHood folder (15), the items under Entire Network (172), the not-connected drive (54), Log Off (45, 325) and the video, audio, batch and `.ini` file types (224, 225, 153, 151) that earlier icon sets did not.
 
-| Group | What | Stock frames | Why |
-|---|---|---|---|
-| 8 | Removable drive | `48@8 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon for a removable drive |
-| 13 | RAM disk | `48@8 48@32 32@4 32@32` | no Afterglow icon for a RAM disk; the stock group has no 16 px frame |
-| 15 | NetHood folder | `48@8 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon |
-| 29 | Share hand | `16@4 32@4 48@4 16@8 32@8 48@8 16@32 32@32 48@32` | never drawn by 0.4.16 |
-| 31 | Folder wait | `32@8 16@8 32@32 16@32` | unused by 0.4.16 |
-| 43 | CSIDL_DRIVES folder entry | `48@8 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon |
-| 44 | Favorites | `48@4 32@4 16@4 48@24 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon |
-| 54 | Drive not connected | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon |
-| 172 | Items under Entire Network | `48@8 32@8 16@8 48@32 32@32 16@32` | no Afterglow icon |
+## How the map and the tables divide the work
 
-## Reconciling with Afterglow's map
+Afterglow's `map.json` says, for each of its icons, which ReactOS resource it replaces: a module and an icon group (or, for the Explorer toolbar, the four bitmap strips and a cell), with more resources under `also`. A resource is null unless Afterglow verified it against the ReactOS 0.4.16 source and the stock file, so nothing is guessed. The patchers read it on every run:
 
-At the pinned commit `map.json` has 74 icons; 12 carry a `resource` (the core rows above), and the table here matches each one. The patcher checks this on every run: a map entry that names another group, or that loses the group of a core row, stops the build. The extra rows are the drive icons (floppy 7, fixed disk 9, network drive 10, CD 12) and the Control Panel (137), whose Afterglow entries still have `resource: null`. Suggested next step for Afterglow: record those five, and decide printers (138, 38), fonts (39), Favorites (44), Recent (21), Start Menu (40) and NetHood (15) when the art exists.
+- **`afterglow.icons`** replaces every `shell32.dll` group the map names, `also` entries included.
+- **`afterglow.cpl-icons` and `afterglow.program-icons`** replace every group the map names for each file listed in `icon_families.json` (the Control Panel applets, `cmd.exe`, `notepad.exe`, `cabview.dll`, `shimgvw.dll` and `netshell.dll`, the Network Connections folder).
+- **`afterglow.toolbar-bitmaps`** replaces every `browseui.dll` cell the map names for strips 214 to 217.
+
+The tables in this repository hold only what the map cannot say: the SHA-256 of each stock file that guards its patch, the strip sizes, the frames each group holds, and any group the map does not name that is replaced anyway (`afterglow` on a row, which the map overrides if it later names that group) or left alone (`reason`). A new icon set, such as a redrawn drive icon or a hand-tuned 16 px frame, is therefore a new Afterglow pin and `rl pin` ([Afterglow pin](afterglow-pin.md)), with no code or table change. A group the map verifies that the stock file cannot take (fewer than three frame ids of its own) stops the build rather than being skipped.
+
+Two groups changed icon when the map became the source: group 20 (the Programs folder by id) is now `programsfolder`, and group 21 (the Recent folder) `recent`, as the map names them; the Start menu entries 326 and 327 keep `programs` and `documents`.
 
 ## What the patcher does with the frames
 
 - The stock group lists nine frames (three sizes at 4, 8 and 32 bits per pixel) in most cases. The new group lists three, 32-bit only, and each takes the id of a stock 32-bit frame of the same size; the other ids stay in `.rsrc` unreferenced. Afterglow supplies no 4 or 8 bit frames, so a 256-colour or 16-colour display would pick the 32-bit frame and dither; the demo and the v86 build run at 32 bits per pixel.
 - The groups with fewer than three ids (none today) would need the directory to grow, and are refused.
 - The new bytes go in a new `.agico` section at the end of the file, and the data entries are pointed at it. The resource directory is not rewritten, so nothing else in the 7.4 MB `.rsrc` moves. The PE checksum is recomputed and checked on the stock file first (the algorithm reproduces the stock value `0xa6e850`).
-- The 16 px frames are Afterglow's scripted renders of its 16 px masters (hinted redraws exist for some icons). Hand-drawn 16 px pixel redraws do not exist yet; when they do, the Afterglow pin moves and the patcher picks them up with a new pinned sum.
+- The 16 px frames are whatever Afterglow's `render.py` writes: the hand-tuned frames of icon set v2 where Afterglow has drawn them, the scripted render of the 16 px master elsewhere. A later redraw is picked up by moving the Afterglow pin and running `rl pin`.
 
 ## Phase 2: the rest of the system icons
 
@@ -86,7 +82,7 @@ The Explorer toolbar images are four `RT_BITMAP` strips in `browseui.dll`: 214 (
 | 45 | Copy to | `copy` |
 | 46 | Folder Options | `folderopts` |
 
-The other cells (cut 5, paste 7, favourites 2, properties 15, map drive 29, disconnect 30 and the rest) have no Afterglow icon and stay as ReactOS draws them. Afterglow renders 16, 32 and 48 px only, so the 24 px cells are the 48 px frame halved with an integer, alpha-weighted 2 × 2 average; the hot strips get the same cells as the normal ones because Afterglow draws no hot state. The patcher writes the cells in place, so each strip keeps its id, size and depth; it refuses a strip that differs.
+The table above is the first set. Afterglow's map now also verifies cut 5, copy to clipboard 6, paste 7, favourites 2, properties 15, map drive 29 and disconnect 30, and the patcher replaces those too; 18 cells in all. The rest have no Afterglow icon and stay as ReactOS draws them. Afterglow renders 16, 32 and 48 px only, so the 24 px cells are the 48 px frame halved with an integer, alpha-weighted 2 × 2 average; the hot strips get the same cells as the normal ones because Afterglow draws no hot state. The patcher writes the cells in place, so each strip keeps its id, size and depth; it refuses a strip that differs.
 
 ### Control Panel applets
 
@@ -111,7 +107,7 @@ The Control Panel folder asks each applet for `CPL_INQUIRE`'s `idIcon` and loads
 | `sysdm.cpl` | 50 | System | `48@8 32@8 16@8 48@32 32@32 16@32` | `system` |
 | `timedate.cpl` | 1 | Date and Time | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `datetime` |
 
-Applets with no Afterglow icon stay as they are: `joy.cpl` (102, game controllers), `telephon.cpl` (100), `usrmgr.cpl` (40 and 100, user accounts), `ncpa.cpl` (a stub with no resources; Network Connections shows `netshell.dll` group 100) and `odbccp32i.cpl`, `openglcfg.cpl`, `wined3dcfg.cpl` (not in the base install). The inner icons of the applets' own dialogs (mouse speed, battery states, sound events and so on) are not applet icons and are not replaced.
+Applets the base trim removes (`joy.cpl` 102, `telephon.cpl` 100, `usrmgr.cpl` 40 and 100) are not patched, though the map verifies them; `ncpa.cpl` (a stub with no resources; Network Connections shows `netshell.dll` group 100) and `odbccp32i.cpl`, `openglcfg.cpl`, `wined3dcfg.cpl` (not in the base install). The inner icons of the applets' own dialogs (mouse speed, battery states, sound events and so on) are not applet icons and are not replaced.
 
 ### Start menu, file types and the rest of shell32
 
@@ -157,19 +153,13 @@ The desktop and Start menu programs carry their own icon groups, and a few file 
 | `shimgvw.dll` | 2 | Image files: .bmp | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
 | `shimgvw.dll` | 5 | Image files: .gif, .png | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
 
-The Applications Manager (`rapps.exe` 10, Afterglow `appmanager`) and Internet Browser (`iexplore.exe` 1, `browser`) icons are not patched: the `base` trim profile removes `rapps.exe` and `Program Files/Internet Explorer` from the image, and the trim refuses to remove a patched file (RL-19). They are in the survey for a recipe that keeps them; the desktop shortcuts that remain show ReactOS's own fallback icon.
+`netshell.dll` group 100 (Network Connections folder, the `also` entry of `netconn`) is patched too. The Applications Manager (`rapps.exe` 10, Afterglow `appmanager`) and Internet Browser (`iexplore.exe` 1, `browser`) icons are not: the `base` trim profile removes `rapps.exe` and `Program Files/Internet Explorer` from the image, and the trim refuses to remove a patched file (RL-19). The desktop shortcuts that remain show ReactOS's own fallback icon.
 
-### What Afterglow cannot supply
+### Verified by the map but not patched
 
-Needs new art (reported, not drawn):
+The map verifies these resources, and none is patched today. Adding one is a stock-file SHA-256 in `icon_families.json` (a `files` entry), then `rl pin`; the patcher takes the groups from the map.
 
-- **Programs:** Calculator (`calc.exe` 110), Paint (`mspaint.exe` 500), Registry Editor (`regedit.exe` 100 and its file type 1), Task Manager (`taskmgr.exe`), WordPad (`wordpad.exe`) and its `.rtf` file type group (Afterglow has an `rtf` document icon; the group, `wordpad.exe` -103, is not in the survey table yet), Character Map, Minesweeper, Solitaire, On-Screen Keyboard, Magnifier, Remote Desktop, Media Player, Event Viewer, System Configuration, DirectX Diagnostic, Help Viewer (`hh.exe`, `winhlp32.exe`: Afterglow's `help` icon would fit, deferred), and the Windows Update installer.
-- **Start menu and shell32:** Favourites (322, 44), Log Off (325), Recent as a folder with its own look (21 uses `documents`), NetHood (15), Removable drive (8), RAM disk (13), Not-connected drive (54), the CSIDL_DRIVES folder (43), Items under Entire Network (172), the video and audio file types (224, 225) and the batch-file type (153).
-- **Explorer toolbar:** cut, paste, favourites, properties, map and disconnect drive, history, full screen and the 24 px hot state.
-- **Tray:** the tray icons come from `stobject.dll` (volume, power, hotplug; 29 groups, ids 200 to 449, many 16 px only) and the keyboard layout indicator from `ctfmon.exe` (group 100). Afterglow has `volume`, `clock`, `kbdlayout`, `showdesk` and `trynet`, but each tray group is a state (volume normal and muted, battery levels, hotplug) and the meaning of each id was not verified against the source in this pass, and Afterglow draws one icon per kind, not per state. Not patched; the survey lists the files and ids for a follow-up.
-- **Dialogs:** the message box icons (`error`, `info`, `question`, `warning`, `shield`) are `user32.dll` groups, and `user32.dll` already carries the Afterglow pointers from `afterglow.pointers`, which patches the stock file in its own pass. Patching icons into the same file needs the two patchers combined or run in sequence on one copy, which the pipeline does not do (each patcher starts from the golden file); left for a decision.
-- **Desktop shortcuts:** the Read Me shortcut takes the `.txt` file-type icon (shell32 group 152, replaced with `text`), not Afterglow's `readme` icon; using `readme` needs the shortcut to name an icon. Internet Browser takes its icon from `iexplore.exe` (group 1, replaced with `browser`).
-
-### Reconciling with Afterglow's map
-
-Afterglow's `map.json` has 74 entries. Its `kind` agrees with the Control Panel family (every applet entry is `applet`), the drive icons (`floppy`, `hdd`, `netdrive`, `cd` are `drive`) and the five extra groups of phase 1 are the same ones this survey verified; the patcher still checks the applet kind on every run. The entries `appmanager`, `browser`, `cmd`, `readme` and the Explorer toolbar entries have no `resource` in the map; this repository's tables carry the files and ids, and a suggested next step for Afterglow is to record them.
+- **Removed by the `base` trim**, which refuses to remove a patched file (RL-19): the Applications Manager (`rapps.exe` 10, `appmanager`), Internet Browser (`iexplore.exe` 1, `browser`; the profile removes `Program Files/Internet Explorer`), Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file.
+- **On the image, not yet listed:** Registry Editor and its file type (`regedit.exe` 100, 101), Task Manager, Event Viewer, Device Manager, Services, System Configuration, Utility Manager, Clipboard Viewer, the Windows Update installer, `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `sndvol32.exe`, and Explorer (`explorer.exe` 101, which `afterglow.start` copies as `agexplorer.exe` from the stock file, so a second patch there needs the two combined). Each needs its stock SHA-256 from the golden disk and a check that its groups have three frame ids of their own.
+- **Tray:** `stobject.dll` (volume, battery, hotplug), `ctfmon.exe` and `kbswitch.exe` (keyboard layout). Afterglow draws a state per icon here; the patcher would take them from the map the same way.
+- **Dialogs and the program icon in `user32.dll`:** `user32.dll` already carries the Afterglow pointers from `afterglow.pointers`, which patches the stock file in its own pass. Patching icons into the same file needs the two patchers combined or run in sequence on one copy, which the pipeline does not do (each patcher starts from the golden file); left for a decision (RL-26.4).

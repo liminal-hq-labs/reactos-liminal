@@ -9,7 +9,7 @@ import struct
 import pytest
 from pe_fixtures import group_of, ico, make_dll, stock_dll
 
-from reactos_liminal import patch_bitmaps, patch_family, patch_icons
+from reactos_liminal import patch_base, patch_bitmaps, patch_family, patch_icons
 from reactos_liminal.patchers import PatchError, run_patchers
 from reactos_liminal.pe_resources import RT_BITMAP, PeFile
 
@@ -17,6 +17,13 @@ CPL = "ReactOS/system32/test.cpl"
 BROWSEUI = "ReactOS/system32/browseui.dll"
 CELL = 16
 COUNT = 6
+# Afterglow's map entry for the one icon the fixtures use: an applet group in the .cpl, and cell 2 of the toolbar strips.
+MOUSE = {
+	"id": "mouse",
+	"kind": "applet",
+	"resource": {"module": "test.cpl", "group": 4},
+	"also": [{"module": "browseui.dll", "bitmaps": [214, 216], "cell": 2}],
+}
 
 
 def strip_bitmap(fill: int) -> bytes:
@@ -37,8 +44,7 @@ def setup(fat, tmp_path, monkeypatch):
 		fat.copy_in(local, f"ReactOS/system32/{name}")
 	families = {
 		"cpl-icons": {
-			"map_kind": "applet",
-			"files": [{"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest(), "groups": [{"group": 4, "afterglow": "mouse"}]}],
+			"files": [{"path": CPL, "stock_sha256": hashlib.sha256(cpl_bytes).hexdigest()}],
 		}
 	}
 	monkeypatch.setattr(patch_family, "load_families", lambda: families)
@@ -48,7 +54,6 @@ def setup(fat, tmp_path, monkeypatch):
 				"path": BROWSEUI,
 				"stock_sha256": hashlib.sha256(browseui_bytes).hexdigest(),
 				"strips": [{"id": 214, "cell": 16, "count": COUNT}, {"id": 216, "cell": 16, "count": COUNT}],
-				"cells": [{"index": 2, "afterglow": "mouse"}],
 			}
 		]
 	}
@@ -63,11 +68,11 @@ def setup(fat, tmp_path, monkeypatch):
 	)
 	icon_sum = hashlib.sha256(icon).hexdigest()
 	(icons_dir / "SHA256SUMS").write_text(f"{icon_sum}  ico/mouse.ico\n")
-	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "mouse", "kind": "applet", "group": "Control Panel applets"}]}))
+	(icons_dir / "map.json").write_text(json.dumps({"icons": [MOUSE]}))
 	digest = patch_icons.icon_set_digest({"ico/mouse.ico": icon_sum})
 	cpl_result = hashlib.sha256(patch_icons.patch_icon_groups(cpl_bytes, {4: icon})[0]).hexdigest()
 	bitmap_result = hashlib.sha256(
-		patch_bitmaps.patch_strips(browseui_bytes, strips["files"][0]["strips"], strips["files"][0]["cells"], {"mouse": icon})[0]
+		patch_bitmaps.patch_strips(browseui_bytes, strips["files"][0]["strips"], [{"index": 2, "afterglow": "mouse"}], {"mouse": icon})[0]
 	).hexdigest()
 	pins = {"families": {"cpl-icons": {digest: {CPL: cpl_result}}, "toolbar-bitmaps": {digest: {BROWSEUI: bitmap_result}}}}
 	monkeypatch.setattr(patch_family, "load_pins", lambda: pins)
@@ -95,11 +100,43 @@ def test_a_changed_cpl_is_refused(setup, tmp_path):
 		run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
 
 
-def test_a_map_that_calls_the_icon_something_else_is_refused(setup, tmp_path):
+def test_the_group_to_replace_is_the_one_the_map_names(setup, tmp_path):
+	"""Move the icon to group 30 in the map and group 30 is the one the patcher tries, with no change to the repository's tables."""
 	fat, tree, scratch, _c, _b, icons_dir, _p = setup
-	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "mouse", "kind": "drive"}]}))
-	with pytest.raises(PatchError, match="expected 'applet'"):
+	moved = {**MOUSE, "resource": {"module": "test.cpl", "group": 30}}
+	(icons_dir / "map.json").write_text(json.dumps({"icons": [moved]}))
+	with patch_base.recording(), pytest.raises(PatchError, match="group 30 has 2 frame ids"):
 		run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+
+
+def test_a_file_with_no_group_in_the_map_is_checked_and_its_groups_stay_as_they_were(setup, tmp_path):
+	fat, tree, scratch, cpl_bytes, _b, icons_dir, _p = setup
+	(icons_dir / "map.json").write_text(json.dumps({"icons": [{"id": "mouse", "kind": "applet"}]}))
+	with patch_base.recording():
+		patched = run_patchers(["afterglow.cpl-icons"], fat, tree, tmp_path, scratch)
+	assert group_of(PeFile(patched[0].local_file.read_bytes()), 4) == group_of(PeFile(cpl_bytes), 4)
+
+
+def test_the_group_table_adds_only_groups_the_map_does_not_name(monkeypatch):
+	entries = {"mouse": MOUSE, "keys": {"id": "keys"}}
+	spec = {"path": CPL, "groups": [{"group": 4, "afterglow": "keys"}, {"group": 7, "afterglow": "keys"}]}
+	assert patch_family.family_groups(entries, spec) == {4: "mouse", 7: "keys"}  # the map decides group 4; the table adds group 7
+	with pytest.raises(PatchError, match="no icon 'gone'"):
+		patch_family.family_groups(entries, {"path": CPL, "groups": [{"group": 9, "afterglow": "gone"}]})
+
+
+def test_a_map_that_puts_toolbar_icons_in_other_bitmaps_is_refused(setup, tmp_path):
+	fat, tree, scratch, _c, _b, icons_dir, _p = setup
+	other = {**MOUSE, "also": [{"module": "browseui.dll", "bitmaps": [214, 215], "cell": 2}]}
+	(icons_dir / "map.json").write_text(json.dumps({"icons": [other]}))
+	with pytest.raises(PatchError, match="the table has"):
+		run_patchers(["afterglow.toolbar-bitmaps"], fat, tree, tmp_path, scratch)
+
+
+def test_two_icons_for_one_group_is_an_error_in_the_map():
+	twin = {"id": "twin", "resource": {"module": "test.cpl", "group": 4}}
+	with pytest.raises(PatchError, match="both"):
+		patch_family.family_groups({"mouse": MOUSE, "twin": twin}, {"path": CPL})
 
 
 def test_an_unpinned_icon_set_is_refused(setup, tmp_path, monkeypatch):
@@ -171,7 +208,7 @@ def test_the_cell_and_family_tables_are_consistent():
 	assert json.loads(families)["families"].keys() == {"cpl-icons", "program-icons"}
 	spec = patch_bitmaps.load_strips()["files"][0]
 	assert {strip["cell"] for strip in spec["strips"]} == {16, 24}
-	assert all(0 <= cell["index"] < 47 for cell in spec["cells"])
+	assert all(0 <= cell["index"] < 47 for cell in spec.get("cells", []))
 	pins = json.loads(patch_family.PINS_FILE.read_text())["families"]
 	assert set(pins) == {"cpl-icons", "program-icons", "toolbar-bitmaps"}
 

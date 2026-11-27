@@ -2,6 +2,6 @@
 	"note": "The expected SHA-256 of the patched shell32.dll, keyed by the digest of the Afterglow .ico files used (reactos_liminal/patch_icons.py icon_set_digest). A new icon set needs a new line here.",
 	"stock_sha256": "88858710130e8e97eecfc246e61dd1aaf45b410718f4b818be39a9a69a01cf72",
 	"results": {
-		"f0a9b3f648991fd640577593fa4289129f3e8239cf14862960f2ce37af62341e": "5e315da4caf128dfc811ced7c1c295f5c64db11cbfa94ad4037f19eb4ea61664"
+		"3d640b021036c49c5ddf1da0f768dc6567dccfed376e1c2ba5f9e1e4d428f376": "7e97bd878f28a72801dc1d524b90297e198f5541b791887d9a266e2b145bfa11"
 	}
 }

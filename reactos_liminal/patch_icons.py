@@ -9,11 +9,11 @@ bytes. The resource directory itself never grows (nothing moves, so no other RVA
 group already owns, and a group that would need more frames than the stock one has ids for is refused. The stock frames stay in
 `.rsrc`, unreferenced.
 
-Art comes from Afterglow: its `desktop/icons/render.py` renders the .ico files from the vector masters (the scripted renders; the
-hand-drawn 16 px redraws do not exist yet), each .ico is checked against Afterglow's own SHA256SUMS, and its map.json is checked
-against this repository's table. The patched DLL is checked against the sum pinned in `pins/shell32-icons.json`, keyed by a digest
-of the icon files used, so a changed icon set cannot go through without a new pin. The result is ReactOS code (LGPL-2.1) and stays
-in the work directory, never in git.
+Art comes from Afterglow: its `desktop/icons/render.py` renders the .ico files from the vector masters (the hand-tuned 16 px frames
+come with them) and each .ico is checked against Afterglow's own SHA256SUMS. Its map.json says which groups to replace
+(`icon_map.py`); this repository's table adds only the stock file's sum and the few groups the map does not name. The patched DLL is
+checked against the sum pinned in `pins/shell32-icons.json`, keyed by a digest of the icon files used, so a changed icon set cannot go
+through without `rl pin` recording its result. The result is ReactOS code (LGPL-2.1) and stays in the work directory, never in git.
 """
 
 import hashlib
@@ -22,10 +22,11 @@ import subprocess
 from pathlib import Path
 
 from .fetch import sha256_file
+from .icon_map import load_map, module_groups, require_icon
 from .icon_survey import load_table
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError
+from .patch_base import PatchedFile, PatchError, active_recorder
 from .pe_resources import RT_GROUP_ICON, RT_ICON, GroupFrame, PeError, PeFile, build_group, parse_group, read_ico
 
 SHELL32 = "ReactOS/system32/shell32.dll"
@@ -57,26 +58,40 @@ def _afterglow_sums(source_tree: Path) -> dict[str, str]:
 	return sums
 
 
-def _check_map(source_tree: Path, rows: list[dict]) -> None:
-	"""Afterglow's map.json may name a group for an icon; where it does it must be the group in this repository's table."""
-	map_file = source_tree / "desktop" / "icons" / "map.json"
-	if not map_file.is_file():
-		raise PatchError(f"{map_file} is missing; the pinned Afterglow commit has no icon map")
-	entries = {entry["id"]: entry for entry in json.loads(map_file.read_text())["icons"]}
-	for row in rows:
-		entry = entries.get(row["afterglow"])
-		if entry is None:
-			raise PatchError(f"Afterglow's map.json has no icon {row['afterglow']!r} (shell32 group {row['group']})")
-		resource = entry.get("resource")
-		if resource is None:
-			if row["tier"] == "core":
-				raise PatchError(f"Afterglow's map.json no longer names a group for {row['afterglow']!r}; the table expects {row['group']}")
-			continue
-		if resource.get("module") != "shell32.dll" or resource.get("group") != row["group"]:
-			raise PatchError(
-				f"Afterglow's map.json puts {row['afterglow']!r} at {resource.get('module')} group {resource.get('group')}; "
-				f"the table has shell32.dll group {row['group']}"
-			)
+def verified_icons(source_tree: Path, scratch: Path, icon_ids: set[str]) -> tuple[dict[str, bytes], dict[str, str]]:
+	"""Render Afterglow's icon set (once per build) and return the .ico bytes of the named icons by id, and their sums by file name.
+	Each file is checked against the sum Afterglow records, so a renderer or toolchain that differs is caught here."""
+	render_dir = scratch / "icons"
+	render_icons(source_tree, render_dir)
+	recorded = _afterglow_sums(source_tree)
+	icons: dict[str, bytes] = {}
+	sums: dict[str, str] = {}
+	for icon_id in sorted(icon_ids):
+		name = f"ico/{icon_id}.ico"
+		path = render_dir / name
+		if not path.is_file():
+			raise PatchError(f"Afterglow's render.py did not write {name}")
+		sha = sha256_file(path)
+		if sha != recorded.get(name):
+			raise PatchError(f"{name} renders as {sha}, Afterglow records {recorded.get(name)}; the renderer or its tools differ")
+		icons[icon_id] = path.read_bytes()
+		sums[name] = sha
+	return icons, sums
+
+
+def settle_result(section: str, digest: str, name: str, result: str, expected: str | None, pins_file: str) -> None:
+	"""Check a patched file against its pinned result, or, under `rl pin`, record it as the new pin."""
+	recorder = active_recorder()
+	if recorder is not None:
+		recorder.record(section, digest, name, result)
+	elif result != expected:
+		raise PatchError(f"patched {name} is {result}, expected {expected} (icon set {digest} in {pins_file})")
+
+
+def require_pin(digest: str, expected: object, what: str, pins_file: str) -> None:
+	"""An icon set with no pinned result is refused, unless `rl pin` is collecting pins."""
+	if expected is None and active_recorder() is None:
+		raise PatchError(f"{what}: no pinned result for icon set {digest}; run `./rl pin` to record it in {pins_file}")
 
 
 def render_icons(source_tree: Path, destination: Path) -> None:
@@ -159,6 +174,19 @@ def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, lis
 		raise PatchError(f"the file cannot be patched: {error}") from error
 
 
+def shell32_groups(entries: dict[str, dict], table: dict) -> dict[int, str]:
+	"""The shell32.dll groups to replace, as `{group: Afterglow icon id}`: every group Afterglow's map verifies, plus the rows of the
+	table that name an icon for a group the map does not (a theme-compatibility alias, say). Where the map names a group it decides."""
+	groups = module_groups(entries, "shell32.dll")
+	for row in table["groups"]:
+		icon_id = row.get("afterglow")
+		if icon_id is None or row["group"] in groups:
+			continue
+		require_icon(entries, icon_id, f"shell32 group {row['group']}")
+		groups[row["group"]] = icon_id
+	return groups
+
+
 def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
 	"""Patch a copy of the guest's shell32.dll so Explorer, the desktop, the folders and the Recycle Bin draw the Afterglow icons."""
 	table = load_table()
@@ -171,35 +199,21 @@ def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: P
 			f"{SHELL32} is not the stock shell32.dll of ReactOS 0.4.16 i386 (SHA-256 {actual}, expected {table['stock_sha256']}); "
 			"the group and frame ids were checked against that one file only"
 		)
-	rows = [row for row in table["groups"] if row["apply"]]
-	_check_map(source_tree, rows)
-	render_dir = scratch / "icons"
-	render_icons(source_tree, render_dir)
-	afterglow_sums = _afterglow_sums(source_tree)
-	icon_sums = {}
-	icons = {}
-	for row in rows:
-		name = f"ico/{row['afterglow']}.ico"
-		path = render_dir / name
-		if not path.is_file():
-			raise PatchError(f"Afterglow's render.py did not write {name}")
-		sha = sha256_file(path)
-		if sha != afterglow_sums.get(name):
-			raise PatchError(f"{name} renders as {sha}, Afterglow records {afterglow_sums.get(name)}; the renderer or its tools differ")
-		icon_sums[name] = sha
-		icons[row["group"]] = path.read_bytes()
+	groups = shell32_groups(load_map(source_tree), table)
+	icons_by_id, icon_sums = verified_icons(source_tree, scratch, set(groups.values()))
 	digest = icon_set_digest(icon_sums)
 	expected = pins["results"].get(digest)
-	if expected is None:
-		raise PatchError(f"no pinned result for icon set {digest}; patch, check the result and add it to {PINS_FILE.name}")
-	patched_bytes, report = patch_icon_groups(stock_file.read_bytes(), icons)
+	require_pin(digest, expected, "shell32.dll", PINS_FILE.name)
+	patched_bytes, report = patch_icon_groups(stock_file.read_bytes(), {group: icons_by_id[icon_id] for group, icon_id in groups.items()})
 	patched = scratch / "shell32-afterglow.dll"
 	patched.write_bytes(patched_bytes)
 	result = sha256_file(patched)
-	if result != expected:
+	try:
+		settle_result("shell32", digest, SHELL32, result, expected, PINS_FILE.name)
+	except PatchError:
 		patched.unlink(missing_ok=True)
-		raise PatchError(f"patched shell32.dll is {result}, expected {expected}")
+		raise
 	for line in report:
 		log("patch", f"   {line}")
-	log("patch", f"   afterglow.icons: shell32.dll patched, {len(rows)} groups ({result})")
+	log("patch", f"   afterglow.icons: shell32.dll patched, {len(groups)} groups ({result})")
 	return [PatchedFile(SHELL32, patched)]

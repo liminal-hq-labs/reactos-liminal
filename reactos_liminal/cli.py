@@ -21,6 +21,7 @@ from .manifest import ManifestError, build_manifest, job_summary, parse_pairs, w
 from .parts import PartsError, make_parts
 from .patchers import PatchError
 from .paths import WorkDirError, resolve_work
+from .pin import PinError, pin_afterglow
 from .recipe import RecipeError, load, parse_size
 from .settings import SettingsError
 from .trim import TrimError, profile_names
@@ -139,6 +140,27 @@ def _cmd_licences(args: argparse.Namespace) -> int:
 		print(args.out)
 	else:
 		print(text, end="")
+	return 0
+
+
+def _cmd_pin(args: argparse.Namespace) -> int:
+	if args.pre_merge and not args.afterglow:
+		raise PinError("--pre-merge goes with --afterglow")
+	changes = pin_afterglow(
+		args.recipe,
+		resolve_work(args.work),
+		ref=args.afterglow,
+		pre_merge=args.pre_merge,
+		golden=Path(args.golden) if args.golden else None,
+		tarball=Path(args.afterglow_tarball) if args.afterglow_tarball else None,
+		check=args.check,
+	)
+	for change in changes:
+		print(change)
+	if args.check:
+		print(f"{len(changes)} stale" if changes else "every hash is current")
+		return 1 if changes else 0
+	print(f"pinned: {len(changes)} changes" if changes else "pinned: nothing to change")
 	return 0
 
 
@@ -312,6 +334,22 @@ def build_parser() -> argparse.ArgumentParser:
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_iso)
 
+	sub = commands.add_parser(
+		"pin", help="move the Afterglow pin (optional) and refresh every hash that follows from it: tar, style, wallpaper, icon results"
+	)
+	sub.add_argument("recipe", help="recipe TOML file")
+	sub.add_argument(
+		"--afterglow", metavar="REF", help="first move the pin to this commit, tag or branch of the recipe's Afterglow repository"
+	)
+	sub.add_argument(
+		"--pre-merge", metavar="NOTE", help="with --afterglow: record that the commit is on an unmerged branch (omit once it is merged)"
+	)
+	sub.add_argument("--golden", metavar="FILE", help="the golden disk the icon results are measured against (default: the recipe's)")
+	sub.add_argument("--afterglow-tarball", metavar="FILE", help="use a local .tar.gz of the commit instead of downloading it")
+	sub.add_argument("--check", action="store_true", help="change nothing; list the stale hashes and exit 1 if there are any")
+	_add_work(sub)
+	sub.set_defaults(func=_cmd_pin)
+
 	sub = commands.add_parser("trim", help=f"trim a working copy of a disk with a profile ({', '.join(profile_names())})")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the default profile)")
 	sub.add_argument("image", help="the disk image to trim in place; never a golden disk")
@@ -370,6 +408,7 @@ def main(argv: list[str] | None = None) -> int:
 		InstallError,
 		VmError,
 		ImageError,
+		PinError,
 		SettingsError,
 		TrimError,
 		PatchError,

@@ -32,14 +32,15 @@ def _check_members(archive: tarfile.TarFile) -> None:
 			raise FetchError(f"the Afterglow archive holds a link or device: {member.name!r}")
 
 
-def fetch_afterglow(recipe: Recipe, work: Path, tarball: Path | None = None) -> Path:
+def fetch_afterglow(recipe: Recipe, work: Path, tarball: Path | None = None, trust: bool = False) -> Path:
 	"""The pinned Afterglow source tree in the work directory. `tarball` is a local .tar.gz used instead of the download; the same hash
-	check applies. A tree that is already extracted and checked is reused."""
+	check applies. A tree that is already extracted and checked is reused. `trust` is for `rl pin` alone: it accepts whatever tar
+	the commit gives (the new sum is read back with `tree_tar_sha256`) instead of requiring the pinned one."""
 	pin = recipe.section("inputs", "afterglow")
 	cache = ensure(work, "afterglow")
 	destination = cache / pin["commit"]
 	marker = destination / ".verified"
-	if marker.is_file() and marker.read_text().strip() == pin["tar_sha256"]:
+	if marker.is_file() and (trust or marker.read_text().strip() == pin["tar_sha256"]):
 		log("afterglow", f"{destination} (already fetched and checked)")
 		return destination
 	scratch = cache / ".fetch"
@@ -56,7 +57,7 @@ def fetch_afterglow(recipe: Recipe, work: Path, tarball: Path | None = None) -> 
 		with gzip.open(compressed, "rb") as source, open(raw, "wb") as target:
 			shutil.copyfileobj(source, target, 1 << 20)
 		actual = sha256_file(raw)
-		if actual != pin["tar_sha256"]:
+		if not trust and actual != pin["tar_sha256"]:
 			raise FetchError(f"Afterglow tar SHA-256 is {actual}, expected {pin['tar_sha256']}; the download was discarded")
 		extracted = scratch / "tree"
 		extracted.mkdir()
@@ -76,6 +77,11 @@ def fetch_afterglow(recipe: Recipe, work: Path, tarball: Path | None = None) -> 
 	return destination
 
 
+def tree_tar_sha256(source_tree: Path) -> str:
+	"""The SHA-256 of the tar a fetched tree came from, as `fetch_afterglow` recorded it."""
+	return (source_tree / ".verified").read_text().strip()
+
+
 def download_unchecked(url: str, destination: Path) -> None:
 	log("afterglow", f"downloading {url}")
 	with urllib.request.urlopen(url, timeout=120) as response, open(destination, "wb") as target:
@@ -88,10 +94,11 @@ def _run(argv: list[str], what: str) -> None:
 		raise FetchError(f"{what} failed: {(done.stderr or done.stdout).strip()[-500:]}")
 
 
-def prepare_afterglow(recipe: Recipe, work: Path, source_tree: Path) -> Path:
+def prepare_afterglow(recipe: Recipe, work: Path, source_tree: Path, measured: dict[str, str] | None = None) -> Path:
 	"""Build the files the disk takes from the Afterglow source into `work/afterglow-files`: `afterglow.msstyles` (checked against the
 	pin), `afterglow.reg` (selects the style and scheme), `cursors/` (the 16 pointer files) and `pointers.reg`. Needs llvm-rc, lld-link
-	and python3 with numpy and Pillow, as Afterglow's own scripts do."""
+	and python3 with numpy and Pillow, as Afterglow's own scripts do. With `measured` (for `rl pin`), the style's sum is stored there
+	as `msstyles_sha256` instead of being checked."""
 	pin = recipe.section("inputs", "afterglow")
 	output = work / "afterglow-files"
 	shutil.rmtree(output, ignore_errors=True)
@@ -100,7 +107,9 @@ def prepare_afterglow(recipe: Recipe, work: Path, source_tree: Path) -> Path:
 	_run(["bash", str(source_tree / "desktop" / "style" / "build.sh"), str(style_dir)], "the Afterglow style build")
 	built = style_dir / "afterglow.msstyles"
 	actual = sha256_file(built)
-	if actual != pin["msstyles_sha256"]:
+	if measured is not None:
+		measured["msstyles_sha256"] = actual
+	elif actual != pin["msstyles_sha256"]:
 		raise FetchError(f"afterglow.msstyles is {actual}, expected {pin['msstyles_sha256']}; the toolchain or the source differs")
 	built.replace(output / "afterglow.msstyles")
 	shutil.rmtree(style_dir)
