@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 # A recipe chooses and parameterizes steps; it cannot add a new kind of write. `extends` layers one recipe on another: tables merge
-# key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends. Three lists are the exception.
+# key by key, and any other value (a list, a string, a boolean) in the extending recipe replaces the one it extends, so a child turns a
+# base setting off by setting it again (`wallpapers.scenes = []`, `wallpapers.replace_stock = false`). Three lists are the exception.
 # `trim.extra`: each recipe's own list, resolved against that recipe's folder, is added after the lists of the recipes it extends. The
 # entries of `settings.reg_files` that end in `.reg` work the same way: paths beside the recipe that lists them, kept after the named files.
 # `[[files]]`: entries merge by destination (an extending recipe's entry replaces the extended recipe's entry for the same destination in
@@ -173,6 +174,20 @@ def _scene(value: Any, key: str) -> str:
 	return value
 
 
+def _scene_set(value: Any, key: str) -> str | list[str]:
+	"""The scenes of `[wallpapers]`: "all" (every scene pinned in `pins/afterglow-wallpapers.json`) or a list of scene names; an empty
+	list is none."""
+	if value == "all":
+		return value
+	if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+		raise RecipeError(f'{key}: expected "all" or a list of Afterglow wallpapers such as ["dusk-dark-smooth"]')
+	for index, item in enumerate(value):
+		_scene(item, f"{key}[{index}]")
+	if len(set(value)) != len(value):
+		raise RecipeError(f"{key}: duplicate entries")
+	return value
+
+
 def _guest_path(value: Any, key: str) -> str:
 	if not isinstance(value, str) or not re.fullmatch(r"[Cc]:\\[^\\/:*?\"<>|]+(\\[^\\/:*?\"<>|]+)*", value):
 		raise RecipeError(f"{key}: expected a path on drive C: with backslashes, such as C:\\ReactOS\\afterglow.bmp")
@@ -333,6 +348,10 @@ SCHEMA: dict[str, Any] = {
 		"wallpaper_style": (_choice("stretch", "centre", "tile"), "stretch"),
 		"reg_files": (_reg_files, ["display", "quiet", "watermark-off"]),
 		"remove_desktop_shortcuts": (_str_list, []),
+	},
+	"wallpapers": {
+		"scenes": (_scene_set, []),
+		"replace_stock": (_bool, False),
 	},
 	"trim": {
 		"profile": (_choice(*TRIM_PROFILES), "none"),
@@ -545,6 +564,8 @@ def load(path: str | Path) -> Recipe:
 		raise RecipeError("inputs.afterglow: wallpaper and wallpaper_sha256 go together")
 	if "wallpaper" in pin and "wallpaper" not in data["settings"]:
 		raise RecipeError("settings.wallpaper: required when inputs.afterglow.wallpaper names a scene (the path the BMP is written to)")
+	if data["wallpapers"]["scenes"] and "afterglow" not in data.get("inputs", {}):
+		raise RecipeError("wallpapers.scenes: needs an [inputs.afterglow] table, which supplies the wallpapers")
 	for entry in data["files"]:
 		if entry["source"].startswith(BUILT_PREFIX) and entry["source"][len(BUILT_PREFIX) :] not in data.get("builds", {}):
 			raise RecipeError(f"files: {entry['source']} names a build that no [builds] table declares")

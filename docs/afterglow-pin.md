@@ -1,6 +1,6 @@
 # Afterglow pin
 
-The Afterglow source is one pinned input of the base recipe (`[inputs.afterglow]` in `recipes/afterglow.toml`): a commit of `liminal-hq/afterglow-themes`, the SHA-256 of the uncompressed tar GitHub serves for it, the SHA-256 of the visual style built from it and the SHA-256 of the wallpaper rendered from it. The icon patchers add to that the SHA-256 of each file they patch, in `pins/shell32-icons.json` and `pins/icon-families.json`, keyed by a digest of the icons used.
+The Afterglow source is one pinned input of the base recipe (`[inputs.afterglow]` in `recipes/afterglow.toml`): a commit of `liminal-hq/afterglow-themes`, the SHA-256 of the uncompressed tar GitHub serves for it, the SHA-256 of the visual style built from it and the SHA-256 of the wallpaper rendered from it (and of each other scene, in `pins/afterglow-wallpapers.json`). The icon patchers add to that the SHA-256 of each file they patch, in `pins/shell32-icons.json` and `pins/icon-families.json`, keyed by a digest of the icons used.
 
 ## What the icon patchers read
 
@@ -15,7 +15,7 @@ The patchers take their list of groups from Afterglow's `desktop/icons/map.json`
 `REF` is a commit, a tag or a branch of the recipe's Afterglow repository. `rl pin` needs the golden disk (`rl install` once) and the tools `rl image` needs (`llvm-rc`, `lld-link`, `node`, `rsvg-convert`, ImageMagick 7, and python3 with numpy and Pillow). It:
 
 1. resolves `REF` to a commit and fetches that commit's source;
-2. measures the tar sum, the style sum and the wallpaper sum, and rewrites those lines of `[inputs.afterglow]` (nothing else in the recipe file changes);
+2. measures the tar sum, the style sum and the wallpaper sum, and rewrites those lines of `[inputs.afterglow]` (nothing else in the recipe file changes); it also renders every scene the source draws and rewrites `pins/afterglow-wallpapers.json` with the commit and each scene's BMP sum;
 3. runs the icon and bitmap patchers (with the pointer, Start and logon patchers whose copies they build on) against the golden disk in a recording mode and replaces the results in `pins/shell32-icons.json` and `pins/icon-families.json` (an icon set no longer in use is dropped);
 4. runs every patcher the recipe lists with the new pins, so a stale pin fails here and not at the end of an image build.
 

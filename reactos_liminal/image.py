@@ -8,7 +8,8 @@
 #   1. copy       the golden disk is copied (sparse) and never written
 #   2. patchers   each patcher takes a stock file from the golden disk and yields a patched copy, which is written to the image
 #   3. trim       the recipe's trim profile removes files; it never removes a patched file or a licence file
-#   4. files      the recipe's own files, the Afterglow style and pointer files, and the shortcuts
+#   4. files      ReactOS's stock wallpapers when the recipe replaces them, then the recipe's own files, the Afterglow wallpapers, style and
+#                 pointer files, and the shortcuts
 #   5. licences   `LICENSES/`, `NOTICE.txt` and `CHANGES.txt`, made from the recipe and from what steps 2 to 4 did
 #   6. settings   the build VM applies the registry settings and the page file, then shuts down
 #
@@ -34,7 +35,8 @@ from .recipe import Recipe
 from .rustbuild import BUILT_PREFIX, build_programs, used_builds
 from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile, removes
 from .vm import PrivateVm
-from .wallpaper import WallpaperError, image_path, render_wallpaper, wanted
+from .wallpaper import FOLDER as wallpaper_folder_path
+from .wallpaper import WallpaperError, image_path, render_set, render_wallpaper, scenes, set_destination, stock_list, wanted
 
 PIPELINE = ("copy", "patchers", "trim", "files", "licences", "settings")
 DESKTOP = "Documents and Settings/Administrator/Desktop"
@@ -84,6 +86,10 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		extras.append(f"the wallpaper {recipe.section('settings', 'wallpaper')} comes from [[files]] (no scene rendered)")
 	elif wanted(recipe):
 		extras.append(f"the {wanted(recipe)} wallpaper rendered from its SVG master to {recipe.section('settings', 'wallpaper')}")
+	if recipe.section("wallpapers", "replace_stock"):
+		extras.append(f"ReactOS's {len(stock_list().entries)} stock wallpaper files removed first")
+	if scenes(recipe):
+		extras.append(f"{len(scenes(recipe))} Afterglow wallpapers rendered into the wallpaper folder ({wallpaper_folder_path})")
 	extras.append(f"{len(recipe.section('settings', 'remove_desktop_shortcuts'))} stock desktop shortcuts removed")
 	plan.steps.append("files: " + ", ".join(extras))
 	plan.steps.append(
@@ -139,6 +145,39 @@ def _write_wallpaper(recipe: Recipe, disk: FatImage, source_tree: Path | None, s
 	disk.copy_in(bitmap, target)
 
 
+def _replace_stock_wallpapers(recipe: Recipe, disk: FatImage, patched_paths: list[str], record: ChangeRecord) -> None:
+	"""Remove ReactOS's own wallpapers (`profiles/wallpapers/stock.txt`) when the recipe says `wallpapers.replace_stock`, so the list
+	in Display Properties holds only what the recipe puts there. The same guard as the trim applies: a patched file or a licence file is
+	never removed. A file that is not there (a trim has removed it) is skipped."""
+	if not recipe.section("wallpapers", "replace_stock"):
+		return
+	stock = stock_list()
+	check_profile(stock, patched_paths)
+	for entry in stock.entries:
+		if disk.delete_tree(entry.path) if entry.kind == "d" else disk.delete_file(entry.path):
+			record.stock_wallpapers_removed.append(entry.path)
+	log("image", f"   replaced stock wallpapers: removed {len(record.stock_wallpapers_removed)} of {len(stock.entries)} files")
+
+
+def _write_wallpaper_set(recipe: Recipe, disk: FatImage, source_tree: Path | None, scratch: Path) -> None:
+	"""Render the recipe's `wallpapers.scenes` and write them, in name order, to the folder Display Properties lists. The scene that is
+	the desktop wallpaper is already written (to `settings.wallpaper`), and a `[[files]]` entry for a scene's path replaces the scene."""
+	names = scenes(recipe)
+	if not names or source_tree is None:
+		return
+	taken = {entry["destination"].replace("\\", "/").strip("/").lower() for entry in recipe.data["files"]}
+	if "wallpaper" in recipe.section("settings"):
+		taken.add(image_path(recipe.section("settings", "wallpaper")).lower())
+	todo = [name for name in names if set_destination(name).lower() not in taken]
+	try:
+		bitmaps = render_set(recipe, source_tree, scratch, todo)
+	except WallpaperError as error:
+		raise ImageError(str(error)) from error
+	_make_path(disk, wallpaper_folder_path)
+	for name in todo:
+		disk.copy_in(bitmaps[name], set_destination(name))
+
+
 def _write_payload(
 	recipe: Recipe,
 	disk: FatImage,
@@ -149,6 +188,7 @@ def _write_payload(
 ) -> None:
 	base = recipe.chain[0].parent
 	_write_wallpaper(recipe, disk, source_tree, scratch)
+	_write_wallpaper_set(recipe, disk, source_tree, scratch)
 	for entry in recipe.data["files"]:
 		if entry["source"].startswith(BUILT_PREFIX):
 			source = (built or {})[entry["source"][len(BUILT_PREFIX) :]]
@@ -190,6 +230,10 @@ def _write_payload(
 def _written_paths(recipe: Recipe, afterglow_files: Path | None) -> list[str]:
 	"""The paths the files step added, for `CHANGES.txt`."""
 	paths = [entry["destination"] for entry in recipe.data["files"]]
+	if afterglow_files is not None:
+		if wanted(recipe) and not _wallpaper_file_entry(recipe):
+			paths.append(image_path(recipe.section("settings", "wallpaper")))
+		paths += [set_destination(name) for name in scenes(recipe) if set_destination(name) not in paths]
 	if afterglow_files is not None:
 		paths.append("ReactOS/Resources/Themes/Afterglow/afterglow.msstyles")
 		cursors = afterglow_files / "cursors"
@@ -278,6 +322,7 @@ def build_image(
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
+		_replace_stock_wallpapers(recipe, disk, patched_paths, record)
 		_write_payload(recipe, disk, afterglow_files, scratch, source_tree, built)
 		record.written_files = _written_paths(recipe, afterglow_files)
 

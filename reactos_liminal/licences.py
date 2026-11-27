@@ -81,6 +81,7 @@ class Component:
 	text: str  # the file in `LICENSES/` that holds the text, or a note where this build does not carry one
 	where: str  # where the component is on the image
 	trimmed_by_base: bool = False  # a trim profile (`base`) removes it, so the notice names it only for an untrimmed image
+	replaced_wallpapers: bool = False  # a recipe with `wallpapers.replace_stock` removes it too, and its credits files go with it
 
 
 COMPONENTS = (
@@ -115,6 +116,7 @@ COMPONENTS = (
 		"credits files beside the wallpapers",
 		"ReactOS\\Web\\Wallpaper",
 		trimmed_by_base=True,
+		replaced_wallpapers=True,
 	),
 	Component(
 		"Wine Gecko (the browser engine)",
@@ -127,7 +129,7 @@ COMPONENTS = (
 		"Afterglow desktop theme (style, pointers, wallpapers)",
 		"Apache-2.0 OR MIT",
 		"Apache-2.0.txt and MIT.txt",
-		"ReactOS\\Resources\\Themes\\Afterglow",
+		"ReactOS\\Resources\\Themes\\Afterglow; the wallpapers in ReactOS\\Web\\Wallpaper or ReactOS\\afterglow-wallpaper.bmp",
 	),
 	Component(
 		"ReactOS Liminal's own settings, shortcuts and scripts",
@@ -179,6 +181,20 @@ def source_offer_lines() -> list[str]:
 	]
 
 
+def _removed(recipe: Recipe, component: Component) -> bool:
+	"""True when the recipe takes the component off the image: the compact trim removes it, or `wallpapers.replace_stock` replaces
+	ReactOS's wallpapers with Afterglow's."""
+	trimmed = recipe.section("trim", "profile") != "none" and component.trimmed_by_base
+	replaced = recipe.section("wallpapers", "replace_stock") and component.replaced_wallpapers
+	return trimmed or replaced
+
+
+def _removal_note(recipe: Recipe, component: Component) -> str:
+	if recipe.section("trim", "profile") != "none" and component.trimmed_by_base:
+		return f" (removed by the `{recipe.section('trim', 'profile')}` trim profile)"
+	return " (replaced by Afterglow's wallpapers)"
+
+
 def notice_text(recipe: Recipe) -> bytes:
 	"""`NOTICE.txt` for the disk: what this is, that it is unofficial, the source offer, where the licences are, and the credits."""
 	iso = recipe.section("inputs", "reactos_iso")
@@ -198,9 +214,8 @@ def notice_text(recipe: Recipe) -> bytes:
 	]
 	lines += [f"  {IMAGE_LICENCE_FOLDER}\\{text.image_name}  {text.title}" for text in TEXTS]
 	lines += ["", "Components and their licences:"]
-	trimmed = recipe.section("trim", "profile") != "none"
 	for component in COMPONENTS:
-		if not (trimmed and component.trimmed_by_base):
+		if not _removed(recipe, component):
 			lines.append(f"  - {component.name}: {component.licence}")
 	lines += ["", "Source code", "-----------", *source_offer_lines(), ""]
 	lines += [
@@ -232,6 +247,7 @@ class ChangeRecord:
 	trim_profile: str = ""
 	settings_applied: bool = False
 	written_files: list[str] = field(default_factory=list)  # paths on the image written by the files step
+	stock_wallpapers_removed: list[str] = field(default_factory=list)  # ReactOS's wallpapers a `wallpapers.replace_stock` recipe removed
 
 
 def changes_text(recipe: Recipe, record: ChangeRecord) -> bytes:
@@ -272,6 +288,12 @@ def changes_text(recipe: Recipe, record: ChangeRecord) -> bytes:
 			lines.append(f"  {'folder' if entry.kind == 'd' else 'file  '} {entry.path}")
 	else:
 		lines.append("No trim was run.")
+	if recipe.section("wallpapers", "replace_stock"):
+		lines.append(
+			f"ReactOS's own wallpapers, with their credits files, were replaced by Afterglow's: {len(record.stock_wallpapers_removed)} files "
+			"removed from ReactOS\\Web\\Wallpaper."
+		)
+		lines += [f"  file   {path}" for path in record.stock_wallpapers_removed]
 	lines += ["", "4. Added files", "--------------"]
 	added = [*record.written_files]
 	if added:
@@ -331,9 +353,8 @@ def licences_page(recipe: Recipe) -> str:
 		afterglow = recipe.section("inputs", "afterglow")
 		out.append(f"- **Afterglow:** [`{afterglow['repo']}`](https://github.com/{afterglow['repo']}) at commit `{afterglow['commit']}`.")
 	out += ["", "## Components and licences", "", "| Component | Licence | Text | Where |", "|---|---|---|---|"]
-	profile = recipe.section("trim", "profile")
 	for component in COMPONENTS:
-		where = component.where + (f" (removed by the `{profile}` trim profile)" if profile != "none" and component.trimmed_by_base else "")
+		where = component.where + (_removal_note(recipe, component) if _removed(recipe, component) else "")
 		out.append(f"| {component.name} | {component.licence} | {component.text} | {where} |")
 	out += [
 		"",

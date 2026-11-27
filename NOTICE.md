@@ -20,7 +20,7 @@ Built disks and remastered ISOs contain ReactOS 0.4.16 and the components below.
 | Wine Gecko (`system32\gecko`), if not trimmed | MPL-2.0 and others inside |
 | WineVDM (`otvdm`), installed by ReactOS setup | GPL-2.0, per its `LICENSE` file |
 | Fonts (Liberation, Croscore, DejaVu-derived, ReactOS clones, Source Sans Pro, Fixedsys Excelsior, UniVGA16 and others in `media/fonts/`) | OFL-1.1, GPL with the font exception and others; provenance of files named like Microsoft fonts to be checked |
-| Wallpapers on the official ISO | CC-BY-NC-3.0 (Backwoods, Borealis, Borealis Dark, Deep Sea; `Angelus.txt` says NC-SA), CC0-1.0 (Grass, Polarlicht), CC-BY-SA-4.0 (Mizu), CC-BY-1.0 (Nebula), CC-BY-4.0 (Silhouette, Silhouette Dark) |
+| Wallpapers on the official ISO (the full image replaces them with Afterglow's; the compact image's trim removes them) | CC-BY-NC-3.0 (Backwoods, Borealis, Borealis Dark, Deep Sea; `Angelus.txt` says NC-SA), CC0-1.0 (Grass, Polarlicht), CC-BY-SA-4.0 (Mizu), CC-BY-1.0 (Nebula), CC-BY-4.0 (Silhouette, Silhouette Dark) |
 | Friendly Shut Down art in `msgina.dll` | Public domain (Splitwirez); replaced by Afterglow art in the remaster |
 
 ## Corresponding source

@@ -102,6 +102,13 @@ def faked(tmp_path, monkeypatch):
 	family_pins.write_text(json.dumps({"families": {"cpl-icons": {"old": {"f": "old"}}, "other": {"keep": {"f": "keep"}}}}))
 	monkeypatch.setattr(pin_module, "SHELL32_PINS_FILE", shell32_pins)
 	monkeypatch.setattr(pin_module, "FAMILY_PINS_FILE", family_pins)
+	wallpaper_pins = tmp_path / "afterglow-wallpapers.json"
+	wallpaper_pins.write_text(json.dumps({"commit": "0" * 40, "scenes": {"dusk-dark-smooth": "old"}}))
+	monkeypatch.setattr(pin_module, "WALLPAPER_PINS_FILE", wallpaper_pins)
+	monkeypatch.setattr(pin_module, "discover_scenes", lambda tree: ["dusk-dark-smooth", "dusk-light-smooth"])
+	monkeypatch.setattr(
+		pin_module, "render_set", lambda recipe, tree, scratch, names, measured: measured.update({name: NEWSHA for name in names})
+	)
 	golden = tmp_path / "golden.img"
 	golden.write_bytes(b"x")
 	tree = tmp_path / "tree"
@@ -129,11 +136,11 @@ def faked(tmp_path, monkeypatch):
 	monkeypatch.setattr(pin_module, "prepare_afterglow", prepare)
 	monkeypatch.setattr(pin_module, "run_patchers", patchers)
 	monkeypatch.setattr(pin_module, "FatImage", lambda path: path)
-	return recipe_path, golden, seen, shell32_pins, family_pins
+	return recipe_path, golden, seen, shell32_pins, family_pins, wallpaper_pins
 
 
 def test_pin_moves_the_pin_measures_the_hashes_and_rewrites_the_pin_files(faked, tmp_path):
-	recipe_path, golden, seen, shell32_pins, family_pins = faked
+	recipe_path, golden, seen, shell32_pins, family_pins, wallpaper_pins = faked
 	changes = pin_module.pin_afterglow(recipe_path, tmp_path / "work", ref=NEW, pre_merge="a branch", golden=golden)
 	text = recipe_path.read_text()
 	assert f'commit = "{NEW}"' in text and f'tar_sha256 = "{NEWSHA}"' in text and f'msstyles_sha256 = "{NEWSHA}"' in text
@@ -150,7 +157,9 @@ def test_pin_moves_the_pin_measures_the_hashes_and_rewrites_the_pin_files(faked,
 		"pre_merge",
 		"shell32-icons.json",
 		"icon-families.json",
+		"afterglow-wallpapers.json",
 	]
+	assert json.loads(wallpaper_pins.read_text()) == {"commit": NEW, "scenes": {"dusk-dark-smooth": NEWSHA, "dusk-light-smooth": NEWSHA}}
 	# The icon patchers ran recording; then the recipe's own list ran once more, checking.
 	assert seen["runs"] == [(list(pin_module.ICON_PATCHERS), True), (["afterglow.icons"], False)]
 
@@ -169,11 +178,11 @@ def test_a_later_bump_without_a_note_drops_it(faked, tmp_path):
 
 
 def test_check_lists_what_is_stale_and_writes_nothing(faked, tmp_path):
-	recipe_path, golden, _seen, shell32_pins, family_pins = faked
-	before = (recipe_path.read_text(), shell32_pins.read_text(), family_pins.read_text())
+	recipe_path, golden, _seen, shell32_pins, family_pins, wallpaper_pins = faked
+	before = (recipe_path.read_text(), shell32_pins.read_text(), family_pins.read_text(), wallpaper_pins.read_text())
 	changes = pin_module.pin_afterglow(recipe_path, tmp_path / "work", ref=NEW, golden=golden, check=True)
-	assert any(line.startswith("commit:") for line in changes)
-	assert (recipe_path.read_text(), shell32_pins.read_text(), family_pins.read_text()) == before
+	assert any(line.startswith("commit:") for line in changes) and any(line.startswith("afterglow-wallpapers.json:") for line in changes)
+	assert (recipe_path.read_text(), shell32_pins.read_text(), family_pins.read_text(), wallpaper_pins.read_text()) == before
 
 
 def test_pin_needs_the_golden_disk(faked, tmp_path):

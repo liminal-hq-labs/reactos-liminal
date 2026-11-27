@@ -17,9 +17,9 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 | Third-party code listed in ReactOS's `media/doc/3rd Party Files.txt` (zlib, libpng, FreeType, mbed TLS, ACPICA and others) | their own licences, including GPL-3.0-or-later, GPL-2.0, Apache-2.0, MIT and BSD-style licences | named in the ReactOS source tree; texts are in the corresponding source | ReactOS\system32 |
 | WineVDM (otvdm) | GPL-2.0 | Program Files\otvdm\LICENSE | Program Files\otvdm |
 | Fonts (Liberation, Croscore, DejaVu-derived, ReactOS clones and others in `media/fonts/`) | OFL-1.1, GPL with the font exception and others, per the ReactOS source's `media/fonts/doc/` | named in the ReactOS source tree; texts are in the corresponding source | ReactOS\Fonts |
-| Wallpapers shipped with ReactOS | CC-BY-NC-3.0 (Backwoods, Borealis, Deep Sea; Angelus is NC-SA), CC0-1.0, CC-BY-SA-4.0, CC-BY-1.0 and CC-BY-4.0, as each wallpaper's credits file says | credits files beside the wallpapers | ReactOS\Web\Wallpaper |
+| Wallpapers shipped with ReactOS | CC-BY-NC-3.0 (Backwoods, Borealis, Deep Sea; Angelus is NC-SA), CC0-1.0, CC-BY-SA-4.0, CC-BY-1.0 and CC-BY-4.0, as each wallpaper's credits file says | credits files beside the wallpapers | ReactOS\Web\Wallpaper (replaced by Afterglow's wallpapers) |
 | Wine Gecko (the browser engine) | MPL-2.0 and the licences inside it | shipped with Gecko | ReactOS\system32\gecko |
-| Afterglow desktop theme (style, pointers, wallpapers) | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | ReactOS\Resources\Themes\Afterglow |
+| Afterglow desktop theme (style, pointers, wallpapers) | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | ReactOS\Resources\Themes\Afterglow; the wallpapers in ReactOS\Web\Wallpaper or ReactOS\afterglow-wallpaper.bmp |
 | ReactOS Liminal's own settings, shortcuts and scripts | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | the settings and desktop |
 
 Component licences are taken from ReactOS's own documentation and are confirmed file by file against the 0.4.16 source before each release; the licence checklist in [SPEC.md](https://github.com/liminal-hq-labs/reactos-liminal/blob/main/SPEC.md#licence-checklist) records that step.

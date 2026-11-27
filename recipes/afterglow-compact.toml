@@ -9,5 +9,13 @@ name = "afterglow-compact"
 description = "The compact Afterglow remaster of ReactOS 0.4.16: the base recipe with the base trim profile"
 extends = "afterglow.toml"
 
+# The compact image keeps its one wallpaper, in its own file: none of the set, and the stock wallpapers are already gone with the trim.
+[settings]
+wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
+
+[wallpapers]
+scenes = []
+replace_stock = false
+
 [trim]
 profile = "base"

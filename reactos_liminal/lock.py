@@ -17,6 +17,7 @@ from .fetch import sha256_file
 from .install import golden_key, golden_path, render_unattend
 from .recipe import Recipe, is_reg_path
 from .trim import PROFILES_DIR
+from .wallpaper import STOCK_LIST, load_pins, scenes
 
 LOCK_SCHEMA = 1
 REQUIRABLE = ("iso-zip", "iso", "afterglow-tar", "msstyles")
@@ -75,6 +76,12 @@ def build_lock(recipe: Recipe) -> dict:
 		for entry in recipe.data["files"]
 		if (base / entry["source"]).is_file()
 	}
+	wallpapers: dict = {}
+	if scenes(recipe):
+		pins = load_pins()["scenes"]
+		wallpapers["scenes"] = {name: pins.get(name) for name in scenes(recipe)}
+	if recipe.section("wallpapers", "replace_stock"):
+		wallpapers["stock_list"] = sha256_file(STOCK_LIST)
 	return {
 		"schema": LOCK_SCHEMA,
 		"recipe": recipe.name,
@@ -83,6 +90,7 @@ def build_lock(recipe: Recipe) -> dict:
 		"answers_sha256": _text_sum(render_unattend(recipe)),
 		"trim_lists": trim_lists,
 		"files": files,
+		**({"wallpapers": wallpapers} if wallpapers else {}),
 		**({"reg_files": reg_files} if reg_files else {}),
 		**({"builds": builds} if builds else {}),
 	}

@@ -24,6 +24,7 @@ on:
       - 'reactos_liminal/**'
       - 'recipes/**'
       - 'profiles/**'
+      - 'pins/**'
       - 'guest/**'
       - 'patches/**'
       - 'licences/**'
