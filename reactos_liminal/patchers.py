@@ -13,6 +13,7 @@ from .mtools import FatImage
 from .patch_base import PatchedFile, PatchError, remember_patched  # noqa: F401  (re-exported: cli and the tests import them from here)
 from .patch_bitmaps import toolbar_bitmaps
 from .patch_boot import afterglow_boot
+from .patch_colours import afterglow_colours_patch
 from .patch_dialog_bitmaps import dialog_bitmaps
 from .patch_family import cpl_icons, dialog_icons, map_icons, program_icons
 from .patch_icons import afterglow_icons
@@ -56,6 +57,7 @@ PATCHERS = {
 	"afterglow.dialog-bitmaps": dialog_bitmaps,
 	"afterglow.logon": afterglow_logon,
 	"afterglow.boot": afterglow_boot,
+	"afterglow.colours": afterglow_colours_patch,
 }
 
 

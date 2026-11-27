@@ -26,7 +26,7 @@ def test_the_guest_path_becomes_the_path_on_the_disk():
 def test_the_base_recipe_names_the_dusk_wallpaper(base_recipe_path):
 	recipe = load(base_recipe_path)
 	assert wallpaper.wanted(recipe) == "dusk-dark-smooth"
-	assert recipe.section("settings", "wallpaper_style") == "stretch"
+	assert recipe.section("settings", "wallpaper_style") == "fill"
 
 
 @pytest.mark.parametrize("scene", ["dusk", "Dusk-dark-smooth", "dusk-dim-smooth", "dusk-dark-smooth.svg"])

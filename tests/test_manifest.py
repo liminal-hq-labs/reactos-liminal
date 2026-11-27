@@ -58,6 +58,7 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 		"afterglow.map-icons",
 		"afterglow.toolbar-bitmaps",
 		"afterglow.dialog-bitmaps",
+		"afterglow.colours",
 		"afterglow.boot",
 	]
 	assert (

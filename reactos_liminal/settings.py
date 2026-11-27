@@ -43,12 +43,19 @@ def display_reg(width: int, height: int) -> str:
 	return f"{HEADER}\n; Display, from the recipe.\n[{keys}\\Device0]\n{section}\n[{keys}\\Device1]\n{section}"
 
 
-WALLPAPER_STYLES = {"centre": ("0", "0"), "tile": ("0", "1"), "stretch": ("2", "0")}  # WallpaperStyle, TileWallpaper
+WALLPAPER_STYLES = {
+	"centre": ("0", "0"),
+	"tile": ("0", "1"),
+	"stretch": ("2", "0"),
+	"fit": ("6", "0"),
+	"fill": ("10", "0"),
+}  # WallpaperStyle, TileWallpaper
 
 
-def appearance_reg(icon_size: int, wallpaper: str | None, style: str = "stretch") -> str:
+def appearance_reg(icon_size: int, wallpaper: str | None, style: str = "fill") -> str:
 	"""Desktop icon size (the small icons in menus and the taskbar stay 16 px) and, when the recipe sets one, the wallpaper in the style
-	the recipe names: stretched (the default), centred or tiled."""
+	the recipe names: filled (the default), stretched, fitted, centred or tiled. The user gets the wallpaper and the style; `HKU\\.DEFAULT`
+	gets the style as well, so a profile made from it has the same placement."""
 	metrics = "HKEY_CURRENT_USER\\Control Panel\\Desktop\\WindowMetrics"
 	text = f'{HEADER}\n; Appearance, from the recipe.\n[{metrics}]\n"Shell Icon Size"="{icon_size}"\n'
 	if wallpaper:
@@ -57,6 +64,7 @@ def appearance_reg(icon_size: int, wallpaper: str | None, style: str = "stretch"
 		text += (
 			f'\n[HKEY_CURRENT_USER\\Control Panel\\Desktop]\n"Wallpaper"="{escaped}"\n'
 			f'"WallpaperStyle"="{wallpaper_style}"\n"TileWallpaper"="{tile}"\n'
+			f'\n[HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop]\n"WallpaperStyle"="{wallpaper_style}"\n"TileWallpaper"="{tile}"\n'
 		)
 	return text
 

@@ -23,6 +23,19 @@ def pixel(frame: Frame, x: int, y: int) -> tuple[int, int, int]:
 	return data[offset], data[offset + 1], data[offset + 2]
 
 
+STOCK_BLUE = (58, 110, 165)  # ReactOS's built-in desktop colour (COLOR_BACKGROUND in win32k.sys)
+
+
+def stock_blue_share(frame: Frame) -> float:
+	"""The share of the frame's pixels that are ReactOS's stock desktop blue, within a few levels of each channel."""
+	_width, _height, data = frame
+	near = 0
+	for offset in range(0, len(data), 3):
+		if all(abs(data[offset + channel] - STOCK_BLUE[channel]) <= 6 for channel in range(3)):
+			near += 1
+	return near / (len(data) // 3)
+
+
 def menu_looks_minimal_gold_on_black(frame: Frame) -> tuple[bool, str]:
 	"""The boot menu: a mostly black screen with a selection bar in text colour 6 (gold)."""
 	width, height, data = frame
