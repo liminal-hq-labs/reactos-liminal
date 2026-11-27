@@ -78,7 +78,7 @@ list = [
 ]
 
 # Programs built from source when the image is built, each from a project in this repository with its own pinned toolchain. The output is
-# pinned by SHA-256 like every other input (the build is reproducible); `./rl lock` measures it. `[[files]]` writes it with `built:NAME`.
+# pinned by SHA-256 like every other input (the build is reproducible); `./rl pin` measures it. `[[files]]` writes it with `built:NAME`.
 [builds.afterfetch]
 source = "../tools/afterfetch"
 sha256 = "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
