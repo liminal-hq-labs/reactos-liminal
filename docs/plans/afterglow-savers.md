@@ -4,7 +4,7 @@ The Afterglow screensavers ([liminal-hq-labs/afterglow-savers](https://github.co
 
 ## Status
 
-WP-PACK-3 and the recipe wiring of WP-PACK-4 are built together (RL-67, RL-68): `[builds.afterglow-savers]` is in the base recipe at an interim pin, the savers' `main` `74147cf`, until the savers' commit S (after the Cracktro scroller change) is reported; `./rl pin recipes/afterglow.toml --savers S` then moves it. No registry file is added (RL-68), so the `screensaver-afterglow` file this plan first proposed is not written. Still to do: CI's "Afterglow savers" job and `build.yml`'s tar cache and `--require afterglow-savers-tar` (workflow files were outside this package), the Quill remix's own change, and WP-PACK-5, which boots both images.
+WP-PACK-3 and the recipe wiring of WP-PACK-4 are built together (RL-67, RL-68): `[builds.afterglow-savers]` is in the base recipe at the savers' `main` commit `d998594`; `./rl pin recipes/afterglow.toml --savers REF` moves it. No registry file is added (RL-68), so the `screensaver-afterglow` file this plan first proposed is not written. Still to do: CI's "Afterglow savers" job and `build.yml`'s tar cache and `--require afterglow-savers-tar` (workflow files were outside this package), the Quill remix's own change, and WP-PACK-5, which boots both images.
 
 ## What changes here
 
