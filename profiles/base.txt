@@ -1,6 +1,6 @@
 # Trim profile "base": the Afterglow remaster's trim. It removes the games, screensavers, wallpapers, Gecko (the browser engine), the
 # DirectX helper libraries and the apps and applets a kiosk does not use. `iexplore.exe` stays, so the Internet Browser starts (without
-# Gecko its window stays blank). The network card drivers and the network stack stay, so the guest keeps its network ability.
+# Gecko its window stays blank), and so does `rapps.exe`, so the Applications Manager shortcut works. The network card drivers and the network stack stay, so the guest keeps its network ability.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -30,7 +30,6 @@ f ReactOS/system32/mplay32.exe
 f ReactOS/system32/sndrec32.exe
 f ReactOS/system32/dxdiag.exe
 f ReactOS/system32/mstsc.exe
-f ReactOS/system32/rapps.exe
 f ReactOS/system32/rapps.com
 f ReactOS/system32/magnify.exe
 f ReactOS/system32/osk.exe
@@ -136,7 +135,6 @@ d ReactOS/Resources/Themes/Mizu
 d ReactOS/Resources/Themes/Modern
 d Documents and Settings/Administrator/Start Menu/Programs/Games
 f Documents and Settings/Administrator/Start Menu/Programs/Wine Internet Explorer.lnk
-f Documents and Settings/Administrator/Start Menu/Programs/ReactOS Applications Manager.lnk
 f Documents and Settings/Administrator/Start Menu/Programs/Accessories/Paint.lnk
 f Documents and Settings/Administrator/Start Menu/Programs/Accessories/WordPad.lnk
 f Documents and Settings/Administrator/Start Menu/Programs/Accessories/Calculator.lnk

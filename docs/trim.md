@@ -7,7 +7,7 @@ A trim profile is a list of files and folders that `rl image` and `rl trim` remo
 | `none` | Nothing: the disk as installed |
 | `base` | The Afterglow remaster's trim: Gecko (57 MB) and the installer folder, the games, screensavers, the DirectX helper libraries, the wallpapers, apps and applets a kiosk does not use, 26 fonts, the Btrfs, ext2 and NFS drivers, the other visual styles and their Start menu entries. **It keeps the network card drivers and the network stack.** |
 
-`base` is a complete list in its own right and keeps WineVDM (`Program Files/otvdm`), which the Windows 3.x programs need. It also keeps `Program Files/Internet Explorer/iexplore.exe` (75 KB): the Internet Browser desktop item and the web protocol handlers run it, and with it missing a double-click did nothing and said nothing. Without Gecko its window opens blank; Gecko stays out of the image (RL-40).
+`base` is a complete list in its own right and keeps WineVDM (`Program Files/otvdm`), which the Windows 3.x programs need. It also keeps `Program Files/Internet Explorer/iexplore.exe` (75 KB): the Internet Browser desktop item and the web protocol handlers run it, and with it missing a double-click did nothing and said nothing. Without Gecko its window opens blank; Gecko stays out of the image (RL-40). It keeps `ReactOS/system32/rapps.exe` (1.7 MB), the Applications Manager that the desktop shortcut and the Start menu entry run (RL-42); only its console twin `rapps.com` is removed. With no network the Manager opens its Updating Database box and then says "Unable to download the package! Check Internet Connection!", so it fails with a message and does not hang; with a network it works as in stock ReactOS.
 
 ## Order and protection
 
