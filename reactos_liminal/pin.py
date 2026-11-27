@@ -162,7 +162,7 @@ def icon_coverage_text(tree: Path, golden: Path, recorder) -> str | None:
 
 
 def bitmap_coverage(bitmaps: list[dict], recorder) -> tuple[list, dict[str, list[str]]]:
-	"""The bitmap rows of the coverage report and the image paths `afterglow.dialog-bitmaps` wrote for each module, from its recorded result."""
+	"""The bitmap rows of the coverage report and the image paths `afterglow.dialog-bitmaps` wrote for each module."""
 	written_paths = {path for results in recorder.results.get("dialog-bitmaps", {}).values() for path in results}
 	written: dict[str, list[str]] = {}
 	for file_spec in load_dialog_spec()["files"]:

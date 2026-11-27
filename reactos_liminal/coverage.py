@@ -157,7 +157,7 @@ def bitmap_rows(bitmaps: list[dict], written: dict[str, list[str]]) -> list[tupl
 		if module in written:
 			rows.append((item, PATCHED, ""))
 		elif module in BITFIELDS_MODULES:
-			rows.append((item, SKIPPED, "the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet"))
+			rows.append((item, SKIPPED, "the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet"))
 		else:
 			rows.append((item, SKIPPED, "no file of the image takes this bitmap yet, or the trim removes it"))
 	return rows
@@ -220,8 +220,8 @@ def render(
 			files = "<br>".join(f"`{path}`" for path in paths) or "-"
 			width, height = item["size"]
 			lines.append(
-				f"| `{item['id']}` | `{item['module']}` | bitmap {item['resource']} | {width} x {height} at {item['bits']} bits | {status} | "
-				f"{files} | {compact_text} | {note} |"
+				f"| `{item['id']}` | `{item['module']}` | bitmap {item['resource']} | {width} x {height} at {item['bits']} bits | "
+				f"{status} | {files} | {compact_text} | {note} |"
 			)
 	return "\n".join(lines) + "\n"
 

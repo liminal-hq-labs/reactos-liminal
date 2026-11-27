@@ -547,15 +547,15 @@ The dialog, wizard and panel bitmaps of the map, written by `afterglow.dialog-bi
 | `tray-hide-noclock-desk` | `explorer.exe` | bitmap 187 | 336 x 35 at 8 bits | patched | `ReactOS/agexplorer.exe` | kept |  |
 | `tray-show-clock-desk` | `explorer.exe` | bitmap 188 | 336 x 35 at 8 bits | patched | `ReactOS/agexplorer.exe` | kept |  |
 | `tray-show-noclock-desk` | `explorer.exe` | bitmap 189 | 336 x 35 at 8 bits | patched | `ReactOS/agexplorer.exe` | kept |  |
-| `std-small` | `comctl32.dll` | bitmap 120 | 240 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `std-large` | `comctl32.dll` | bitmap 121 | 360 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `view-small` | `comctl32.dll` | bitmap 124 | 192 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `view-large` | `comctl32.dll` | bitmap 125 | 288 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `hist-small` | `comctl32.dll` | bitmap 130 | 80 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `hist-large` | `comctl32.dll` | bitmap 131 | 120 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `hh-toolbar` | `hhctrl.ocx` | bitmap 1000 | 144 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `hh-tree` | `hhctrl.ocx` | bitmap 1001 | 48 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
-| `ie-toolbar` | `ieframe.dll` | bitmap 1400 | 192 x 32 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet |
+| `std-small` | `comctl32.dll` | bitmap 120 | 240 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `std-large` | `comctl32.dll` | bitmap 121 | 360 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `view-small` | `comctl32.dll` | bitmap 124 | 192 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `view-large` | `comctl32.dll` | bitmap 125 | 288 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `hist-small` | `comctl32.dll` | bitmap 130 | 80 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `hist-large` | `comctl32.dll` | bitmap 131 | 120 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `hh-toolbar` | `hhctrl.ocx` | bitmap 1000 | 144 x 24 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `hh-tree` | `hhctrl.ocx` | bitmap 1001 | 48 x 16 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
+| `ie-toolbar` | `ieframe.dll` | bitmap 1400 | 192 x 32 at 32 bits | skipped | - | - | the stock strip is BI_BITFIELDS, which the bitmap patcher does not accept yet |
 | `aclui-principals` | `aclui.dll` | bitmap 1001 | 48 x 16 at 24 bits | patched | `ReactOS/system32/aclui.dll` | kept |  |
 | `cert` | `cryptui.dll` | bitmap 201 | 32 x 32 at 4 bits | patched | `ReactOS/system32/cryptui.dll` | kept |  |
 | `cert-error` | `cryptui.dll` | bitmap 202 | 32 x 32 at 4 bits | patched | `ReactOS/system32/cryptui.dll` | kept |  |
