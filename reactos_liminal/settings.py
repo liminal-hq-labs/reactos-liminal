@@ -12,7 +12,7 @@ from pathlib import Path
 
 from .log import log
 from .paths import REPO
-from .recipe import REG_FILES, Recipe
+from .recipe import REG_FILES, Recipe, is_reg_path
 from .vm import PrivateVm, VmError, VmSpec, default_accel
 
 REG_DIR = REPO / "guest" / "reg"
@@ -61,6 +61,16 @@ def appearance_reg(icon_size: int, wallpaper: str | None, style: str = "stretch"
 	return text
 
 
+def _own_reg_key(path: Path, taken: dict[str, str]) -> str:
+	"""A name for a recipe's own registry file that no other file in the list has."""
+	key = path.stem
+	number = 2
+	while key in taken or key in REG_FILES:
+		key = f"{path.stem}-{number}"
+		number += 1
+	return key
+
+
 def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[str, str]:
 	"""The registry files to apply, in order, as `{name: text}`: the recipe's own settings, the static files it lists, and the
 	Afterglow files that select the style and the pointer scheme."""
@@ -71,6 +81,9 @@ def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[
 	files["appearance"] = appearance_reg(settings["icon_size"], settings.get("wallpaper"), settings["wallpaper_style"])
 	for name in settings["reg_files"]:
 		if name == "display":
+			continue
+		if is_reg_path(name):  # a file beside a recipe, applied after the named files
+			files[_own_reg_key(Path(name), files)] = Path(name).read_text(encoding="utf-8-sig")
 			continue
 		files[name] = (REG_DIR / f"{name}.reg").read_text(encoding="utf-8")
 	if "afterglow.start" in recipe.section("patchers", "list"):

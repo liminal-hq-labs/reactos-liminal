@@ -15,7 +15,7 @@ from pathlib import Path
 
 from .fetch import sha256_file
 from .install import golden_key, golden_path, render_unattend
-from .recipe import Recipe
+from .recipe import Recipe, is_reg_path
 from .trim import PROFILES_DIR
 
 LOCK_SCHEMA = 1
@@ -63,6 +63,11 @@ def build_lock(recipe: Recipe) -> dict:
 		trim_lists[f"profile:{profile_name}"] = sha256_file(profile_file)
 	for extra in recipe.section("trim", "extra"):
 		trim_lists[f"extra:{extra}"] = sha256_file(base / extra)
+	reg_files = {
+		f"reg:{os.path.relpath(entry, base).replace(os.sep, '/')}": sha256_file(Path(entry))
+		for entry in recipe.section("settings", "reg_files")
+		if is_reg_path(entry)
+	}
 	files = {entry["source"]: sha256_file(base / entry["source"]) for entry in recipe.data["files"] if (base / entry["source"]).is_file()}
 	return {
 		"schema": LOCK_SCHEMA,
@@ -71,6 +76,7 @@ def build_lock(recipe: Recipe) -> dict:
 		"answers_sha256": _text_sum(render_unattend(recipe)),
 		"trim_lists": trim_lists,
 		"files": files,
+		**({"reg_files": reg_files} if reg_files else {}),
 	}
 
 

@@ -68,7 +68,7 @@ The pull request title and body become the merge commit message (the repository 
 
 - `main` is the default branch. Work on topic branches (`feat/`, `fix/issue-<n>-…`, `docs/`, `chore/`, `ci/`, `build/`). Never commit to `main`.
 - **Merge commits only.** No squash and no rebase merges. Branches are deleted on merge.
-- **Never** push, tag, publish or dispatch workflows unless asked. `build.yml` and `release.yml` are dispatched by the owner only.
+- **Never** push, tag, publish or dispatch workflows unless asked. `build.yml` and `release.yml` are started by the owner only (a dispatch, or for `release.yml` a `v*` tag); `build.yml` also runs on pull requests that touch the pipeline paths.
 - **Never** run `git add -A` or `git commit -a`, because checkouts may be shared. Stage explicit paths.
 - **Never** remove files with wildcard patterns (no `rm` with globs, no `find -delete` with patterns). Name each path explicitly.
 - Prefer the `gh` CLI for GitHub work.
@@ -117,8 +117,8 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 
 ## Licensing and releases
 
-- **Licence checklist gate.** No remastered ISO is published until the licence checklist in `SPEC.md` is complete and the owner approves the `release` environment.
-- Releases are cut only on the owner's go: the owner pushes the tag and approves the deployment. Agents never dispatch `release.yml`.
+- **Licence checklist gate.** No remastered ISO is published (not in v0.1.0) until the licence checklist in `SPEC.md` is complete and the owner approves the `release` environment.
+- Releases are cut only on the owner's go: the owner pushes the tag (or dispatches `release.yml`) and approves the deployment ([docs/release.md](docs/release.md)). Agents never push a tag or dispatch `release.yml`.
 - Every release names itself unofficial, attaches the corresponding source and `NOTICE.txt`, and lists every modified file with its before and after hashes.
 - Source patches against ReactOS go in `patches/` under GPL-2.0-or-later and nowhere else.
 

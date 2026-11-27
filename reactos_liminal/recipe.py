@@ -5,7 +5,8 @@
 #
 # A recipe chooses and parameterizes steps; it cannot add a new kind of write. `extends` layers one recipe on another: tables merge
 # key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends. The one exception is
-# `trim.extra`: each recipe's own list, resolved against that recipe's folder, is added after the lists of the recipes it extends.
+# `trim.extra`: each recipe's own list, resolved against that recipe's folder, is added after the lists of the recipes it extends. The
+# entries of `settings.reg_files` that end in `.reg` work the same way: paths beside the recipe that lists them, kept after the named files.
 import copy
 import re
 import tomllib
@@ -61,6 +62,35 @@ def _sha256(value: Any, key: str) -> str:
 	if not isinstance(value, str) or not HEX64.match(value):
 		raise RecipeError(f"{key}: expected 64 lowercase hex digits (a SHA-256)")
 	return value
+
+
+REG_HEADER = "Windows Registry Editor Version 5.00"
+
+
+def is_reg_path(entry: Any) -> bool:
+	"""An entry of `settings.reg_files` that names a file beside a recipe instead of one of the built-in names."""
+	return isinstance(entry, str) and entry.endswith(".reg")
+
+
+def _reg_files(value: Any, key: str) -> list[str]:
+	"""Built-in names, then `.reg` paths (made absolute against the recipe that lists them before this runs). A path must be a registry
+	file that exists and starts with the registry header; the built-in names are checked as for any name list."""
+	named = [item for item in value if not is_reg_path(item)] if isinstance(value, list) else value
+	_name_list(REG_FILES)(named, key)
+	paths = [item for item in value if is_reg_path(item)]
+	if len(set(paths)) != len(paths):
+		raise RecipeError(f"{key}: duplicate entries")
+	for item in paths:
+		path = Path(item)
+		if not path.is_file():
+			raise RecipeError(f"{key}: {path.name} is not a file beside the recipe that lists it ({path})")
+		try:
+			first = path.read_text(encoding="utf-8-sig").splitlines()[:1]
+		except (OSError, UnicodeDecodeError) as error:
+			raise RecipeError(f"{key}: cannot read {path}: {error}") from None
+		if first != [REG_HEADER]:
+			raise RecipeError(f"{key}: {path.name} must start with the line {REG_HEADER!r}")
+	return [*named, *paths]
 
 
 def _commit(value: Any, key: str) -> str:
@@ -229,7 +259,7 @@ SCHEMA: dict[str, Any] = {
 		"icon_size": (_int(16, 256), 32),
 		"wallpaper": (_guest_path, None),
 		"wallpaper_style": (_choice("stretch", "centre", "tile"), "stretch"),
-		"reg_files": (_name_list(REG_FILES), ["display", "quiet", "watermark-off"]),
+		"reg_files": (_reg_files, ["display", "quiet", "watermark-off"]),
 		"remove_desktop_shortcuts": (_str_list, []),
 	},
 	"trim": {
@@ -317,6 +347,15 @@ def _own_extra(raw: dict, path: Path) -> list | None:
 	return [str(path.parent / item) if isinstance(item, str) and item else item for item in table["extra"]]
 
 
+def _own_reg_files(raw: dict, path: Path) -> list | None:
+	"""The recipe's own `settings.reg_files` with each `.reg` path made absolute against this recipe's folder, or None when it sets
+	none."""
+	table = raw.get("settings")
+	if not isinstance(table, dict) or not isinstance(table.get("reg_files"), list):
+		return None
+	return [str(path.parent / item) if is_reg_path(item) else item for item in table["reg_files"]]
+
+
 def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 	path = path.resolve()
 	if path in seen:
@@ -324,6 +363,7 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 	raw = _read(path)
 	chain = [path]
 	own_extra = _own_extra(raw, path)
+	own_reg_files = _own_reg_files(raw, path)
 	parent = raw.get("recipe", {}).get("extends") if isinstance(raw.get("recipe"), dict) else None
 	if parent:
 		if not isinstance(parent, str):
@@ -332,12 +372,24 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 		ppath = REPO / parent[3:] if parent.startswith("rl:") else path.parent / parent
 		base, base_chain = _resolve(ppath, (*seen, path))
 		inherited = base.get("trim", {}).get("extra") if isinstance(base.get("trim"), dict) else None
+		inherited_regs = base.get("settings", {}).get("reg_files") if isinstance(base.get("settings"), dict) else None
 		raw = _merge(base, raw)
 		chain = chain + base_chain
 		if own_extra is not None:
 			raw["trim"]["extra"] = [*(inherited if isinstance(inherited, list) else []), *own_extra]
-	elif own_extra is not None:
-		raw["trim"]["extra"] = own_extra
+		if own_reg_files is not None:
+			# The named files are the extending recipe's when it lists any; the paths of both recipes follow them, base first.
+			inherited_list = inherited_regs if isinstance(inherited_regs, list) else []
+			inherited_paths = [item for item in inherited_list if is_reg_path(item)]
+			own_named = [item for item in own_reg_files if not is_reg_path(item)]
+			named = own_named if own_named else [item for item in inherited_list if not is_reg_path(item)]
+			own_paths = [item for item in own_reg_files if is_reg_path(item)]
+			raw["settings"]["reg_files"] = [*named, *inherited_paths, *own_paths]
+	else:
+		if own_extra is not None:
+			raw["trim"]["extra"] = own_extra
+		if own_reg_files is not None:
+			raw["settings"]["reg_files"] = own_reg_files
 	return raw, chain
 
 

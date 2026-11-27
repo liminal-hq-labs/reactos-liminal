@@ -17,7 +17,7 @@
 
 	Scene: a disc (the official ReactOS 0.4.16 ISO) sends a gold packet into a recipe card whose
 	four stages light in turn, each earning a jade tick; the packet then crosses to a window
-	whose boot menu selects "Afterglow for ReactOS" in gold, and the curtain lifts on a dusk
+	whose boot menu selects "ReactOS (Afterglow)" in gold, and the curtain lifts on a dusk
 	desktop with a gold sun and a rounded Start button. No ReactOS logo or orb appears. The
 	reduced-motion view shows the finished state. Keep the 1200 x 320 viewBox, SMIL only, the
 	.motion and .static pairs for reduced motion, data-loop on the root and animations whose dur
@@ -262,12 +262,12 @@
 		<g class="motion" opacity="0">
 			<animate attributeName="opacity" dur="12s" repeatCount="indefinite" keyTimes="0;0.55;0.575;0.95;0.98;1" values="0;0;1;1;0;0"/>
 			<rect id="boot-sel" data-box="" x="840" y="240" width="310" height="26" fill="#e8b43a"/>
-			<text data-for="boot-sel" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">Afterglow for ReactOS</text>
+			<text data-for="boot-sel" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">ReactOS (Afterglow)</text>
 			<text data-for="boot-menu" class="mono" x="850" y="279" font-size="11" fill="#a99bb6">ReactOS</text>
 		</g>
 		<g class="static">
 			<rect id="boot-sel-static" data-box="" x="840" y="240" width="310" height="26" fill="#e8b43a"/>
-			<text data-for="boot-sel-static" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">Afterglow for ReactOS</text>
+			<text data-for="boot-sel-static" class="mono" x="850" y="257" font-size="12" font-weight="700" fill="#1b0f05">ReactOS (Afterglow)</text>
 			<text data-for="boot-menu" class="mono" x="850" y="279" font-size="11" fill="#a99bb6">ReactOS</text>
 		</g>
 

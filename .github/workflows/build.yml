@@ -1,0 +1,277 @@
+# Build the image from the official ISO and upload it, the v86 parts, the licences page and the build manifest.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# Runs on dispatch, on a pull request that touches the pipeline, and when release.yml calls it; not on every push. The remastered ISO
+# (`rl iso`) is not built here: v0.1.0 does not publish it.
+#
+# The job runs on the plain Ubuntu runner and installs its tools with apt, rather than in a shared Liminal HQ image. `ci-dos` carries
+# QEMU and mtools but not xorriso, zstd, the LLVM resource compiler and linker or pinned numpy and Pillow, and it is a DJGPP and Rust image
+# far larger than this job needs; a container would also need /dev/kvm passed in.
+
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      require-kvm:
+        description: Fail instead of skipping the QEMU stages when the runner has no /dev/kvm
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'reactos_liminal/**'
+      - 'recipes/**'
+      - 'profiles/**'
+      - 'guest/**'
+      - 'patches/**'
+      - 'licences/**'
+      - 'tools/**'
+      - 'rl'
+      - '.github/workflows/build.yml'
+  workflow_call:
+    inputs:
+      require-kvm:
+        description: Fail instead of skipping the QEMU stages when the runner has no /dev/kvm
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# A new push to a pull request replaces its running build; a dispatch or a release build is never cancelled. The group name differs
+# from release.yml's, so a release that calls this workflow does not wait on its own caller.
+concurrency:
+  group: build-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RECIPE: recipes/afterglow.toml
+
+jobs:
+  build:
+    name: Build the image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      # The work directory is outside the checkout, as `rl` requires, and on the runner's big disk.
+      - name: Set the work and output folders
+        run: |
+          {
+            echo "RL_WORK=${RUNNER_TEMP}/rl-work"
+            echo "DIST=${RUNNER_TEMP}/dist"
+            echo "GOLDEN_CACHE=${RUNNER_TEMP}/golden-cache"
+          } >> "$GITHUB_ENV"
+
+      - name: Install the tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qemu-system-x86 qemu-utils mtools xorriso zstd librsvg2-bin llvm lld python3-venv
+          # Afterglow's pointer generator draws with numpy and Pillow, and the drawn pixels depend on their versions, so they are pinned
+          # to the ones that produce the sum Afterglow records (Ubuntu's own packages draw different pointers).
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet numpy==2.5.4 pillow==13.0.0
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          # Afterglow's wallpaper renderer needs ImageMagick 7 (`magick`); Ubuntu ships 6, so the pinned official AppImage is used.
+          mkdir -p "$RUNNER_TEMP/magick"
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/magick/ImageMagick.AppImage" \
+            https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-35/ImageMagick-7.1.2-35-gcc-x86_64.AppImage
+          echo "f111044ed06b68cfb478df724c5a32d35145afa21073242f888d234a2f8cc002  $RUNNER_TEMP/magick/ImageMagick.AppImage" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/magick/ImageMagick.AppImage"
+          printf '#!/bin/sh\nAPPIMAGE_EXTRACT_AND_RUN=1 exec "%s/magick/ImageMagick.AppImage" "$@"\n' "$RUNNER_TEMP" > "$RUNNER_TEMP/magick/magick"
+          chmod +x "$RUNNER_TEMP/magick/magick"
+          echo "$RUNNER_TEMP/magick" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/venv/bin:$PATH"
+          # Ubuntu names the LLVM tools with a version; Afterglow's scripts look for the plain names.
+          for tool in llvm-rc lld-link; do
+            if ! command -v "$tool" >/dev/null; then
+              found="$(find /usr/lib -path '/usr/lib/llvm-*/bin/'"$tool" 2>/dev/null | sort -V | tail -n 1)"
+              [ -n "$found" ] && sudo ln -s "$found" "/usr/local/bin/$tool"
+            fi
+          done
+          ./rl doctor
+
+      # GitHub-hosted Linux runners expose /dev/kvm, but only root may open it until a udev rule opens it up.
+      - name: Enable KVM
+        id: kvm
+        env:
+          REQUIRE_KVM: ${{ inputs.require-kvm }}
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+          fi
+          if [ -w /dev/kvm ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=No KVM::This runner has no writable /dev/kvm. Without it the unattended install takes hours, so the QEMU stages are skipped."
+            if [ "$REQUIRE_KVM" = "true" ]; then
+              echo "::error title=KVM required::This build needs KVM and the runner has none."
+              exit 1
+            fi
+          fi
+
+      - name: Work out the cache keys
+        id: keys
+        run: ./rl key "$RECIPE" --work "$RL_WORK" >> "$GITHUB_OUTPUT"
+
+      # Each cache is keyed on the pin it holds, and what it restores is checked against that pin again below, so a cache can never
+      # change what the build uses. They save a download from SourceForge and GitHub on every run.
+      - name: Restore the ISO
+        id: iso-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.keys.outputs.iso_path }}
+          key: reactos-iso-${{ steps.keys.outputs.iso_sha256 }}
+
+      - name: Restore the Afterglow source
+        id: afterglow-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.keys.outputs.afterglow_path }}
+          key: afterglow-${{ steps.keys.outputs.afterglow_commit }}-${{ steps.keys.outputs.afterglow_tar_sha256 }}
+
+      - name: Download the pinned inputs
+        if: steps.iso-cache.outputs.cache-hit != 'true' || steps.afterglow-cache.outputs.cache-hit != 'true'
+        run: ./rl fetch "$RECIPE" --work "$RL_WORK"
+
+      - name: Use the cached inputs
+        if: steps.iso-cache.outputs.cache-hit == 'true' && steps.afterglow-cache.outputs.cache-hit == 'true'
+        run: echo "The ISO and the Afterglow source came from the cache; nothing was downloaded."
+
+      # Always runs, hit or miss: the ISO and the Afterglow tar are hashed again, and the lock file must match the recipe.
+      - name: Verify the pins
+        run: ./rl verify "$RECIPE" --work "$RL_WORK" --require iso,afterglow-tar
+
+      - name: Save the ISO
+        if: steps.iso-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.keys.outputs.iso_path }}
+          key: reactos-iso-${{ steps.keys.outputs.iso_sha256 }}
+
+      - name: Save the Afterglow source
+        if: steps.afterglow-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.keys.outputs.afterglow_path }}
+          key: afterglow-${{ steps.keys.outputs.afterglow_commit }}-${{ steps.keys.outputs.afterglow_tar_sha256 }}
+
+      # The golden disk is a 4 GiB sparse file holding about 420 MB; it is cached as a zstd file of about 160 MB.
+      - name: Restore the golden disk
+        id: golden-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.GOLDEN_CACHE }}/golden.img.zst
+          key: golden-${{ steps.keys.outputs.golden_key }}
+
+      - name: Unpack the golden disk
+        if: steps.golden-cache.outputs.cache-hit == 'true'
+        env:
+          GOLDEN_PATH: ${{ steps.keys.outputs.golden_path }}
+        run: |
+          mkdir -p "$(dirname "$GOLDEN_PATH")"
+          zstd -d --sparse -q -f "$GOLDEN_CACHE/golden.img.zst" -o "$GOLDEN_PATH"
+
+      - name: Install ReactOS unattended
+        id: install
+        if: steps.kvm.outputs.available == 'true' || steps.golden-cache.outputs.cache-hit == 'true'
+        run: |
+          started=$SECONDS
+          ./rl install "$RECIPE" --work "$RL_WORK"
+          echo "install=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+
+      - name: Pack the golden disk
+        if: steps.golden-cache.outputs.cache-hit != 'true' && steps.install.outcome == 'success'
+        env:
+          GOLDEN_PATH: ${{ steps.keys.outputs.golden_path }}
+        run: |
+          mkdir -p "$GOLDEN_CACHE"
+          zstd -T0 -3 -q -f "$GOLDEN_PATH" -o "$GOLDEN_CACHE/golden.img.zst"
+          ls -l "$GOLDEN_CACHE/golden.img.zst"
+
+      - name: Save the golden disk
+        if: steps.golden-cache.outputs.cache-hit != 'true' && steps.install.outcome == 'success'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.GOLDEN_CACHE }}/golden.img.zst
+          key: golden-${{ steps.keys.outputs.golden_key }}
+
+      - name: Build the image
+        id: image
+        if: steps.install.outcome == 'success'
+        run: |
+          started=$SECONDS
+          ./rl image "$RECIPE" --work "$RL_WORK"
+          echo "image=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+
+      - name: Split the image into v86 parts
+        id: parts
+        if: steps.image.outcome == 'success'
+        run: |
+          started=$SECONDS
+          mkdir -p "$DIST"
+          ./rl parts "$RECIPE" "$RL_WORK/images/afterglow.img" --work "$RL_WORK" --out "$DIST/parts"
+          echo "parts=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+
+      - name: Write the licences page and the manifest
+        id: outputs
+        if: steps.parts.outcome == 'success'
+        run: |
+          started=$SECONDS
+          ./rl licences "$RECIPE" --out "$DIST/licences.md"
+          cp "${RECIPE%.toml}.lock.json" "$DIST/"
+          echo "outputs=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+          timings=()
+          while IFS= read -r line; do timings+=(--timing "$line"); done < "$RUNNER_TEMP/timings"
+          ./rl manifest "$RECIPE" "$DIST" "${timings[@]}"
+          ./rl hash "$DIST" --base "$DIST" --out "$DIST/SHA256SUMS"
+          ./rl hash --check "$DIST/SHA256SUMS"
+          ./rl summary "$DIST/build-manifest.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Say what was skipped
+        if: steps.outputs.outcome != 'success'
+        run: |
+          {
+            echo "## Build skipped"
+            echo
+            echo "The pins and the lock file were verified. This runner has no KVM and no cached golden disk, so the unattended install, the image, the parts and the ISO were not built."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Seven days, as RL-11.2 decides: the outputs hold ReactOS binaries, and a public repository's artefacts are downloadable.
+      - name: Upload the release files
+        if: steps.outputs.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-files
+          path: |
+            ${{ env.DIST }}/build-manifest.json
+            ${{ env.DIST }}/licences.md
+            ${{ env.DIST }}/afterglow.lock.json
+            ${{ env.DIST }}/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload the v86 parts
+        if: steps.outputs.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: v86-parts
+          path: ${{ env.DIST }}/parts
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

@@ -20,7 +20,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 
 Hashes are 64 lowercase hex digits; the Afterglow commit is the full 40 digits. A size is a number of bytes or a string such as `"8MiB"`. `chunk_size` is a power of two of at least 64 KiB.
 
-`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons` and `afterglow-logon` (selects `agmsgina.dll`; needs the `afterglow.logon` patcher). The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
+`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons` and `afterglow-logon` (selects `agmsgina.dll`; needs the `afterglow.logon` patcher). An entry that ends in `.reg` is a path to a registry file of your own, relative to the recipe that lists it, and is applied after the named files, like `trim.extra` is applied after the profile: a downstream recipe lists `"quill.reg"` and keeps the base recipe's named files. When a recipe that extends another lists named files, those replace the base recipe's named files; the paths of every recipe in the chain are kept, base first. The file must exist and start with the line `Windows Registry Editor Version 5.00`, and `rl lock` records its sum. The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
 
 ### Wallpaper
 
