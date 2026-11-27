@@ -49,7 +49,7 @@ ReactOS images dressed by hand drift: the changes live only in a disk, nobody ca
 - `[settings]` holds the display mode, page file, desktop icon size, wallpaper path and registry files (default `Dusk` scheme).
 - `[trim]` names a trim profile (`none` or `base`) and may list `extra` trim files beside the recipe, applied after the profile; `[patchers]` lists the patchers to run, which run before the trim.
 - `[builds.NAME]` names a Rust project in this repository (`source`) and pins the SHA-256 of what it builds (`sha256`); `rl image` builds it with the project's own pinned toolchain, and a `[[files]]` entry with `source = "built:NAME"` writes the result. `rl lock` measures the pin.
-- `[[files]]` copies a file into the image and `[[shortcuts]]` writes a desktop shortcut; `settings.remove_desktop_shortcuts` removes stock shortcuts.
+- `[[files]]` copies a file into the image; across `extends`, entries merge by destination (RL-44), and a source is relative to the recipe that wrote it. An entry that writes `settings.wallpaper` supplies the wallpaper, and the Afterglow scene is not rendered. `[[shortcuts]]` writes a desktop shortcut; `settings.remove_desktop_shortcuts` removes stock shortcuts.
 - `[[steps]]` lists the steps by `use` (`trim`, `files`, `registry`, `shortcuts`, `afterglow.style`, `afterglow.pointers`, `afterglow.wallpaper`, `logon.msgina`, `logon.win32k-colours`, `hook`), each with an `id` and its parameters.
 - `[outputs]` chooses the disk, the v86 parts and state, and the remastered ISO.
 

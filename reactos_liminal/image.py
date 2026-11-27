@@ -79,7 +79,9 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		)
 	extras = [f"{len(recipe.data['files'])} files", f"{len(recipe.data['shortcuts'])} shortcuts"]
 	extras.append("the Afterglow style and pointers")
-	if wanted(recipe):
+	if wanted(recipe) and _wallpaper_file_entry(recipe):
+		extras.append(f"the wallpaper {recipe.section('settings', 'wallpaper')} comes from [[files]] (no scene rendered)")
+	elif wanted(recipe):
 		extras.append(f"the {wanted(recipe)} wallpaper rendered from its SVG master to {recipe.section('settings', 'wallpaper')}")
 	extras.append(f"{len(recipe.section('settings', 'remove_desktop_shortcuts'))} stock desktop shortcuts removed")
 	plan.steps.append("files: " + ", ".join(extras))
@@ -107,13 +109,24 @@ def _copy_sparse(source: Path, destination: Path) -> None:
 	destination.chmod(0o644)
 
 
+def _wallpaper_file_entry(recipe: Recipe) -> dict | None:
+	"""The `[[files]]` entry that writes `settings.wallpaper`, if the recipe has one."""
+	if "wallpaper" not in recipe.section("settings"):
+		return None
+	target = image_path(recipe.section("settings", "wallpaper")).lower()
+	for entry in recipe.data["files"]:
+		if entry["destination"].replace("\\", "/").strip("/").lower() == target:
+			return entry
+	return None
+
+
 def _write_wallpaper(recipe: Recipe, disk: FatImage, source_tree: Path | None, scratch: Path) -> None:
 	"""Render the recipe's Afterglow wallpaper and write it to `settings.wallpaper`, unless a `[[files]]` entry writes that path (the
 	recipe's own file wins, and nothing is rendered)."""
 	if wanted(recipe) is None or source_tree is None:
 		return
 	target = image_path(recipe.section("settings", "wallpaper"))
-	if any(entry["destination"].lower() == target.lower() for entry in recipe.data["files"]):
+	if _wallpaper_file_entry(recipe):
 		log("image", f"   wallpaper: [[files]] already writes {target}, so the Afterglow scene is not rendered")
 		return
 	try:

@@ -191,3 +191,33 @@ def test_a_duplicate_reg_path_is_refused(base_recipe_path, tmp_path):
 	)
 	with pytest.raises(RecipeError, match="duplicate"):
 		load(twice)
+
+
+def test_files_merge_by_destination_across_extends(base_recipe_path, tmp_path):
+	base = load(base_recipe_path)
+	assert len(base.data["files"]) == 2
+	child_dir = tmp_path / "quill"
+	child_dir.mkdir()
+	write(child_dir, "mine.cmd", "@echo mine\n")
+	child = write(
+		child_dir,
+		"child.toml",
+		'[recipe]\nname = "child"\nextends = "rl:recipes/afterglow.toml"\n\n'
+		'[[files]]\nsource = "mine.cmd"\ndestination = "ReactOS/System32/AFTERFETCH.cmd"\n\n'
+		'[[files]]\nsource = "mine.cmd"\ndestination = "Quill/run.cmd"\n',
+	)
+	files = load(child).data["files"]
+	assert [entry["destination"] for entry in files] == [
+		"ReactOS/system32/afterfetch.exe",
+		"ReactOS/System32/AFTERFETCH.cmd",
+		"Quill/run.cmd",
+	]
+	assert files[0]["source"] == "built:afterfetch"
+	assert files[1]["source"] == str(child_dir / "mine.cmd")
+
+
+def test_inherited_file_sources_stay_relative_to_the_recipe_that_wrote_them(base_recipe_path, tmp_path):
+	child = write(tmp_path, "child.toml", '[recipe]\nname = "child"\nextends = "rl:recipes/afterglow.toml"\n')
+	files = {entry["destination"]: entry["source"] for entry in load(child).data["files"]}
+	assert files["ReactOS/system32/afterfetch.cmd"] == str(base_recipe_path.parent.parent / "guest" / "cmd" / "afterfetch.cmd")
+	assert files["ReactOS/system32/afterfetch.exe"] == "built:afterfetch"
