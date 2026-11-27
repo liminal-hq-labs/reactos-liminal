@@ -10,8 +10,8 @@
 		},
 		"afterglow": {
 			"repo": "liminal-hq/afterglow-themes",
-			"commit": "c5f39dc6efd658653152845fa8c41e8a1bf2a374",
-			"tar_sha256": "cc901842db01020d564407cf971405a20af6ca0989825b8fd0050a667fc1b70b",
+			"commit": "78fa9d57805a993eaa8162b17a154e73bcd8c319",
+			"tar_sha256": "68825efcf02e5fcea3c575b408ad439d3ea99326c41109803f2113ec956f652b",
 			"msstyles_sha256": "2a40fecc9ccaa054f6725d3626cd37e513f2413f9d385c9702dc3b0b9a03902d",
 			"apply_reg": "desktop/install/afterglow-original.reg",
 			"wallpaper": "dusk-dark-smooth",
