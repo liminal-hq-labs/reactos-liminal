@@ -40,7 +40,7 @@ With cdrkit's `genisoimage`, `-eltorito-platform x86 -eltorito-boot` becomes `-b
 
 ## Reproducible
 
-Two builds of the same tree with the same writer are byte for byte the same: every file and folder time is the epoch (`$SOURCE_DATE_EPOCH`, else `[iso] epoch`), the volume descriptors' dates are the epoch, cdrtools' "MKI" sector (the build time and command line) is blanked, files are written in the writer's sorted order, and the hybrid record has a fixed disk id. The two writers give different bytes from each other, so the recipe pins one (`[iso] writer`, `genisoimage 1.1.11`, the version Ubuntu 24.04 ships) and the lock file records it. `rl doctor` and `rl iso` report a different writer; the disc still boots the same. The golden disk's key names the writer that made the install CD, so a different writer builds a new golden disk.
+Two builds of the same tree with the same writer are byte for byte the same: every file and folder time is the epoch (`$SOURCE_DATE_EPOCH`, else `[iso] epoch`), the volume descriptors' dates and the date of every directory record are the epoch (the records are rewritten after the writer finishes, because the root's parent record carried the clock's second on some runs), cdrtools' "MKI" sector (the build time and command line) is blanked, files are written in the writer's sorted order, and the hybrid record has a fixed disk id. The two writers give different bytes from each other, so the recipe pins one (`[iso] writer`, `genisoimage 1.1.11`, the version Ubuntu 24.04 ships) and the lock file records it. `rl doctor` and `rl iso` report a different writer; the disc still boots the same. The golden disk's key names the writer that made the install CD, so a different writer builds a new golden disk.
 
 ## The two discs
 

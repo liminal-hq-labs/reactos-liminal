@@ -249,3 +249,46 @@ def test_a_hybrid_record_that_points_elsewhere_is_refused(tmp_path):
 	out.write_bytes(data)
 	with pytest.raises(IsoBuildError, match="hybrid boot record"):
 		check_iso(out, tree)
+
+
+def directory_dates(iso_bytes):
+	"""The 7-byte date of every directory record in the root directory's extent."""
+	extent = struct.unpack_from("<I", iso_bytes, 16 * 2048 + 158)[0]
+	size = struct.unpack_from("<I", iso_bytes, 16 * 2048 + 166)[0]
+	data, position, dates = iso_bytes[extent * 2048 : extent * 2048 + size], 0, []
+	while position < size and data[position]:
+		dates.append(data[position + 18 : position + 25])
+		position += data[position]
+	return dates
+
+
+@needs_writer
+def test_every_directory_record_is_dated_the_epoch_whatever_the_writer_wrote(tmp_path):
+	"""A writer may date a record from the clock (the parent record of the root, on some builds). The dates are rewritten, so a build
+	that stamped one second or another gives the same bytes."""
+	tree = make_tree(tmp_path)
+	epoch = 1756425600
+	iso = write_iso(tree, tmp_path / "a.iso", tmp_path / "scratch", detect_writer(), epoch)
+	stamp = isobuild.record_date(epoch)
+	assert set(directory_dates(iso.read_bytes())) == {stamp}
+	skewed = tmp_path / "skewed.iso"
+	data = bytearray(iso.read_bytes())
+	extent = struct.unpack_from("<I", data, 16 * 2048 + 158)[0]
+	for offset in (18, 34 + 18, 68 + 18):  # the root's own record, its parent record and the first entry
+		data[extent * 2048 + offset + 5] = 59  # a clock second
+	skewed.write_bytes(bytes(data))
+	assert skewed.read_bytes() != iso.read_bytes()
+	isobuild.fix_record_dates(skewed, epoch)
+	assert skewed.read_bytes() == iso.read_bytes()
+
+
+@needs_writer
+def test_builds_a_second_apart_from_trees_made_across_a_second_are_the_same(tmp_path):
+	first_tree = make_tree(tmp_path / "one")
+	time.sleep(1.1)
+	second_tree = make_tree(tmp_path / "two")
+	writer = detect_writer()
+	first = write_iso(first_tree, tmp_path / "one.iso", tmp_path / "scratch-one", writer, epoch=1756425600)
+	time.sleep(1.1)
+	second = write_iso(second_tree, tmp_path / "two.iso", tmp_path / "scratch-two", writer, epoch=1756425600)
+	assert first.read_bytes() == second.read_bytes()

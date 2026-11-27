@@ -13,7 +13,8 @@
 # in `docs/iso.md`.
 #
 # Two builds of the same tree with the same writer are byte for byte the same: every file time is the epoch, the volume descriptors'
-# dates are the epoch, cdrtools' "MKI" sector (the build time and command line) is blanked, and the hybrid boot record has a fixed
+# dates and the date of every directory record are the epoch (a writer may stamp the parent record of the root with the clock), cdrtools'
+# "MKI" sector (the build time and command line) is blanked, and the hybrid boot record has a fixed
 # disk id. The two writers (cdrtools and cdrkit's genisoimage) give different bytes from each other, so the recipe pins one.
 import functools
 import os
@@ -370,6 +371,48 @@ def fix_descriptor_dates(iso: Path, epoch: int) -> None:
 					image.write(stamp)
 
 
+def record_date(epoch: int) -> bytes:
+	"""The 7-byte date of a directory record: years since 1900, month, day, hour, minute, second and the zone offset (UTC)."""
+	moment = time.gmtime(epoch)
+	return bytes([moment.tm_year - 1900, moment.tm_mon, moment.tm_mday, moment.tm_hour, moment.tm_min, moment.tm_sec, 0])
+
+
+def fix_record_dates(iso: Path, epoch: int) -> None:
+	"""Set the date of every directory record, from the primary descriptor's root record down, to `epoch`. The writer takes a file's date
+	from the file, which `fix_times` has set, but it may date the root's own and parent records from the clock, so two builds of one tree
+	a second apart would differ by that second."""
+	stamp = record_date(epoch)
+	with open(iso, "r+b") as image:
+		image.seek(16 * SECTOR + 156)
+		root = image.read(34)
+		pending = [(struct.unpack_from("<I", root, 2)[0], struct.unpack_from("<I", root, 10)[0])]
+		image.seek(16 * SECTOR + 156 + 18)
+		image.write(stamp)
+		seen = set()
+		while pending:
+			extent, size = pending.pop()
+			if extent in seen:
+				continue
+			seen.add(extent)
+			image.seek(extent * SECTOR)
+			data = bytearray(image.read(size))
+			position = 0
+			while position < size:
+				length = data[position]
+				if length == 0:  # records do not cross a sector; the rest of this sector is padding
+					position = (position // SECTOR + 1) * SECTOR
+					continue
+				data[position + 18 : position + 25] = stamp
+				flags = data[position + 25]
+				name_length = data[position + 32]
+				name = bytes(data[position + 33 : position + 33 + name_length])
+				if flags & 2 and name not in (b"\0", b"\x01"):
+					pending.append((struct.unpack_from("<I", data, position + 2)[0], struct.unpack_from("<I", data, position + 10)[0]))
+				position += length
+			image.seek(extent * SECTOR)
+			image.write(bytes(data))
+
+
 def make_hybrid(iso: Path, mbr_code: Path) -> None:
 	"""What ReactOS's `isohybrid -b isombr.bin -t 0x96` does, with a fixed disk id: the boot record's code, the boot image's LBA in
 	512-byte sectors at offset 432 (`isombr` reads it there), one active partition of type 0x96 over the whole image, and the image
@@ -430,6 +473,7 @@ def write_iso(tree: Path, out: Path, scratch: Path, writer: Writer, epoch: int, 
 		raise IsoBuildError(f"{writer.identity} failed: {(done.stderr or done.stdout).strip()[-500:]}")
 	try:
 		fix_descriptor_dates(partial, epoch)
+		fix_record_dates(partial, epoch)
 		if hybrid:
 			make_hybrid(partial, tree / HYBRID_CODE)
 		check_iso(partial, tree, hybrid)
