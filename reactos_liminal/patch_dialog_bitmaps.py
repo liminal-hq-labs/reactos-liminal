@@ -38,12 +38,21 @@ def load_spec() -> dict:
 	return json.loads(SPEC_FILE.read_text())
 
 
+def art_folder_of(source_tree: Path, file: str) -> str:
+	"""The folder of `file` in the Afterglow source, or the nearest one above it with a `render.py`."""
+	folder = file.rsplit("/", 1)[0]
+	while "/" in folder and not (source_tree / folder / "render.py").is_file():
+		folder = folder.rsplit("/", 1)[0]
+	return folder if (source_tree / folder / "render.py").is_file() else file.rsplit("/", 1)[0]
+
+
 def render_bitmaps(source_tree: Path, scratch: Path, resources: list[dict]) -> dict[str, tuple[bytes, str]]:
-	"""Render the art the resources name, one Afterglow art folder at a time (the folder of each entry's `file`), and return
+	"""Render the art the resources name, one Afterglow art folder at a time (the folder of each entry's `file`, or the nearest folder
+	above it that holds a `render.py`: the card faces sit in `desktop/cards/faces`, drawn by `desktop/cards/render.py`), and return
 	`{bitmap file name: (BMP bytes, SHA-256)}`. Each file is checked against the sums Afterglow records for its folder."""
 	by_folder: dict[str, list[str]] = {}
 	for resource in resources:
-		names = by_folder.setdefault(resource["file"].rsplit("/", 1)[0], [])
+		names = by_folder.setdefault(art_folder_of(source_tree, resource["file"]), [])
 		if resource["bitmap"] not in names:
 			names.append(resource["bitmap"])
 	rendered: dict[str, tuple[bytes, str]] = {}
