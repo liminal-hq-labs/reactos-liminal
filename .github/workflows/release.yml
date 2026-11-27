@@ -1,7 +1,7 @@
 # Release: build the image from the official ISO, then publish a GitHub Release with the v86 disk parts, the build manifest, the sums, the
-# licences page and the source pointer. v0.1.0 publishes no ISO (owner decision, 2026-11-26). Started only by the owner, by pushing a `v*` tag or by dispatching it. Publishing is a job in
-# the protected `release` environment, which waits for the owner's approval. Releases are not immutable (RL-11.1). Steps and setup are in
-# docs/release.md.
+# licences page and the source pointer. v0.1.0 publishes no ISO (owner decision, 2026-11-26). Started only by the owner, by pushing a `v*` tag
+# or by dispatching it; the tag is the gate, and nothing waits for a second approval (RL-61). Releases are not immutable (RL-11.1). Steps are
+# in docs/release.md.
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -149,9 +149,6 @@ jobs:
     needs: [plan, build, source]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    # The owner approves here. Nothing is published until they do.
-    environment:
-      name: release
     permissions:
       contents: write
     steps:

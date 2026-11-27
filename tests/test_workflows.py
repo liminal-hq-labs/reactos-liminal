@@ -50,10 +50,11 @@ def test_the_release_starts_on_a_v_tag_or_dispatch_only():
 	assert "branches:" not in triggers and "schedule:" not in triggers and "pull_request" not in triggers
 
 
-def test_only_the_publish_job_can_write_and_it_needs_the_release_environment():
+def test_only_the_publish_job_can_write_and_the_tag_is_the_only_gate():
 	assert RELEASE.count("contents: write") == 1
 	publish = RELEASE.split("\n  publish:\n", 1)[1]
-	assert "environment:\n      name: release" in publish and "contents: write" in publish
+	assert "contents: write" in publish
+	assert "environment:" not in RELEASE
 	assert "needs: [plan, build, source]" in publish
 	assert "gh release create" in publish
 
