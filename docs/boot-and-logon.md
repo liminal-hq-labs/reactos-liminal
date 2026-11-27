@@ -22,7 +22,7 @@ The patcher writes the nine values Afterglow's style file sets under `Control Pa
 
 **Off switch.** Leave `afterglow.colours` out of the recipe's `patchers.list`: the stock blue returns.
 
-**Check.** `screendump` frames every 20 ms from power on show no frame with the stock blue: the boot logo's navy, one black frame at the mode set, the Afterglow navy with the settings box, and then the wallpaper.
+**Check.** `screendump` frames every 20 ms from power on show no frame with the stock blue: the boot logo's navy, one black frame at the mode set, the Afterglow navy with the settings box, and then the wallpaper. With the automatic logon off, a cold boot shows the Welcome box on the Afterglow navy (`#090e2a`) from the mode set until Ctrl+Alt+Delete, the Logon box on the same navy, then the wallpaper; logging off from a session shows the Welcome and Logon boxes over the user's wallpaper. No frame in any of these runs holds the stock blue.
 
 ## Boot: `afterglow.boot`
 

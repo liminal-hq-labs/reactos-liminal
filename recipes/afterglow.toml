@@ -55,7 +55,7 @@ display_height = 768
 page_file = "64 64"
 icon_size = 32
 wallpaper = "C:\\ReactOS\\Web\\Wallpaper\\Dusk.bmp"
-wallpaper_style = "stretch"
+wallpaper_style = "fill"
 reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]
 
 # The wallpapers Display Properties lists. `scenes = "all"` puts every Afterglow scene (the five palettes, dark and light, smooth and stepped:

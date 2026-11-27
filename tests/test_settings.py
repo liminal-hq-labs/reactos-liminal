@@ -24,7 +24,7 @@ def test_appearance_with_and_without_a_wallpaper():
 	assert '"Shell Icon Size"="48"' in plain and "Wallpaper" not in plain
 	with_wallpaper = settings.appearance_reg(32, "C:\\ReactOS\\Web\\Wallpaper\\X.bmp")
 	assert '"Wallpaper"="C:\\\\ReactOS\\\\Web\\\\Wallpaper\\\\X.bmp"' in with_wallpaper
-	assert '"WallpaperStyle"="2"' in with_wallpaper
+	assert '"WallpaperStyle"="10"' in with_wallpaper
 
 
 def test_the_recipe_chooses_the_static_files(fake_iso_recipe, tmp_path):
@@ -112,6 +112,13 @@ def test_wallpaper_styles_set_the_two_desktop_values():
 	assert '"WallpaperStyle"="0"' in centred and '"TileWallpaper"="0"' in centred
 	tiled = settings.appearance_reg(32, path, "tile")
 	assert '"WallpaperStyle"="0"' in tiled and '"TileWallpaper"="1"' in tiled
+	fitted = settings.appearance_reg(32, path, "fit")
+	assert '"WallpaperStyle"="6"' in fitted and '"TileWallpaper"="0"' in fitted
+	filled = settings.appearance_reg(32, path)  # the default
+	assert '"WallpaperStyle"="10"' in filled and '"TileWallpaper"="0"' in filled
+	# The same style for HKU\\.DEFAULT, whose wallpaper the recipe leaves alone.
+	default_block = filled.split("[HKEY_USERS\\.DEFAULT\\Control Panel\\Desktop]")[1]
+	assert '"WallpaperStyle"="10"' in default_block and '"Wallpaper"=' not in default_block
 
 
 def test_the_start_patcher_selects_its_shell(base_recipe_path):

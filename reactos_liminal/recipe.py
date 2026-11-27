@@ -352,7 +352,7 @@ SCHEMA: dict[str, Any] = {
 		"page_file": (_page_file, "64 64"),
 		"icon_size": (_int(16, 256), 32),
 		"wallpaper": (_guest_path, None),
-		"wallpaper_style": (_choice("stretch", "centre", "tile"), "stretch"),
+		"wallpaper_style": (_choice("fill", "fit", "stretch", "centre", "tile"), "fill"),
 		"reg_files": (_reg_files, ["display", "quiet", "watermark-off"]),
 		"remove_desktop_shortcuts": (_str_list, []),
 	},
