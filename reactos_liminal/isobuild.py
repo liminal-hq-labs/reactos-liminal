@@ -92,13 +92,13 @@ class Writer:
 
 
 def parse_writer_version(text: str) -> tuple[str, str] | None:
-	"""The writer's name and version from its `-version` output. cdrkit's version is 1.1.x whichever name it was run as, and it is
-	always reported as `genisoimage`."""
+	"""The writer's name and version from its `-version` output. cdrkit is `genisoimage` 1.1.x, but the `mkisofs` link it installs
+	reports itself as `mkisofs 2.01`; only cdrtools reports 3.x, so anything older is cdrkit and is named `genisoimage`."""
 	found = re.match(r"\s*(mkisofs|genisoimage)\s+(\S+)", text)
 	if not found:
 		return None
 	name, version = found.groups()
-	if version.startswith("1."):
+	if not version.startswith("3."):
 		name = "genisoimage"
 	return name, version
 
@@ -114,10 +114,14 @@ def _probe(search_path: str) -> tuple[Writer, ...]:
 	found: list[Writer] = []
 	seen: set[str] = set()
 	for name in WRITER_NAMES:
-		path = shutil.which(name)
-		if not path or os.path.realpath(path) in seen:
+		found_path = shutil.which(name)
+		if not found_path:
 			continue
-		seen.add(os.path.realpath(path))
+		# Run the program the link names: Debian's `mkisofs` is a link to `genisoimage`, and Arch's `genisoimage` to `mkisofs`.
+		path = os.path.realpath(found_path)
+		if path in seen:
+			continue
+		seen.add(path)
 		try:
 			done = subprocess.run([path, "-version"], capture_output=True, text=True, timeout=20, check=False)
 		except (OSError, subprocess.TimeoutExpired):

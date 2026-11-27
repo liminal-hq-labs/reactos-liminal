@@ -36,7 +36,8 @@ CDRKIT = Writer("/usr/bin/genisoimage", "genisoimage", "1.1.11")
 def test_the_writer_is_named_from_its_version_output():
 	assert parse_writer_version("mkisofs 3.02a09 (--)\n\nCopyright") == ("mkisofs", "3.02a09")
 	assert parse_writer_version("genisoimage 1.1.11 (Linux)") == ("genisoimage", "1.1.11")
-	# cdrkit's `mkisofs` link reports itself as 1.1.x, and is the same program as genisoimage.
+	# cdrkit's `mkisofs` link reports itself as 2.01, and is the same program as genisoimage; only cdrtools reports 3.x.
+	assert parse_writer_version("mkisofs 2.01 (Linux)") == ("genisoimage", "2.01")
 	assert parse_writer_version("mkisofs 1.1.11 (Linux)") == ("genisoimage", "1.1.11")
 	assert parse_writer_version("something else") is None
 
@@ -64,6 +65,16 @@ def test_one_program_under_two_names_is_one_writer(tmp_path, monkeypatch):
 	fake_writers(tmp_path, monkeypatch, {"mkisofs": "mkisofs 3.02a09 (--)"})
 	(tmp_path / "bin" / "genisoimage").symlink_to(tmp_path / "bin" / "mkisofs")
 	assert len(isobuild.writers_on_path()) == 1
+
+
+def test_debians_mkisofs_link_is_genisoimage(tmp_path, monkeypatch):
+	"""On Ubuntu `mkisofs` is a link to `genisoimage`, and run under that name it says `mkisofs 2.01`; the program the link names is
+	what is run and named."""
+	fake_writers(tmp_path, monkeypatch, {"genisoimage": "genisoimage 1.1.11 (Linux)"})
+	(tmp_path / "bin" / "mkisofs").symlink_to(tmp_path / "bin" / "genisoimage")
+	(writer,) = isobuild.writers_on_path()
+	assert writer.identity == "genisoimage 1.1.11" and not writer.cdrtools
+	assert writer.path == str(tmp_path / "bin" / "genisoimage")
 
 
 def test_no_writer_is_an_error_and_the_identity_is_none(tmp_path, monkeypatch):
