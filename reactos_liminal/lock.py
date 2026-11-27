@@ -69,7 +69,12 @@ def build_lock(recipe: Recipe) -> dict:
 		if is_reg_path(entry)
 	}
 	builds = {name: table["sha256"] for name, table in recipe.data.get("builds", {}).items()}
-	files = {entry["source"]: sha256_file(base / entry["source"]) for entry in recipe.data["files"] if (base / entry["source"]).is_file()}
+	# Resolved sources are absolute (made so against the recipe that wrote them); the lock names each one beside this recipe.
+	files = {
+		_relative(base / entry["source"], base): sha256_file(base / entry["source"])
+		for entry in recipe.data["files"]
+		if (base / entry["source"]).is_file()
+	}
 	return {
 		"schema": LOCK_SCHEMA,
 		"recipe": recipe.name,

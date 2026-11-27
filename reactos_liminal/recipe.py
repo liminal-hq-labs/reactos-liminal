@@ -4,10 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 # A recipe chooses and parameterizes steps; it cannot add a new kind of write. `extends` layers one recipe on another: tables merge
-# key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends. The one exception is
+# key by key, and any other value (a list, a string) in the extending recipe replaces the one it extends. Three lists are the exception.
 # `trim.extra`: each recipe's own list, resolved against that recipe's folder, is added after the lists of the recipes it extends. The
 # entries of `settings.reg_files` that end in `.reg` work the same way: paths beside the recipe that lists them, kept after the named files.
+# `[[files]]`: entries merge by destination (an extending recipe's entry replaces the extended recipe's entry for the same destination in
+# place, and its other entries follow), and each file source is made absolute against the recipe that wrote it.
 import copy
+import os
 import re
 import tomllib
 from dataclasses import dataclass, field
@@ -363,6 +366,47 @@ def _own_reg_files(raw: dict, path: Path) -> list | None:
 	return [str(path.parent / item) if is_reg_path(item) else item for item in table["reg_files"]]
 
 
+BUILT_PREFIX = "built:"
+
+
+def _file_key(entry: Any) -> str | None:
+	"""The destination as the disk sees it (case-insensitive, one separator, no leading slash), or None when the entry is malformed."""
+	destination = entry.get("destination") if isinstance(entry, dict) else None
+	if not isinstance(destination, str):
+		return None
+	return destination.replace("\\", "/").strip("/").lower()
+
+
+def _own_files(raw: dict, path: Path) -> list | None:
+	"""The recipe's own `[[files]]` with each plain source made absolute against this recipe's folder (a `built:` source is a name,
+	not a path), or None when it lists none. A malformed entry is left for the validator to name."""
+	entries = raw.get("files")
+	if not isinstance(entries, list):
+		return None
+	resolved = []
+	for entry in entries:
+		source = entry.get("source") if isinstance(entry, dict) else None
+		if isinstance(source, str) and source and not source.startswith(BUILT_PREFIX):
+			entry = {**entry, "source": os.path.normpath(path.parent / source)}
+		resolved.append(entry)
+	return resolved
+
+
+def merge_files(inherited: list, own: list) -> list:
+	"""`inherited` with each `own` entry replacing the inherited entry for the same destination in place; the rest of `own` follows."""
+	merged = list(inherited)
+	positions = {_file_key(entry): index for index, entry in enumerate(merged) if _file_key(entry) is not None}
+	for entry in own:
+		key = _file_key(entry)
+		if key is not None and key in positions:
+			merged[positions[key]] = entry
+		else:
+			if key is not None:
+				positions[key] = len(merged)
+			merged.append(entry)
+	return merged
+
+
 def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 	path = path.resolve()
 	if path in seen:
@@ -371,6 +415,7 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 	chain = [path]
 	own_extra = _own_extra(raw, path)
 	own_reg_files = _own_reg_files(raw, path)
+	own_files = _own_files(raw, path)
 	parent = raw.get("recipe", {}).get("extends") if isinstance(raw.get("recipe"), dict) else None
 	if parent:
 		if not isinstance(parent, str):
@@ -380,6 +425,7 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 		base, base_chain = _resolve(ppath, (*seen, path))
 		inherited = base.get("trim", {}).get("extra") if isinstance(base.get("trim"), dict) else None
 		inherited_regs = base.get("settings", {}).get("reg_files") if isinstance(base.get("settings"), dict) else None
+		inherited_files = base.get("files") if isinstance(base.get("files"), list) else []
 		raw = _merge(base, raw)
 		chain = chain + base_chain
 		if own_extra is not None:
@@ -392,11 +438,15 @@ def _resolve(path: Path, seen: tuple[Path, ...]) -> tuple[dict, list[Path]]:
 			named = own_named if own_named else [item for item in inherited_list if not is_reg_path(item)]
 			own_paths = [item for item in own_reg_files if is_reg_path(item)]
 			raw["settings"]["reg_files"] = [*named, *inherited_paths, *own_paths]
+		if own_files is not None:
+			raw["files"] = merge_files(inherited_files, own_files)
 	else:
 		if own_extra is not None:
 			raw["trim"]["extra"] = own_extra
 		if own_reg_files is not None:
 			raw["settings"]["reg_files"] = own_reg_files
+		if own_files is not None:
+			raw["files"] = own_files
 	return raw, chain
 
 
@@ -434,7 +484,7 @@ def load(path: str | Path) -> Recipe:
 	if "wallpaper" in pin and "wallpaper" not in data["settings"]:
 		raise RecipeError("settings.wallpaper: required when inputs.afterglow.wallpaper names a scene (the path the BMP is written to)")
 	for entry in data["files"]:
-		if entry["source"].startswith("built:") and entry["source"][len("built:") :] not in data.get("builds", {}):
+		if entry["source"].startswith(BUILT_PREFIX) and entry["source"][len(BUILT_PREFIX) :] not in data.get("builds", {}):
 			raise RecipeError(f"files: {entry['source']} names a build that no [builds] table declares")
 	if "reactos_iso" not in data.get("inputs", {}):
 		raise RecipeError("inputs.reactos_iso: required (the pinned ISO)")

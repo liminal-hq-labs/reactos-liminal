@@ -14,9 +14,7 @@ from pathlib import Path
 from .fetch import FetchError, sha256_file
 from .log import log
 from .paths import ensure
-from .recipe import Recipe
-
-BUILT_PREFIX = "built:"
+from .recipe import BUILT_PREFIX, Recipe
 
 
 class BuildError(FetchError):

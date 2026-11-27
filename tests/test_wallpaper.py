@@ -117,3 +117,23 @@ def test_the_image_step_writes_the_bitmap_unless_a_file_entry_does(pinned, tmp_p
 	fat.delete_file("ReactOS/afterglow-wallpaper.bmp")
 	_write_wallpaper(pinned, fat, fake_tree(other, b"BM-unused"), scratch)
 	assert not fat.exists("ReactOS/afterglow-wallpaper.bmp")
+
+
+def test_a_recipe_supplies_its_own_wallpaper_from_a_file_entry(base_recipe_path, tmp_path):
+	"""A downstream recipe puts its own BMP at `settings.wallpaper` with [[files]]; the plan says the scene is not rendered."""
+	from reactos_liminal.image import _wallpaper_file_entry, plan_image
+
+	(tmp_path / "emblem.bmp").write_bytes(b"BM-emblem")
+	child = tmp_path / "child.toml"
+	child.write_text(
+		'[recipe]\nname = "child"\nextends = "rl:recipes/afterglow.toml"\n\n'
+		'[[files]]\nsource = "emblem.bmp"\ndestination = "ReactOS/afterglow-wallpaper.bmp"\n'
+	)
+	recipe = load(child)
+	entry = _wallpaper_file_entry(recipe)
+	assert entry is not None and entry["source"] == str(tmp_path / "emblem.bmp")
+	assert wallpaper.wanted(recipe) == "dusk-dark-smooth"  # the pin is inherited, and still measured by `rl lock`
+	plan = plan_image(recipe, tmp_path / "work", golden=tmp_path / "golden.img", out=tmp_path / "out.img")
+	text = "\n".join(plan.steps)
+	assert "comes from [[files]]" in text and "rendered from its SVG master" not in text
+	assert _wallpaper_file_entry(load(base_recipe_path)) is None
