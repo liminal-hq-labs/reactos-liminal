@@ -36,6 +36,7 @@ class PinRecorder:
 	# group) or "cell" (a toolbar cell), to the icon, the files written and the files left alone with a reason.
 	patched: dict[tuple[str, str, int], tuple[str, list[str]]] = field(default_factory=dict)
 	skipped: dict[tuple[str, str, int], list[str]] = field(default_factory=dict)
+	created: set[str] = field(default_factory=set)  # files a patcher made that the stock disk does not have
 
 	def record(self, section: str, digest: str, name: str, result: str) -> None:
 		self.results.setdefault(section, {}).setdefault(digest, {})[name] = result
@@ -66,6 +67,12 @@ def note_patched(module: str, number: int, icon_id: str, image_path: str, kind: 
 		entry = _recorder.patched.setdefault((module.lower(), kind, number), (icon_id, []))
 		if image_path not in entry[1]:
 			entry[1].append(image_path)
+
+
+def note_created(image_path: str) -> None:
+	"""Tell the coverage report that the file at `image_path` is new: the stock disk has none. Only collected under `rl pin`."""
+	if _recorder is not None:
+		_recorder.created.add(image_path)
 
 
 def note_skipped(module: str, number: int, reason: str, kind: str = "group") -> None:

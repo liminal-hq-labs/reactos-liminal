@@ -12,11 +12,13 @@ import json
 from pathlib import Path
 
 from .fetch import sha256_file
-from .icon_map import MapResource, load_map, module_resources, require_icon
+from .icon_dll import build_icon_dll
+from .icon_map import ColourEdit, MapResource, load_colours, load_map, module_resources, require_icon
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched, note_patched, note_skipped
+from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched, note_created, note_patched, note_skipped
 from .patch_icons import icon_set_digest, patch_icon_groups, require_pin, settle_result, stock_group_problem, verified_icons
+from .pe_resources import PeError, PeFile
 
 FAMILIES_FILE = Path(__file__).resolve().parent / "icon_families.json"
 PINS_FILE = Path(__file__).resolve().parent.parent / "pins" / "icon-families.json"
@@ -83,6 +85,35 @@ def input_copy(file_spec: dict, scratch: Path) -> Path | None:
 	return latest_patched(scratch, file_spec["path"])
 
 
+def write_colours(data: bytes, edits: list[ColourEdit], image_path: str) -> bytes:
+	"""Write each colour edit over the bytes the map says the stock code holds there, and refuse when they are not those bytes. The
+	file is the stock file (its SHA-256 is checked by the caller), so a refusal means the map and the binary disagree."""
+	patched = bytearray(data)
+	for edit in edits:
+		end = edit.offset + len(edit.stock)
+		found = bytes(patched[edit.offset : end])
+		if found != edit.stock:
+			raise PatchError(
+				f"{image_path} holds {found.hex(' ')} at {edit.offset:#x}, not the {edit.stock.hex(' ')} Afterglow's map records for "
+				f"the {edit.colour_id} colour ({edit.instruction}); the offset was checked against the stock file only"
+			)
+		patched[edit.offset : end] = edit.afterglow
+	return bytes(patched)
+
+
+def new_file_bytes(image_path: str, golden: FatImage, groups: dict[int, str], icons_by_id: dict[str, bytes]) -> bytes:
+	"""The bytes of a file the stock disk does not have and the family creates: a resource-only DLL with the icon groups the map names for
+	it. Refuses when the stock disk has a file of that name, because the patch was written for a ReactOS that ships none."""
+	if golden.exists(image_path):
+		raise PatchError(f"{image_path} is on the stock disk; the patch creates it and was written for a ReactOS that ships none")
+	if not groups:
+		raise PatchError(f"Afterglow's map names no icon group for {image_path}")
+	try:
+		return build_icon_dll({group: icons_by_id[icon_id] for group, icon_id in groups.items()})
+	except PeError as error:
+		raise PatchError(f"{image_path} cannot be written: {error}") from error
+
+
 def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: Path) -> list[PatchedFile]:
 	family = load_families()[family_name]
 	pins = load_pins()["families"].get(family_name, {})
@@ -90,6 +121,10 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 	resources = {file_spec["path"]: family_resources(entries, file_spec) for file_spec in family["files"]}
 	icon_ids = {resource.icon_id for found in resources.values() for resource in found.values()}
 	icons_by_id, icon_sums = verified_icons(source_tree, scratch, icon_ids)
+	colours = {file_spec["path"]: load_colours(source_tree, module_name(file_spec)) for file_spec in family["files"]}
+	for image_path, edits in colours.items():  # a changed colour in the map is a new icon set, so a new pin
+		for edit in edits:
+			icon_sums[f"colour/{image_path}/{edit.offset:#x}"] = edit.afterglow.hex()
 	inputs = {file_spec["path"]: input_copy(file_spec, scratch) for file_spec in family["files"]}
 	for image_path, earlier in inputs.items():
 		if earlier is not None:  # a file built on another patcher's result is pinned against that result too
@@ -104,6 +139,25 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 		module = module_name(file_spec)
 		if is_trimmed(image_path):
 			log("patch", f"   {family_name}: {image_path} is removed by the trim, so it is left alone")
+			continue
+		if file_spec.get("new_file"):
+			patched_bytes = new_file_bytes(
+				image_path, golden, {group: res.icon_id for group, res in resources[image_path].items()}, icons_by_id
+			)
+			flat = image_path.replace("/", "_")
+			patched = scratch / f"{family_name}-{flat}.patched"
+			patched.write_bytes(patched_bytes)
+			result = sha256_file(patched)
+			try:
+				settle_result(family_name, digest, image_path, result, (expected_by_file or {}).get(image_path), PINS_FILE.name)
+			except PatchError:
+				patched.unlink(missing_ok=True)
+				raise
+			note_created(image_path)
+			for group, resource in resources[image_path].items():
+				note_patched(module, group, resource.icon_id, image_path)
+			log("patch", f"   {family_name}: {image_path} created, {len(resources[image_path])} groups ({result})")
+			results.append(PatchedFile(image_path, patched))
 			continue
 		if not golden.exists(stock_path):
 			log("patch", f"   {family_name}: {stock_path} is not on the stock disk, so it is left alone")
@@ -123,13 +177,20 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 				"its group and frame ids were checked against that one file only"
 			)
 		wanted = usable_groups(stock_file.read_bytes(), module, image_path, resources[image_path])
-		if not wanted:
+		if not wanted and not colours[image_path]:
 			log("patch", f"   {family_name}: {image_path} has no group to replace, so it is left alone")
 			continue
 		icons = {group: icons_by_id[icon_id] for group, icon_id in wanted.items()}
 		try:
-			patched_bytes, report = patch_icon_groups((inputs[image_path] or stock_file).read_bytes(), icons)
-		except PatchError as error:
+			base = write_colours((inputs[image_path] or stock_file).read_bytes(), colours[image_path], image_path)
+			if wanted:
+				patched_bytes, report = patch_icon_groups(base, icons)
+			else:
+				report = []
+				pe = PeFile(base)
+				pe.update_checksum()
+				patched_bytes = pe.to_bytes()
+		except (PatchError, PeError) as error:
 			raise PatchError(f"{image_path}: {error}") from error
 		patched = scratch / f"{family_name}-{flat}.patched"
 		patched.write_bytes(patched_bytes)
@@ -144,7 +205,12 @@ def run_family(family_name: str, golden: FatImage, source_tree: Path, scratch: P
 		for line in report:
 			if "fitted" in line:
 				log("patch", f"   {image_path}: {line}")
-		log("patch", f"   {family_name}: {image_path} patched, {len(report)} groups ({result})")
+		for edit in colours[image_path]:
+			log(
+				"patch",
+				f"   {image_path}: the {edit.colour_id} colour at {edit.offset:#x}: {edit.stock.hex(' ')} -> {edit.afterglow.hex(' ')}",
+			)
+		log("patch", f"   {family_name}: {image_path} patched, {len(report)} groups, {len(colours[image_path])} colours ({result})")
 		results.append(PatchedFile(image_path, patched))
 	return results
 

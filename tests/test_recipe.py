@@ -25,7 +25,7 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 	iso = recipe.section("inputs", "reactos_iso")
 	assert iso["name"] == "ReactOS-0.4.16-i386.iso"
 	assert len(iso["sha256"]) == 64 and len(iso["zip_sha256"]) == 64
-	assert recipe.section("inputs", "afterglow")["commit"] == "abad4b3e3766150acae2b9a1229499662befeb45"
+	assert recipe.section("inputs", "afterglow")["commit"] == "4c8847f1c0e176d92741547e4a9061c14f282a70"
 	assert recipe.section("patchers", "list") == [
 		"afterglow.pointers",
 		"afterglow.start",

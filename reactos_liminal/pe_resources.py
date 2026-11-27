@@ -91,19 +91,27 @@ class PeFile:
 		for index in range(named + ids):
 			yield struct.unpack_from("<II", self.data, self._resource_raw + directory_offset + 16 + 8 * index)
 
-	def data_entries(self, resource_type: int) -> dict[int, list[int]]:
-		"""Resource id -> file offsets of its data entries, one per language, for the numeric ids of one resource type."""
-		found: dict[int, list[int]] = {}
+	def _name(self, name_offset: int) -> str:
+		"""The string a named resource entry points at (a length in characters, then UTF-16LE), as the compiler wrote it."""
+		start = self._resource_raw + name_offset
+		length = struct.unpack_from("<H", self.data, start)[0]
+		return bytes(self.data[start + 2 : start + 2 + 2 * length]).decode("utf-16-le")
+
+	def data_entries(self, resource_type: int) -> dict[int | str, list[int]]:
+		"""Resource id (or name, for a resource the module names by string) -> file offsets of its data entries, one per language, for
+		one resource type."""
+		found: dict[int | str, list[int]] = {}
 		for type_id, type_target in self._entries(0):
 			if type_id != resource_type or not type_target & HIGH_BIT:
 				continue
 			for resource_id, id_target in self._entries(type_target & ~HIGH_BIT):
-				if resource_id & HIGH_BIT or not id_target & HIGH_BIT:
+				if not id_target & HIGH_BIT:
 					continue
+				key = self._name(resource_id & ~HIGH_BIT) if resource_id & HIGH_BIT else resource_id
 				for _language, language_target in self._entries(id_target & ~HIGH_BIT):
 					if language_target & HIGH_BIT:
-						raise PeError(f"resource {resource_type}/{resource_id} has a directory where a language entry should be")
-					found.setdefault(resource_id, []).append(self._resource_raw + language_target)
+						raise PeError(f"resource {resource_type}/{key} has a directory where a language entry should be")
+					found.setdefault(key, []).append(self._resource_raw + language_target)
 		return found
 
 	def entry_data(self, data_entry_offset: int) -> bytes:

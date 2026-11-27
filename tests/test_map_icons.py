@@ -4,17 +4,21 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 import hashlib
 import json
+import shutil
+import struct
 
 import pytest
 from pe_fixtures import group_of, ico, stock_dll
 
 from reactos_liminal import coverage, patch_base, patch_family
 from reactos_liminal.patchers import PatchError, run_patchers
+from reactos_liminal.pe_resource import pe_checksum
 from reactos_liminal.pe_resources import PeFile
 from reactos_liminal.trim import build_profile
 
 GAME = "ReactOS/system32/game.exe"
 GONE = "ReactOS/system32/gone.exe"
+IMAGERES = "ReactOS/system32/imageres.dll"
 MAP = {
 	"icons": [
 		{"id": "sol", "kind": "program", "resource": {"module": "game.exe", "group": 4, "evidence": ["source", "binary"]}},
@@ -98,7 +102,7 @@ def test_a_file_the_trim_removes_is_skipped_and_the_patch_list_is_otherwise_the_
 def test_the_map_icons_table_names_no_group(setup):
 	"""A module's groups come from the map: the family's files carry a path and a stock sum, and no group id."""
 	real = json.loads(patch_family.FAMILIES_FILE.read_text())["families"]["map-icons"]["files"]
-	assert real and all(set(file_spec) <= {"path", "stock_sha256", "module", "stock_path"} for file_spec in real)
+	assert real and all(set(file_spec) <= {"path", "stock_sha256", "module", "stock_path", "new_file"} for file_spec in real)
 
 
 def test_the_coverage_report_gives_every_map_resource_one_status(setup, tmp_path):
@@ -154,3 +158,86 @@ def test_explorer_and_its_copy_replace_the_first_icon_group_the_file_views_draw(
 		"ReactOS/explorer.exe": [{"group": 100, "afterglow": "explorer"}],
 		"ReactOS/agexplorer.exe": [{"group": 100, "afterglow": "explorer"}],
 	}
+
+
+def with_map(icons_dir, change):
+	"""Rewrite the fixture's map after `change` has edited a copy of it."""
+	edited = json.loads(json.dumps(MAP))
+	change(edited)
+	(icons_dir / "map.json").write_text(json.dumps(edited))
+
+
+def test_a_colour_the_map_records_is_written_over_the_exact_stock_bytes_and_the_checksum_is_updated(setup, tmp_path):
+	fat, tree, scratch, game_bytes, icons_dir = setup
+	site = {"module": "game.exe", "offset": "0x401", "stock_bytes": "00 00 00 00", "afterglow_bytes": "1f 25 54 02"}
+	with_map(icons_dir, lambda edited: edited.update(colours=[{"id": "felt", "code": [site]}]))
+	with patch_base.recording():
+		patched = run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch)
+	new = patched[0].local_file.read_bytes()
+	assert new[0x401:0x405] == bytes.fromhex("1f255402")
+	assert game_bytes[0x401:0x405] == bytes(4)
+	pe = PeFile(new)
+	assert struct.unpack_from("<I", new, pe.optional + 64)[0] == pe_checksum(new, pe.optional + 64)
+
+
+def test_a_colour_whose_stock_bytes_are_not_there_is_refused(setup, tmp_path):
+	fat, tree, scratch, _game_bytes, icons_dir = setup
+	site = {"module": "game.exe", "offset": "0x401", "stock_bytes": "00 50 00 02", "afterglow_bytes": "1f 25 54 02"}
+	with_map(icons_dir, lambda edited: edited.update(colours=[{"id": "felt", "code": [site]}]))
+	with patch_base.recording(), pytest.raises(PatchError, match="not the 00 50 00 02 Afterglow's map records for the felt colour"):
+		run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch)
+
+
+def test_a_colour_in_a_file_the_trim_removes_is_left_alone(setup, tmp_path):
+	fat, tree, scratch, _game_bytes, icons_dir = setup
+	site = {"module": "game.exe", "offset": "0x401", "stock_bytes": "00 00 00 00", "afterglow_bytes": "1f 25 54 02"}
+	with_map(icons_dir, lambda edited: edited.update(colours=[{"id": "felt", "code": [site]}]))
+	with patch_base.recording(), patch_base.skipping(lambda path: path == GAME):
+		assert run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch) == []
+
+
+def test_a_changed_colour_is_a_new_pin(setup, tmp_path):
+	fat, tree, scratch, _game_bytes, icons_dir = setup
+	digests = []
+	for new_bytes in ("1f 25 54 02", "1f 25 55 02"):
+		site = {"module": "game.exe", "offset": "0x401", "stock_bytes": "00 00 00 00", "afterglow_bytes": new_bytes}
+		with_map(icons_dir, lambda edited, site=site: edited.update(colours=[{"id": "felt", "code": [site]}]))
+		shutil.rmtree(scratch)
+		scratch.mkdir()
+		with patch_base.recording() as recorder:
+			run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch)
+		digests.append(next(iter(recorder.results["map-icons"])))
+	assert digests[0] != digests[1]
+
+
+def test_a_file_the_stock_disk_lacks_is_created_as_a_resource_only_dll_and_reported_as_new(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, _game_bytes, icons_dir = setup
+	families = patch_family.load_families()
+	families["map-icons"]["files"].append({"path": IMAGERES, "new_file": True})
+	monkeypatch.setattr(patch_family, "load_families", lambda: families)
+	extra = {"module": "imageres.dll", "group": 110, "evidence": ["source"]}
+	with_map(icons_dir, lambda edited: edited["icons"][0].update(also=[extra]))
+	with patch_base.recording() as recorder:
+		patched = run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch)
+	made = next(item for item in patched if item.image_path == IMAGERES)
+	pe = PeFile(made.local_file.read_bytes())
+	assert sorted(frame.width for frame in group_of(pe, 110)) == [16, 32, 48]
+	assert IMAGERES in recorder.created
+	entries = {entry["id"]: entry for entry in json.loads((icons_dir / "map.json").read_text())["icons"]}
+	rows = coverage.build_rows(entries, recorder, {"game.exe", "gone.exe", "imageres.dll"}, {})
+	row = next(row for row in rows if row.module == "imageres.dll")
+	assert row.status == "patched" and "a new file" in row.detail
+
+
+def test_a_new_file_that_the_stock_disk_already_has_is_refused(setup, tmp_path, monkeypatch):
+	fat, tree, scratch, game_bytes, icons_dir = setup
+	local = tmp_path / "imageres.dll"
+	local.write_bytes(game_bytes)
+	fat.copy_in(local, IMAGERES)
+	families = patch_family.load_families()
+	families["map-icons"]["files"].append({"path": IMAGERES, "new_file": True})
+	monkeypatch.setattr(patch_family, "load_families", lambda: families)
+	extra = {"module": "imageres.dll", "group": 110, "evidence": ["source"]}
+	with_map(icons_dir, lambda edited: edited["icons"][0].update(also=[extra]))
+	with patch_base.recording(), pytest.raises(PatchError, match="is on the stock disk; the patch creates it"):
+		run_patchers(["afterglow.map-icons"], fat, tree, tmp_path, scratch)
