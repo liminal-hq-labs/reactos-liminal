@@ -34,6 +34,7 @@ Every group below is rewritten with three 32-bit frames (48, 32 and 16 px) from 
 | 236 | `IDI_SHELL_MY_PICTURES` | My Pictures, Shared Pictures | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `mypictures` | core |
 | 237 | `IDI_SHELL_MY_MUSIC` | My Music, Shared Music | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `mymusic` | core |
 | 238 | `IDI_SHELL_MY_MOVIES` | My Videos, Shared Videos | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `myvideos` | core |
+| 512 | `IDI_SHELL_WEB_BROWSER` | The Internet Browser desktop item (`DefaultIcon` `shell32.dll,-512`) | `16@8 32@8 48@8 16@32 32@32 48@32` | `browser` | extra |
 
 Frames are `size@bits per pixel`, in the stock order.
 
@@ -92,6 +93,7 @@ The Control Panel folder asks each applet for `CPL_INQUIRE`'s `idIcon` and loads
 |---|---|---|---|---|
 | `access.cpl` | 110 | Accessibility Options | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `access` |
 | `appwiz.cpl` | 1500 | Add or Remove Programs | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `addremove` |
+| `console.dll` | 40 | Console (not in the map; see above) | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `console` |
 | `desk.cpl` | 40 | Display | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `display` |
 | `desk.cpl` | 100 | Display (theme-compatibility id) | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `display` |
 | `hdwwiz.cpl` | 100 | Add Hardware | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `addhw` |
@@ -148,18 +150,28 @@ The desktop and Start menu programs carry their own icon groups, and a few file 
 |---|---|---|---|---|
 | `cmd.exe` | 1 | Command Prompt | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `cmd` |
 | `notepad.exe` | 521 | Notepad | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `text` |
+| `iexplore.exe` | 1 | Internet Browser program | `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32` | `browser` |
 | `cabview.dll` | 1 | Cabinet (.cab) files | `48@24 32@8 16@8 48@32 32@32 16@32` | `archive` |
 | `shimgvw.dll` | 1 | Image files: .jpg, .emf, .wmf | `16@8 24@8 32@8 48@8 16@24 24@24 32@24 48@24 16@32 24@32 32@32 48@32` | `image` |
 | `shimgvw.dll` | 2 | Image files: .bmp | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
 | `shimgvw.dll` | 5 | Image files: .gif, .png | `48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32` | `image` |
 
-`netshell.dll` group 100 (Network Connections folder, the `also` entry of `netconn`) is patched too. The Applications Manager (`rapps.exe` 10, Afterglow `appmanager`) and Internet Browser (`iexplore.exe` 1, `browser`) icons are not: the `base` trim profile removes `rapps.exe` and `Program Files/Internet Explorer` from the image, and the trim refuses to remove a patched file (RL-19). The desktop shortcuts that remain show ReactOS's own fallback icon.
+`netshell.dll` group 100 (Network Connections folder, the `also` entry of `netconn`) is patched too. `iexplore.exe` group 1 (the Internet Browser program, Afterglow `browser`) is patched too, because the `base` trim keeps that file (RL-40). The Applications Manager (`rapps.exe` 10, Afterglow `appmanager`) is not: the `base` trim profile removes `rapps.exe`, and the trim refuses to remove a patched file (RL-19). Its desktop shortcut shows ReactOS's own fallback icon.
+
+### Icons the map does not name yet
+
+Two icons Afterglow draws are on the image under resources the map still lists as `null` or does not name, found by booting the image and following the registry back to the file. Each is verified here from the ReactOS 0.4.16 source and the stock file, and listed in this repository's tables (RL-39.5); once Afterglow's map names them the table rows are redundant and the map wins.
+
+| Icon | Resource | Evidence |
+|---|---|---|
+| `browser`, the **Internet Browser** icon on the desktop | `shell32.dll` group 512 (`IDI_SHELL_WEB_BROWSER`) | The desktop item is the CLSID `{871C5380-42A0-1069-A2EA-08002B30309D}` ("Internet Browser"), not a shortcut file, and its `DefaultIcon` in the stock `SOFTWARE` hive is `%SystemRoot%\system32\shell32.dll,-512`. `shresdef.h` defines `IDI_SHELL_WEB_BROWSER` as 512 and `icon_res.rc` binds it to `res/icons/512.ico`. The stock group holds `16@8 32@8 48@8 16@32 32@32 48@32`, three ids of its own. The map names `browser` only for `iexplore.exe` group 1, which is the program's own icon (the window and a program shortcut), not this desktop item |
+| `console`, the **Console** Control Panel applet | `console.dll` group 40 (`IDC_CPLICON`) | `dll/cpl/console/resource.h` defines `IDC_CPLICON` as 40, `console.rc` binds it to `res/terminal.ico`, and `console.c` answers `CPL_INQUIRE` with `idIcon = IDC_CPLICON`. The stock `console.dll` (SHA-256 `cf5e98424dbc0204f3aabe43c277ae64e3e637943020d966445dce6707b6793f`, in `ReactOS/system32`, which the Control Panel loads as an applet) holds one group, 40, with `48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32`. The map has `console` with a `null` resource; the Command Prompt shortcut shows the Afterglow terminal because that is `cmd.exe` group 1 (`cmd`), a different icon |
 
 ### Verified by the map but not patched
 
 The map verifies these resources, and none is patched today. Adding one is a stock-file SHA-256 in `icon_families.json` (a `files` entry), then `rl pin`; the patcher takes the groups from the map.
 
-- **Removed by the `base` trim**, which refuses to remove a patched file (RL-19): the Applications Manager (`rapps.exe` 10, `appmanager`), Internet Browser (`iexplore.exe` 1, `browser`; the profile removes `Program Files/Internet Explorer`), Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file.
+- **Removed by the `base` trim**, which refuses to remove a patched file (RL-19): the Applications Manager (`rapps.exe` 10, `appmanager`), Calculator, Paint, WordPad and its `.rtf` type, Character Map, Minesweeper, Solitaire, Spider, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `control.exe`, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`. A recipe that keeps one of them can list its stock file.
 - **On the image, not yet listed:** Registry Editor and its file type (`regedit.exe` 100, 101), Task Manager, Event Viewer, Device Manager, Services, System Configuration, Utility Manager, Clipboard Viewer, the Windows Update installer, `ieframe.dll` (HTML files), `hh.exe`, `winhlp32.exe` and `sndvol32.exe`, and Explorer (`explorer.exe` 101, which `afterglow.start` copies as `agexplorer.exe` from the stock file, so a second patch there needs the two combined). Each needs its stock SHA-256 from the golden disk and a check that its groups have three frame ids of their own.
 - **Tray:** `stobject.dll` (volume, battery, hotplug), `ctfmon.exe` and `kbswitch.exe` (keyboard layout). Afterglow draws a state per icon here; the patcher would take them from the map the same way.
 - **Dialogs and the program icon in `user32.dll`:** `user32.dll` already carries the Afterglow pointers from `afterglow.pointers`, which patches the stock file in its own pass. Patching icons into the same file needs the two patchers combined or run in sequence on one copy, which the pipeline does not do (each patcher starts from the golden file); left for a decision (RL-26.4).

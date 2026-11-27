@@ -220,3 +220,13 @@ def test_no_patched_file_is_one_the_base_trim_removes():
 	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
 	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
 	check_profile(build_profile("base", []), paths)
+
+
+def test_the_icons_the_map_does_not_name_yet_are_in_the_tables():
+	"""The Internet Browser desktop item is shell32 group 512 and the Console applet is console.dll group 40; the map names neither."""
+	shell32_rows = {row["group"]: row for row in patch_icons.load_table()["groups"]}
+	assert shell32_rows[512]["afterglow"] == "browser"
+	console = next(
+		file_spec for file_spec in patch_family.load_families()["cpl-icons"]["files"] if file_spec["path"].endswith("/console.dll")
+	)
+	assert console["groups"] == [{"group": 40, "afterglow": "console"}]

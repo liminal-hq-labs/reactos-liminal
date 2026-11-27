@@ -13,6 +13,16 @@
 					"stock_sha256": "e65b88a3e637dbbe9d9739bbb233051e0f83c6c41f0aac2371b1138ab0e60e3b"
 				},
 				{
+					"path": "ReactOS/system32/console.dll",
+					"stock_sha256": "cf5e98424dbc0204f3aabe43c277ae64e3e637943020d966445dce6707b6793f",
+					"groups": [
+						{
+							"group": 40,
+							"afterglow": "console"
+						}
+					]
+				},
+				{
 					"path": "ReactOS/system32/desk.cpl",
 					"stock_sha256": "895c813152637459fee8f3dc0b5430ec2bb7475d7e35306cb9751f7f893b6458"
 				},
@@ -60,6 +70,10 @@
 				{
 					"path": "ReactOS/system32/notepad.exe",
 					"stock_sha256": "90b2639e7462461879cf8302804c2c7436fb2062e4c2302a12412674bf3348e3"
+				},
+				{
+					"path": "Program Files/Internet Explorer/iexplore.exe",
+					"stock_sha256": "175d46c9c5a6092c2615f2c0e5545569f6159208facdff3f104d45bc4373d240"
 				},
 				{
 					"path": "ReactOS/system32/cabview.dll",

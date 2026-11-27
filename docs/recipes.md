@@ -11,7 +11,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[inputs.afterglow]` | `repo`, `commit`, `tar_sha256`, `msstyles_sha256` (required), `apply_reg`, `wallpaper`, `wallpaper_sha256` | `desktop/install/afterglow-original.reg`, none, none |
 | `[install]` | `locale`, `time_zone_index`, `computer_name`, `owner_name`, `classic_shell`, `memory_mb`, `disk_size_mb` | `0409`, `85`, `REACTOS`, `ReactOS user`, `true`, `768`, `4096` |
 | `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"stretch"`, `["display", "quiet", "watermark-off"]` (the base recipe adds `afterglow-logon`), none |
-| `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none |
+| `[[files]]` | `source` (relative to the recipe), `destination` (under the disk root) | none (the base recipe writes `afterfetch.cmd`; a recipe that extends it and lists its own `[[files]]` replaces that list, so it repeats the entry to keep `afterfetch`) |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
 | `[trim]` | `profile`: `none` or `base`; `extra`: a list of trim files, resolved relative to the recipe that lists them, applied after the profile | `none`; no extras |
 | `[patchers]` | `list`: `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot` | `[]` (the base recipe lists all of them) |
