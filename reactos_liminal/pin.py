@@ -26,7 +26,7 @@ from pathlib import Path
 
 from .afterglow import fetch_afterglow, prepare_afterglow, tree_tar_sha256
 from .coverage import REPORT_FILE, build_rows, image_files_by_name, render
-from .icon_map import load_map
+from .icon_map import load_bitmaps, load_map
 from .install import golden_path
 from .log import log
 from .mtools import FatImage
@@ -149,7 +149,11 @@ def icon_coverage_text(tree: Path, golden: Path, recorder) -> str | None:
 	named = [entry.get("resource") for entry in entries.values()] + [item for entry in entries.values() for item in entry.get("also") or []]
 	modules = {resource["module"].lower() for resource in named if resource}
 	on_disk = image_files_by_name(FatImage(golden).list_files(), modules)
-	return render(build_rows(entries, recorder, listed, on_disk), build_profile("base", []))
+	try:
+		bitmaps = load_bitmaps(tree)
+	except PatchError:
+		bitmaps = []  # a map from before the dialog art has no `bitmaps` list
+	return render(build_rows(entries, recorder, listed, on_disk, bitmaps), build_profile("base", []))
 
 
 def pin_afterglow(

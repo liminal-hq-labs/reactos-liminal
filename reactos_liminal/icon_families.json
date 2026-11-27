@@ -198,6 +198,10 @@
 			"patcher": "afterglow.map-icons",
 			"files": [
 				{
+					"path": "ReactOS/system32/ntobjshex.dll",
+					"stock_sha256": "3a969f9afdfa3f17ad13e8b3156bf2167444d9628d8e107d00e98e37e7eb6868"
+				},
+				{
 					"path": "ReactOS/system32/joy.cpl",
 					"stock_sha256": "8f2131e2b93cf0aeac3138943bcce6246bb9c5297890a244c23ac1fb4e150cc0"
 				},
