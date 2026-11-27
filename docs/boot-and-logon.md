@@ -25,7 +25,7 @@ The kernel's boot screen is FreeLoader's menu, then the kernel's own logo at 640
 
 **Off switch.** Pick the stock entry in the boot menu, or leave `afterglow.boot` out of the recipe's `patchers.list`.
 
-**Two freeldr.ini files.** The install CD's menu (the installer's) is edited by `isopatch` while the golden disk is made and is not touched here; this patcher edits the one on the installed disk. The patcher accepts only the file an unattended install leaves (after `rl install` puts back `DefaultOS=ReactOS` and `TimeOut=3`).
+**Two freeldr.ini files.** The install CD's menu (the installer's) is written while the golden disk is made (`rl install` rebuilds the disc from its tree) and is not touched here; this patcher edits the one on the installed disk. The patcher accepts only the file an unattended install leaves (after `rl install` puts back `DefaultOS=ReactOS` and `TimeOut=3`).
 
 ## The boot guard
 

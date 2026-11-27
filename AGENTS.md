@@ -114,6 +114,7 @@ Use `#` comments for Python, shell, YAML, TOML and Dockerfiles, `;` for `.reg` a
 - **Private QEMU only.** Each VM gets its own monitor socket and pid file in its work directory and is stopped through its monitor or its own pid. **Never** kill processes by name (`pkill`, `killall`), and never touch a VM or emulator you did not start.
 - **No host desktop capture.** Screenshots come from the QEMU monitor (`screendump`) or the v86 page, never from the host's screen.
 - **No network in the guest.**
+- **Discs are rebuilt, never appended.** `rl` writes install discs from a file tree with ReactOS's own flags (`-iso-level 4`, no Rock Ridge, no Joliet, no boot info table, a hybrid boot record from `loader/isombr.bin`) and never with xorriso: FreeLoader reads only the primary tree, does not drop a trailing dot (so `SYSTEM.;1` is not `system`) and copies names into a 32-byte buffer. The recipe pins one ISO writer. The unattended answers are never on the published disc. See [docs/iso.md](docs/iso.md).
 - Clean up work directories you created; disk space on build machines is tight.
 
 ## Licensing and releases

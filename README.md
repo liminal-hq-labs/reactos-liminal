@@ -15,7 +15,7 @@ Build Afterglow-dressed ReactOS install media, disk images and browser snapshots
 
 ReactOS Liminal turns the official ReactOS 0.4.16 install ISO into finished artefacts with no hand step: an unattended install, a disk image (the full ReactOS, or a compact trim of it), the [Afterglow](https://github.com/liminal-hq/afterglow-themes) desktop theme with a themed logon and Setup, a remastered install ISO, and disk parts and a saved state for the v86 emulator in a browser. A build is a declarative recipe whose every input is pinned by SHA-256, so nothing lives only in a disk image and every patch refuses a file it was not written for.
 
-> **Status:** experimental. The `rl` command can check your tools, validate a recipe, fetch the pinned ISO and install ReactOS unattended into a golden disk, turn it into a patched, trimmed, themed image, and split that into v86 parts with a manifest, check every pin against a lock file, and write an ISO that is the official disc with the licence texts, notice and list of changes added (not part of v0.1.0). The build and release workflows are written and wait for the owner's first dispatch. The saved v86 state and the themed Setup remaster are still to come. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases are published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating); v0.1.0 carries no ISO.
+> **Status:** experimental. The `rl` command can check your tools, validate a recipe, fetch the pinned ISO and install ReactOS unattended into a golden disk, turn it into a patched, trimmed, themed image, and split that into v86 parts with a manifest, check every pin against a lock file, and write an ISO that is the official disc rebuilt with the licence texts, notice and list of changes added (not part of v0.1.0). The build and release workflows are written and wait for the owner's first dispatch. The saved v86 state and the themed Setup remaster are still to come. The working pipeline (unattended install, trim, Afterglow desktop, v86 parts and state) runs today inside [Quill](https://github.com/liminal-hq-labs/quill)'s Try ReactOS demo and moves here in stages ([docs/migration.md](docs/migration.md)), followed by the recipe format, the `rl` command, the logon and Setup theming and the remastered ISO. There are no releases. Releases are published only through an owner-approved release environment and after the licence checklist in [SPEC.md](SPEC.md#release-gating); v0.1.0 carries no ISO.
 
 ## What it's for
 
@@ -27,7 +27,7 @@ ReactOS Liminal turns the official ReactOS 0.4.16 install ISO into finished arte
 
 ## Install and run
 
-On Linux with Python 3.12 and QEMU, mtools, xorriso and zstd on the path:
+On Linux with Python 3.12 and QEMU, mtools, xorriso, zstd and an ISO writer (`genisoimage` or `mkisofs`) on the path:
 
 ```sh
 ./rl doctor                                  # check the tools
@@ -41,7 +41,7 @@ On Linux with Python 3.12 and QEMU, mtools, xorriso and zstd on the path:
 ./rl parts recipes/afterglow.toml ~/.cache/reactos-liminal/images/afterglow.img   # v86 disk parts and manifest.json
 ./rl manifest recipes/afterglow.toml ~/.cache/reactos-liminal/dist               # build-manifest.json
 ./rl verify recipes/afterglow.toml           # re-check every pin and the lock file; `./rl lock RECIPE` rewrites a lock
-./rl iso recipes/afterglow.toml              # the remastered ISO: the official ISO with the notices appended
+./rl iso recipes/afterglow.toml              # the remastered ISO: the official ISO rebuilt with the notices
 ```
 
 Large files go in `~/.cache/reactos-liminal` (`--work` or `$RL_WORK` change it), never in the repository.
@@ -65,6 +65,7 @@ The remastered media is named "Afterglow for ReactOS — unofficial remaster by 
 - [docs/afterfetch.md](docs/afterfetch.md) — the `afterfetch` command: an Afterglow logo and system information at the command prompt
 - [docs/trim.md](docs/trim.md) — the trim profiles (`none` for the full image, `base` for the compact one), your own `extra` lists and the order rule
 - [docs/release.md](docs/release.md) — how a release is cut, the `release` environment setup and the caches
+- [docs/iso.md](docs/iso.md) — how the install discs are written, and why FreeLoader needs ISO 9660:1999 names
 - [docs/pipeline.md](docs/pipeline.md) — the stages, the caches and the private machines
 - [docs/migration.md](docs/migration.md) — where the pipeline came from and what has moved
 - [NOTICE.md](NOTICE.md) — third-party components and licences, to be confirmed before an ISO release
