@@ -34,6 +34,7 @@ SECTION_NAME = b".agico"
 SECTION_FLAGS = 0x40000040  # initialized data, readable
 PINS_FILE = Path(__file__).resolve().parent.parent / "pins" / "shell32-icons.json"
 SIZES = (48, 32, 16)  # the sizes ReactOS asks for; never 24
+FIT_PREFERENCE = (32, 16, 48)  # the sizes a fitted group adds when it has an id to spare, in order
 
 
 def load_pins() -> dict:
@@ -106,10 +107,24 @@ def render_icons(source_tree: Path, destination: Path) -> None:
 		raise PatchError(f"Afterglow's render.py failed: {(done.stderr or done.stdout).strip()[-400:]}")
 
 
+def fitted_sizes(stock_frames: list[GroupFrame]) -> list[int]:
+	"""The sizes to write into a group with fewer frame ids than SIZES: the sizes the stock group holds (the dialog or code that loads
+	it asks for those), then, while the group owns an id to spare, the sizes it lacks, nearest below first (32, 16, then 48). Frames
+	of a size the stock group holds twice (a 32 px 8-bit and 32-bit pair) share one new frame, which frees the other's id for that."""
+	held = {frame.width for frame in stock_frames if frame.width in SIZES}
+	sizes = [size for size in SIZES if size in held]
+	for extra in FIT_PREFERENCE:
+		if len(sizes) < len(stock_frames) and extra not in sizes:
+			sizes.append(extra)
+	return sorted(sizes, reverse=True)
+
+
 def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, list[str]]:
 	"""Replace the icon groups in a PE file (shell32.dll, a .cpl, a program). `icons` maps a group id to the bytes of its .ico file.
-	Returns the new file and a line
-	per group. Raises PatchError when a group is missing, has too few frame ids, or a frame is not 32-bit."""
+	Returns the new file and a line per group. A group with three or more frame ids of its own gets the three sizes 48, 32 and 16. A
+	group with fewer (one or two frames, such as a 32 px applet icon) is fitted: it keeps the sizes the stock group holds, and takes
+	a spare id for the next size down when it has one; no resource is added, so the directory never grows. Raises PatchError when a
+	group is missing, owns no frame id, or the icon has a frame that is not 32-bit."""
 	try:
 		pe = PeFile(stock)
 		groups = pe.data_entries(RT_GROUP_ICON)
@@ -129,24 +144,23 @@ def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, lis
 			for icon_id in available:
 				if icon_id not in frames_by_id:
 					raise PatchError(f"group {group_id} names icon {icon_id}, which shell32.dll does not hold")
-			new = {size: None for size in SIZES}
+			new: dict[int, bytes] = {}
 			for width, height, bit_count, image in read_ico(icons[group_id]):
-				if width != height or width not in new or bit_count != 32 or new[width] is not None:
+				if width != height or width not in SIZES or bit_count != 32 or width in new:
 					raise PatchError(
 						f"the icon for group {group_id} has a {width}x{height} {bit_count}-bit frame; expected 48, 32 and 16 px, 32-bit"
 					)
 				new[width] = image
-			if any(image is None for image in new.values()):
-				raise PatchError(f"the icon for group {group_id} lacks one of the sizes 48, 32 and 16")
-			if len(available) < len(SIZES):
-				raise PatchError(
-					f"group {group_id} has {len(available)} frame ids of its own and needs {len(SIZES)}; "
-					"the resource directory is not grown, so it is refused"
-				)
+			if not stock_frames:
+				raise PatchError(f"group {group_id} has no frame ids of its own to write")
+			fitted = len(available) < len(SIZES)
+			sizes = fitted_sizes(stock_frames) if fitted else SIZES
+			if any(size not in new for size in sizes):
+				raise PatchError(f"the icon for group {group_id} lacks one of the sizes {', '.join(str(size) for size in sizes)}")
 			# Give each new frame a stock frame id of the same size and depth where there is one, then any other unused id.
 			unused = list(stock_frames)
 			frames_out: list[GroupFrame] = []
-			for size in SIZES:
+			for size in sizes:
 				pick = next((frame for frame in unused if frame.width == size and frame.bit_count == 32), None)
 				pick = pick or next((frame for frame in unused if frame.width == size), None) or unused[0]
 				unused.remove(pick)
@@ -161,9 +175,9 @@ def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, lis
 				content.append(0)
 			edits.append((groups[group_id], len(content), len(group_bytes)))
 			content += group_bytes
-			report.append(
-				f"group {group_id}: {len(stock_frames)} stock frames -> {len(SIZES)} (ids {[frame.icon_id for frame in frames_out]})"
-			)
+			mode = f", fitted to {'+'.join(str(size) for size in sizes)} px" if fitted else ""
+			ids = [frame.icon_id for frame in frames_out]
+			report.append(f"group {group_id}: {len(stock_frames)} stock frames -> {len(frames_out)} (ids {ids}){mode}")
 		new_rva = pe.append_section(SECTION_NAME, bytes(content), SECTION_FLAGS)
 		for entries, offset, size in edits:
 			for entry in entries:

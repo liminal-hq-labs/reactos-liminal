@@ -25,16 +25,17 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 	iso = recipe.section("inputs", "reactos_iso")
 	assert iso["name"] == "ReactOS-0.4.16-i386.iso"
 	assert len(iso["sha256"]) == 64 and len(iso["zip_sha256"]) == 64
-	assert recipe.section("inputs", "afterglow")["commit"] == "0ab3b272046f0e4e777653945c03238e5040b5cb"
+	assert recipe.section("inputs", "afterglow")["commit"] == "abad4b3e3766150acae2b9a1229499662befeb45"
 	assert recipe.section("patchers", "list") == [
 		"afterglow.pointers",
 		"afterglow.start",
+		"afterglow.logon",
 		"afterglow.icons",
 		"afterglow.cpl-icons",
 		"afterglow.program-icons",
 		"afterglow.dialog-icons",
 		"afterglow.toolbar-bitmaps",
-		"afterglow.logon",
+		"afterglow.dialog-bitmaps",
 		"afterglow.boot",
 	]
 	assert recipe.section("trim", "profile") == "none"  # the full ReactOS; the compact recipe sets "base"
@@ -97,7 +98,7 @@ def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
 	text = base_recipe_path.read_text().replace(
-		'list = [\n\t"afterglow.pointers",\n\t"afterglow.start",\n\t"afterglow.icons",\n\t"afterglow.cpl-icons",\n\t"afterglow.program-icons",\n\t"afterglow.dialog-icons",\n\t"afterglow.toolbar-bitmaps",\n\t"afterglow.logon",\n\t"afterglow.boot",\n]',
+		'list = [\n\t"afterglow.pointers",\n\t"afterglow.start",\n\t"afterglow.logon",\n\t"afterglow.icons",\n\t"afterglow.cpl-icons",\n\t"afterglow.program-icons",\n\t"afterglow.dialog-icons",\n\t"afterglow.toolbar-bitmaps",\n\t"afterglow.dialog-bitmaps",\n\t"afterglow.boot",\n]',
 		'list = ["made.up"]',
 	)
 	with pytest.raises(RecipeError, match="patchers.list"):
@@ -256,3 +257,26 @@ def test_the_fetch_names_are_shims_that_run_afterfetch(base_recipe_path):
 	guest_cmd = base_recipe_path.parent.parent / "guest" / "cmd"
 	for name in ("neofetch", "fastfetch", "screenfetch", "winfetch"):
 		assert "\nafterfetch.exe %*\n" in (guest_cmd / f"{name}.cmd").read_text()
+
+
+@pytest.mark.parametrize(
+	"first, second",
+	[
+		("afterglow.start", "afterglow.program-icons"),
+		("afterglow.logon", "afterglow.program-icons"),
+		("afterglow.icons", "afterglow.dialog-bitmaps"),
+		("afterglow.program-icons", "afterglow.dialog-bitmaps"),
+	],
+)
+def test_a_patcher_that_builds_on_another_copy_must_follow_it(base_recipe_path, tmp_path, first, second):
+	"""The later patcher takes the newest copy of each path; one listed first would be overwritten from the stock file."""
+	text = base_recipe_path.read_text()
+	assert text.index(f'"{first}"') < text.index(f'"{second}"')
+	swapped = text.replace(f'\t"{first}",\n', "", 1).replace(f'\t"{second}",\n', f'\t"{second}",\n\t"{first}",\n', 1)
+	with pytest.raises(RecipeError, match="must be listed before it"):
+		load(write(tmp_path, "swapped.toml", swapped))
+
+
+def test_the_compact_recipe_has_the_same_patch_list_as_the_base_recipe(base_recipe_path, compact_recipe_path):
+	"""The trim profile differs, the patch list does not, so the pins are the same for both."""
+	assert load(compact_recipe_path).section("patchers", "list") == load(base_recipe_path).section("patchers", "list")

@@ -1,7 +1,7 @@
 {
 	"families": {
 		"cpl-icons": {
-			"c19be60f2b18729c4519202c8e9bad5dac6ca8c150da6a6fd8b8067776bed918": {
+			"9c67232bc31a14ce5d80d86df38fb104610a68d2c4e53ac25ff6c1738e6e27e2": {
 				"ReactOS/system32/access.cpl": "bcfeb3ecdccf787b8fe7ed5a23fa948d7cfbc0e40bfbc60525650c5d35d5ee85",
 				"ReactOS/system32/appwiz.cpl": "438ec6156334a64d2c93a010b900edef02d68ddaa01a2fcac5bc42a1506d0bb1",
 				"ReactOS/system32/console.dll": "e3aedc8e50bf162156941c8257d38af851866051ce11f893f21582011278d116",
@@ -9,22 +9,41 @@
 				"ReactOS/system32/hdwwiz.cpl": "a0108dd33a95903cc55bd910448a2403be57c0f9495ce1d9bdcdd76db43b7513",
 				"ReactOS/system32/inetcpl.cpl": "ae655b30036f5188eb55e79c76bb6a5e7ec67f7323d7e4b5cb190205f2393219",
 				"ReactOS/system32/intl.cpl": "e41085d0e9f25c50b681630835b2e3e89a3db4ec774b4b10f79a96c5c4d75df2",
-				"ReactOS/system32/main.cpl": "12b4222378b5bcb31cd17997f5ba49b4c279277cc934717836f6fac5a8d6b248",
+				"ReactOS/system32/main.cpl": "ea3c2a8052a19cf15a62c5d794a3aa85975f12a81768d7c7f17333b4a4ed2b41",
 				"ReactOS/system32/mmsys.cpl": "a9f6fda857b447b3d35ece44e17a370ecb4e0a7a60ecda83a2dd7e3007b00960",
 				"ReactOS/system32/powercfg.cpl": "07b5134a35285039dc1ebf7358100a149cffe58f98eb14f1118702f98298d9a5",
-				"ReactOS/system32/sysdm.cpl": "4fb30fbbc60fcd5afb3dd9202b193126f8026c2e9bb0f9c1d831ac3209dd8f9a",
+				"ReactOS/system32/sysdm.cpl": "d7498535dda0d37a5592cc14dbb91a10826c3018f806684a58862f9b1e9b0b59",
 				"ReactOS/system32/timedate.cpl": "d72c64cf0e2721baadf4cbc99dc5dc0666a2a6dc0d7766503cf07024e205f7a3"
 			}
 		},
 		"program-icons": {
-			"8bac45c295a38aa4d6b6ce350b67ad9a7eaa7018acce60b66eb12db10e65f0e1": {
+			"df0558b19e13e31943508a489773ed8bea1d549bb6d608a41dd25e9ac7f11ada": {
 				"ReactOS/system32/cmd.exe": "a32fa3af3a599b1811b37cd6c4841e35a2228b3b4b04015ba63490530b1103e3",
 				"ReactOS/system32/notepad.exe": "6b2f5c22e20072c5b9bb38c9dc3b9a026f5997cb1dd28c6475d80292ae2d8e34",
 				"Program Files/Internet Explorer/iexplore.exe": "e807ae15521fd511df6fcc0e13d6aec6405b769ede3a3b8f2a0a75180bbc25f1",
 				"ReactOS/system32/rapps.exe": "2ae3205e6892715ac8bced38a04996b06fb511013fed86d2036b2bae56159c46",
 				"ReactOS/system32/cabview.dll": "b926f26db8d4054ffb406f2581a0bc3eea6864412de52d3ca3923411bb5272af",
 				"ReactOS/system32/shimgvw.dll": "adc5fbc4737cf872a05d68cf6638857e85614b632681888cb68d7ee77e0839f6",
-				"ReactOS/system32/netshell.dll": "446ef8e9352096a49ccbbbf7b38db36e9724cc25794e9ecb815b28f49b54b175"
+				"ReactOS/system32/netshell.dll": "2225ea43dea7936922c6ffb14f1a95c6494f9cb69284dcadd36408ba42e10146",
+				"ReactOS/system32/devmgr.dll": "2d818190508c02ef8d05fe226d7c39726e378685be067b79bdfa3559689711e2",
+				"ReactOS/system32/devmgmt.exe": "2d96b5ffeea7be2f1818ba1e4a68506770134d7045bd603028fa26afcfddbf4d",
+				"ReactOS/system32/eventvwr.exe": "61803368632f49737888b9a2d20c96621c5ea34fd73533f6978bb5b1506faac5",
+				"ReactOS/system32/servman.exe": "d6903bcf46def8df21e47a979100feaebed550ddc37bf9beb91babcb42552acb",
+				"ReactOS/system32/msconfig.exe": "3d8383e52872264d01cfade0156e5c19bda622a137c93a36851e11f6b9d08067",
+				"ReactOS/system32/taskmgr.exe": "55d5915c2481a8922348cd78eacdb59a7908c0f22f40d85e72e3a7a3ac1f3be3",
+				"ReactOS/regedit.exe": "9cab7ef2a6fc7ee84fc8140547d01c82695cb4fc30ce9a09d7fa19b4083a56b0",
+				"ReactOS/system32/clipbrd.exe": "a7c3d4b6c8576079e198b349692156224d8e644e8657c2b22cff27f2da0087ec",
+				"ReactOS/system32/kbswitch.exe": "77f1d8dd02a34be85eed583ce420b3a3db56e8546380beb75f71224f5dad7144",
+				"ReactOS/system32/utilman.exe": "c623284617729b05c479c01993a5f675a2fec59b5575b0161abe29adb6cdb9dc",
+				"ReactOS/system32/sndvol32.exe": "e8d035a915350e681d2a7243aa1055ed3899bae5d75513a19f4fb3296aed2937",
+				"ReactOS/system32/wusa.exe": "5ae7895c7f7ce75a09bd2fada098da594a4d2b7376c66052a594e1b0e5c3bd06",
+				"ReactOS/system32/fontsub.exe": "486f1914505cdb2a1b05aa5fcd765fb6a88ec14fef57a85cbe15dace07b9727a",
+				"ReactOS/notepad.exe": "6b2f5c22e20072c5b9bb38c9dc3b9a026f5997cb1dd28c6475d80292ae2d8e34",
+				"ReactOS/system32/stobject.dll": "1ed6223ff078d2fb7d7cb4629f7912d03fdcf7ce435461761025dc8fc77bc716",
+				"ReactOS/explorer.exe": "943395e2d44a426ec51e121648f731fc879e29b777758f056005ff32d770987c",
+				"ReactOS/system32/msgina.dll": "81e1e3e0d32d9e0d11d2cc88a794d6dcd4ad5d2a5580f8ceb256a733722762d8",
+				"ReactOS/agexplorer.exe": "97f616ff7fc97d03c224846e412832af6f2c62712983f19c06d1552bbd78267d",
+				"ReactOS/system32/agmsgina.dll": "b02a5dae2af9f7354ab84e464c35f2cf098557fc9228e7d7f9c31755e6e98bd8"
 			}
 		},
 		"toolbar-bitmaps": {
@@ -35,6 +54,13 @@
 		"dialog-icons": {
 			"4b0ffc55d1ad478c565f6fb5cf114198f756917bdfd6ed3f448b134e9d6cb8af": {
 				"ReactOS/system32/user32.dll": "e299bf3692bddce54b9f5458c4e3d5f613d27bf014b2d0a1fe0eadd26abeeac6"
+			}
+		},
+		"dialog-bitmaps": {
+			"01e73877a8739a2fbad8daa3560dfc98c43c3704ebc7b96fe5742d2a0c7a2534": {
+				"ReactOS/system32/shell32.dll": "51ab27fe8d0384537442758c5454a07e2c4b10f2a3cf986300b279cccbc6f48b",
+				"ReactOS/system32/msgina.dll": "fe93fc8eec484a0ab1a0542ea83f8c97f503900f6dd18e1b85fd92d94b0c0baa",
+				"ReactOS/system32/agmsgina.dll": "24fba4f94d18c060f33ab236c07ebe659a0d6ee3527252208c6b4f9ff98000ac"
 			}
 		}
 	}

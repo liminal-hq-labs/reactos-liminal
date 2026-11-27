@@ -27,11 +27,12 @@ from .licences import TEXTS, ChangeRecord, PatchChange, write_licence_files
 from .lnk import make_lnk
 from .log import log
 from .mtools import FatImage
+from .patch_base import skipping
 from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
 from .rustbuild import BUILT_PREFIX, build_programs, used_builds
-from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile
+from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile, removes
 from .vm import PrivateVm
 from .wallpaper import WallpaperError, image_path, render_wallpaper, wanted
 
@@ -244,8 +245,12 @@ def build_image(
 		record = ChangeRecord(trim_profile=profile.name, settings_applied=with_settings)
 		golden_disk = FatImage(golden)
 		patched = []
+		# A patcher leaves alone a file this recipe's trim removes (the patch list does not change, so the pins do not), because a trim
+		# that reaches a patched file is an error.
 		for patcher_name in patcher_names:
-			for item in run_patchers([patcher_name], golden_disk, source_tree, afterglow_files, scratch):
+			with skipping(lambda path: removes(profile, path)):
+				made = run_patchers([patcher_name], golden_disk, source_tree, afterglow_files, scratch)
+			for item in made:
 				before = "(not on the stock disk)"
 				if golden_disk.exists(item.image_path):
 					stock = scratch / "stock.bin"
@@ -254,6 +259,9 @@ def build_image(
 					stock.unlink()
 				record.patched.append(PatchChange(patcher_name, item.image_path, before, sha256_file(item.local_file)))
 				patched.append(item)
+		# Several patchers can write one path, each building on the last copy; only the final copy goes to the disk.
+		final = {item.image_path.lower(): item for item in patched}
+		patched = [item for item in patched if final[item.image_path.lower()] is item]
 		for item in patched:
 			if item.attributes:  # a hidden, system or read-only file (freeldr.ini) is unlocked for the write and locked again after
 				disk.set_attributes(item.image_path, "-r -h -s")

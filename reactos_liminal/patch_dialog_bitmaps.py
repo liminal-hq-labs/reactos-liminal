@@ -1,0 +1,133 @@
+# The `afterglow.dialog-bitmaps` patcher: the About banner, the Shut Down and Log Off dialogs' backgrounds, marks and button strips.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+"""shell32.dll draws the About box banner (131) and the line under it (138) and the Log Off dialog (500 to 502); msgina.dll draws the
+Shut Down dialog (20002 to 20004), which the Start menu loads from `msgina.dll` by name and Winlogon loads from the GINA the
+registry names (`agmsgina.dll`, RL-27). Each is a 24-bit RT_BITMAP written in place over the stock one, which has the same size and
+depth, so nothing in the file moves and the PE checksum is recomputed. The list (module, id, size, depth, which Afterglow art) is the
+`bitmaps` list of Afterglow's map.json; this repository holds only the files, each guarded by the stock file's SHA-256, and a
+bitmap whose stock size or depth differs from what the map says is refused.
+
+The patch builds on the newest copy an earlier patcher made of the same path (shell32.dll from `afterglow.icons`, `agmsgina.dll` from
+`afterglow.logon` and the icon patchers), so the icons are kept. Its result is checked against `pins/icon-families.json`, keyed by a
+digest of the art used and of those earlier copies, and stays in the work directory, never in git (ReactOS code).
+"""
+
+import json
+from pathlib import Path
+
+from .fetch import sha256_file
+from .icon_map import load_bitmaps
+from .log import log
+from .mtools import FatImage
+from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched, render_art
+from .patch_bitmaps import PINS_FILE
+from .patch_family import module_name
+from .patch_icons import icon_set_digest, require_pin, settle_result
+from .pe_resource import PeError, PeFile, dib_from_bmp, dib_info, replace_bitmap
+
+SPEC_FILE = Path(__file__).resolve().parent / "dialog_bitmaps.json"
+FAMILY = "dialog-bitmaps"
+
+
+def load_spec() -> dict:
+	return json.loads(SPEC_FILE.read_text())
+
+
+def render_bitmaps(source_tree: Path, scratch: Path, resources: list[dict]) -> dict[str, tuple[bytes, str]]:
+	"""Render the art the resources name, one Afterglow art folder at a time (the folder of each entry's `file`), and return
+	`{bitmap file name: (BMP bytes, SHA-256)}`. Each file is checked against the sums Afterglow records for its folder."""
+	by_folder: dict[str, list[str]] = {}
+	for resource in resources:
+		names = by_folder.setdefault(resource["file"].rsplit("/", 1)[0], [])
+		if resource["bitmap"] not in names:
+			names.append(resource["bitmap"])
+	rendered: dict[str, tuple[bytes, str]] = {}
+	for folder, names in sorted(by_folder.items()):
+		made = render_art(source_tree / folder, scratch / "dialog-art" / folder.replace("/", "_"), names)
+		for name, path in made.items():
+			rendered[name] = (path.read_bytes(), sha256_file(path))
+	return rendered
+
+
+def write_bitmaps(stock: bytes, resources: list[dict], rendered: dict[str, tuple[bytes, str]]) -> tuple[bytes, list[str]]:
+	"""Write each resource's art over the same bitmap of a PE file. Refuses a bitmap whose stock size or depth, or whose new size or
+	depth, is not the one the map records."""
+	data = stock
+	report = []
+	try:
+		for resource in resources:
+			width, height = resource["size"]
+			shape = (width, height, resource["bits"])
+			dib = dib_from_bmp(rendered[resource["bitmap"]][0])
+			info = dib_info(dib)
+			if (info.width, info.height, info.bits_per_pixel, info.compression) != (*shape, 0):
+				raise PatchError(f"{resource['bitmap']} is not a {width} x {height}, {resource['bits']}-bit bitmap")
+			slot = PeFile(data).bitmap(resource["resource"])
+			old = dib_info(data[slot.data_offset : slot.data_offset + slot.size])
+			if (old.width, old.height, old.bits_per_pixel, old.compression) != (*shape, 0):
+				raise PatchError(
+					f"bitmap {resource['resource']} ({resource['name']}) is {old.width} x {old.height} at {old.bits_per_pixel} bits "
+					f"in the file; the map says {width} x {height} at {resource['bits']}"
+				)
+			data = replace_bitmap(data, resource["resource"], dib, same_size=True)
+			report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}")
+	except PeError as error:
+		raise PatchError(f"the file cannot be patched: {error}") from error
+	return data, report
+
+
+def dialog_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:
+	"""Write the dialog bitmaps into shell32.dll, msgina.dll and agmsgina.dll."""
+	spec = load_spec()
+	pins = json.loads(PINS_FILE.read_text())["families"].get(FAMILY, {})
+	resources = load_bitmaps(source_tree)
+	rendered = render_bitmaps(source_tree, scratch, resources)
+	sums = {f"bitmap/{name}": sha for name, (_bytes, sha) in rendered.items()}
+	inputs = {file_spec["path"]: latest_patched(scratch, file_spec["path"]) for file_spec in spec["files"]}
+	for image_path, earlier in inputs.items():
+		if earlier is not None:
+			sums[f"base/{image_path}"] = sha256_file(earlier)
+	digest = icon_set_digest(sums)
+	expected_by_file = pins.get(digest)
+	require_pin(digest, expected_by_file, FAMILY, PINS_FILE.name)
+	results = []
+	for file_spec in spec["files"]:
+		image_path = file_spec["path"]
+		stock_path = file_spec.get("stock_path", image_path)
+		mine = [resource for resource in resources if resource["module"] == module_name(file_spec)]
+		if not mine:
+			continue
+		if is_trimmed(image_path):
+			log("patch", f"   {FAMILY}: {image_path} is removed by the trim, so it is left alone")
+			continue
+		if inputs[image_path] is None and file_spec.get("stock_path"):
+			log("patch", f"   {FAMILY}: {image_path} is not written by an earlier patcher in this recipe, so it is left alone")
+			continue
+		flat = image_path.replace("/", "_")
+		stock_file = scratch / f"{FAMILY}-{flat}"
+		golden.copy_out(stock_path, stock_file)
+		actual = sha256_file(stock_file)
+		if actual != file_spec["stock_sha256"]:
+			raise PatchError(
+				f"{stock_path} is not the stock file of ReactOS 0.4.16 i386 (SHA-256 {actual}, expected {file_spec['stock_sha256']}); "
+				"its bitmap ids were checked against that one file only"
+			)
+		try:
+			patched_bytes, report = write_bitmaps((inputs[image_path] or stock_file).read_bytes(), mine, rendered)
+		except PatchError as error:
+			raise PatchError(f"{image_path}: {error}") from error
+		patched = scratch / f"{FAMILY}-{flat}.patched"
+		patched.write_bytes(patched_bytes)
+		result = sha256_file(patched)
+		try:
+			settle_result(FAMILY, digest, image_path, result, (expected_by_file or {}).get(image_path), PINS_FILE.name)
+		except PatchError:
+			patched.unlink(missing_ok=True)
+			raise
+		for line in report:
+			log("patch", f"   {image_path}: {line}")
+		log("patch", f"   {FAMILY}: {image_path} patched, {len(report)} bitmaps ({result})")
+		results.append(PatchedFile(image_path, patched))
+	return results

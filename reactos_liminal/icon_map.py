@@ -67,3 +67,15 @@ def require_icon(entries: dict[str, dict], icon_id: str, where: str) -> None:
 	"""An icon this repository names itself must exist in the map."""
 	if icon_id not in entries:
 		raise PatchError(f"Afterglow's map.json has no icon {icon_id!r} ({where})")
+
+
+def load_bitmaps(source_tree: Path) -> list[dict]:
+	"""The `bitmaps` list of Afterglow's map: each dialog bitmap with its module, resource id, stock size and depth, the art file that
+	renders it (`bitmap`, in the folder of `file`) and what shows it."""
+	map_file = source_tree / "desktop" / "icons" / "map.json"
+	if not map_file.is_file():
+		raise PatchError(f"{map_file} is missing; the pinned Afterglow commit has no icon map")
+	found = json.loads(map_file.read_text()).get("bitmaps")
+	if not found:
+		raise PatchError(f"{map_file} has no `bitmaps` list; the pinned Afterglow commit predates the dialog art")
+	return found

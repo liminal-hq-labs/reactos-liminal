@@ -36,14 +36,18 @@ from .recipe import Recipe, load
 from .rustbuild import build_program, declaring_file
 from .wallpaper import render_wallpaper, wanted
 
-# `afterglow.pointers` leads because `afterglow.dialog-icons` builds on the user32.dll it writes; it records nothing itself.
+# The patchers that record a result, with the ones whose copies they build on first (they record nothing themselves): the pointers
+# copy of user32.dll, the Start copy of explorer.exe and the logon copy of msgina.dll, in the order of the recipe.
 ICON_PATCHERS = (
 	"afterglow.pointers",
+	"afterglow.start",
+	"afterglow.logon",
 	"afterglow.icons",
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
 	"afterglow.toolbar-bitmaps",
+	"afterglow.dialog-bitmaps",
 )
 SECTION = "[inputs.afterglow]"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -159,7 +163,13 @@ def pin_afterglow(
 			render_wallpaper(trial, tree, Path(scratch_name), measured)
 
 	with recording() as recorder, tempfile.TemporaryDirectory(dir=ensure(work, "scratch")) as scratch_name:
-		run_patchers(list(ICON_PATCHERS), FatImage(golden), tree, work / "afterglow-files", Path(scratch_name))
+		try:
+			run_patchers(list(ICON_PATCHERS), FatImage(golden), tree, work / "afterglow-files", Path(scratch_name))
+		except PatchError as error:
+			raise PinError(
+				f"a patcher refuses the art at {commit}: {error}. A patcher that pins its own result in code (logon, Start, boot) "
+				"needs that constant moved by hand for new art."
+			) from error
 	shell32_pins, family_pins = merged_icon_pins(recorder.results)
 
 	changes = [f"{key}: {pin.get(key)} -> {value}" for key, value in measured.items() if pin.get(key) != value]

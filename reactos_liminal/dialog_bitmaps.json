@@ -1,0 +1,19 @@
+{
+	"note": "Files whose dialog bitmaps the `afterglow.dialog-bitmaps` patcher replaces, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which bitmaps of a module are replaced, their ids and their sizes come from the `bitmaps` list of Afterglow's map.json. `module` names a copy that carries another module's resources and `stock_path` the stock file that copy is made from, as in icon_families.json. See docs/icon-survey.md.",
+	"files": [
+		{
+			"path": "ReactOS/system32/shell32.dll",
+			"stock_sha256": "88858710130e8e97eecfc246e61dd1aaf45b410718f4b818be39a9a69a01cf72"
+		},
+		{
+			"path": "ReactOS/system32/msgina.dll",
+			"stock_sha256": "95863449bd6af48e256708624ccc9b96ee91c931c4ac8eeb59b174c475dfca77"
+		},
+		{
+			"path": "ReactOS/system32/agmsgina.dll",
+			"module": "msgina.dll",
+			"stock_path": "ReactOS/system32/msgina.dll",
+			"stock_sha256": "95863449bd6af48e256708624ccc9b96ee91c931c4ac8eeb59b174c475dfca77"
+		}
+	]
+}

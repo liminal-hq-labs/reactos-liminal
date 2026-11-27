@@ -55,9 +55,56 @@ def test_a_group_without_a_48_frame_gets_three_frames_when_it_has_ids_for_them()
 	assert len({frame.icon_id for frame in frames_out}) == 3
 
 
-def test_a_group_with_too_few_frame_ids_is_refused_rather_than_growing_the_directory():
-	with pytest.raises(PatchError, match="not grown"):
-		patch_icons.patch_icon_groups(stock_dll(), {30: ico(0x20)})
+def test_a_group_with_two_frame_ids_is_fitted_to_the_sizes_it_holds():
+	"""Like the stock shortcut arrow: 32 and 16 px, two ids. The new group keeps those two sizes and reuses those two ids."""
+	new, report = patch_icons.patch_icon_groups(stock_dll(), {30: ico(0x20)})
+	pe = PeFile(new)
+	frames = group_of(pe, 30)
+	assert [(frame.width, frame.icon_id) for frame in frames] == [(32, 7), (16, 8)]
+	assert "fitted to 32+16 px" in report[0]
+	for frame in frames:
+		assert pe.entry_data(pe.data_entries(RT_ICON)[frame.icon_id][0]) == dib(frame.width, 0x20)
+
+
+def test_a_group_with_one_frame_gets_that_one_size_and_no_new_resource():
+	frames = {1: dib(32, 1)}
+	stock = make_dll({7: [(1, 32, 32)]}, frames)
+	new, report = patch_icons.patch_icon_groups(stock, {7: ico(0x20)})
+	pe = PeFile(new)
+	assert [(frame.width, frame.icon_id) for frame in group_of(pe, 7)] == [(32, 1)]
+	assert pe.data_entries(RT_ICON).keys() == PeFile(stock).data_entries(RT_ICON).keys()  # the directory never grows
+	assert "fitted to 32 px" in report[0]
+
+
+@pytest.mark.parametrize(
+	"stock_frames, expected_sizes",
+	[
+		([(32, 8), (32, 32)], [32, 16]),  # two 32 px frames: one new 32 px frame, and the spare id takes a 16 px one
+		([(48, 8), (48, 32)], [48, 32]),  # two 48 px frames (the mouse button pictures): the spare id takes 32 px
+		([(16, 32), (32, 32)], [32, 16]),  # two different sizes: both are kept
+		([(32, 1)], [32]),  # a single frame has no id to spare
+	],
+)
+def test_the_fitted_sizes_are_the_stock_sizes_then_the_next_size_down(stock_frames, expected_sizes):
+	frames = {index: dib(16, index) for index in range(1, len(stock_frames) + 1)}
+	groups = {5: [(index, size, bits) for index, (size, bits) in enumerate(stock_frames, 1)]}
+	new, _ = patch_icons.patch_icon_groups(make_dll(groups, frames), {5: ico(0x20)})
+	assert [frame.width for frame in group_of(PeFile(new), 5)] == expected_sizes
+
+
+def test_a_fitted_group_never_uses_an_id_another_group_lists():
+	frames = {index: dib(16, index) for index in range(1, 4)}
+	groups = {1: [(1, 48, 32), (2, 32, 32), (3, 16, 32)], 2: [(3, 16, 32)]}
+	stock = make_dll(groups, frames)
+	new, _ = patch_icons.patch_icon_groups(stock, {1: ico(0x20)})
+	assert {frame.icon_id for frame in group_of(PeFile(new), 1)} == {1, 2}
+	assert group_of(PeFile(new), 2) == group_of(PeFile(stock), 2)
+
+
+def test_a_group_whose_frames_are_all_shared_is_refused():
+	frames = {1: dib(32, 1)}
+	with pytest.raises(PatchError, match="no frame ids of its own"):
+		patch_icons.patch_icon_groups(make_dll({1: [(1, 32, 32)], 2: [(1, 32, 32)]}, frames), {1: ico(0x20)})
 
 
 def test_a_missing_group_is_refused():
@@ -210,11 +257,3 @@ def test_the_shipped_table_and_pins_agree():
 	assert groups == sorted(set(groups))
 	for row in table["groups"]:
 		assert not ("afterglow" in row and "reason" in row)  # a row is an extra icon or a reason to leave the group, never both
-
-
-def test_a_frame_shared_with_another_group_is_not_reused():
-	"""Group 2 lists the same frame ids as group 1, so replacing group 1 would change group 2 too: refused when too few ids remain."""
-	frames = {index: dib(16, index) for index in range(1, 4)}
-	groups = {1: [(1, 48, 32), (2, 32, 32), (3, 16, 32)], 2: [(3, 16, 32)]}
-	with pytest.raises(PatchError, match="of its own"):
-		patch_icons.patch_icon_groups(make_dll(groups, frames), {1: ico(0x20)})

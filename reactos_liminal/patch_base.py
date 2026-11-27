@@ -3,7 +3,9 @@
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
+import hashlib
 import subprocess
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -51,6 +53,46 @@ def recording():
 
 def active_recorder() -> PinRecorder | None:
 	return _recorder
+
+
+_skipped: Callable[[str], bool] | None = None
+
+
+@contextmanager
+def skipping(is_trimmed: Callable[[str], bool]):
+	"""Run patchers knowing which image paths the trim will remove. A patcher that would write such a file leaves it alone (and says
+	so), because a trim that reaches a patched file is an error; the patch list stays the same whatever the trim, so the pins do too."""
+	global _skipped
+	previous, _skipped = _skipped, is_trimmed
+	try:
+		yield
+	finally:
+		_skipped = previous
+
+
+def is_trimmed(image_path: str) -> bool:
+	"""True while building under a trim profile that removes `image_path`."""
+	return _skipped is not None and _skipped(image_path)
+
+
+def _latest_marker(scratch: Path, image_path: str) -> Path:
+	return scratch / ".latest" / hashlib.sha256(image_path.lower().encode()).hexdigest()
+
+
+def remember_patched(scratch: Path, item: PatchedFile) -> None:
+	"""Note that `item.local_file` is the newest copy of `item.image_path` this build has made, for a later patcher to build on."""
+	marker = _latest_marker(scratch, item.image_path)
+	marker.parent.mkdir(parents=True, exist_ok=True)
+	marker.write_text(str(item.local_file))
+
+
+def latest_patched(scratch: Path, image_path: str) -> Path | None:
+	"""The newest copy of `image_path` an earlier patcher of this build wrote, or None when none has."""
+	marker = _latest_marker(scratch, image_path)
+	if not marker.is_file():
+		return None
+	path = Path(marker.read_text())
+	return path if path.is_file() else None
 
 
 def read_sums(path: Path) -> dict[str, str]:

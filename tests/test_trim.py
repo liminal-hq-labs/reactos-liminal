@@ -246,3 +246,30 @@ def test_trim_image_applies_the_recipes_extra_with_a_built_in_profile(tmp_path, 
 	recipe = load(write_recipe(tmp_path, "mine.toml", 'extra = ["mine.txt"]'))
 	report = trim_image(recipe, tmp_path / "work", fat.image, "none")
 	assert [entry.path for entry in report.removed] == ["gone.bin"]
+
+
+@pytest.mark.parametrize(
+	"path, removed",
+	[
+		("ReactOS/system32/mmc.exe", True),  # a file entry
+		("reactos/system32/MMC.EXE", True),  # FAT ignores case
+		("ReactOS/system32/gecko/wine_gecko.cab", True),  # inside a folder entry
+		("ReactOS/system32/taskmgr.exe", False),
+	],
+)
+def test_removes_says_whether_a_profile_reaches_a_path(path, removed):
+	"""The patchers use this to leave alone a file the trim will remove, so the trim's protection rule is never tripped."""
+	profile = trim.build_profile("base", [])
+	assert trim.removes(profile, path) is removed
+
+
+def test_no_file_the_patchers_write_is_one_the_base_profile_removes():
+	"""Every path in the families, the toolbar strips and the dialog bitmaps stays in the compact image, so the compact patch list
+	is the full one and the pins are the same."""
+	from reactos_liminal import patch_bitmaps, patch_dialog_bitmaps, patch_family
+
+	paths = [file_spec["path"] for family in patch_family.load_families().values() for file_spec in family["files"]]
+	paths += [file_spec["path"] for file_spec in patch_bitmaps.load_strips()["files"]]
+	paths += [file_spec["path"] for file_spec in patch_dialog_bitmaps.load_spec()["files"]]
+	profile = trim.build_profile("base", [])
+	assert [path for path in paths if trim.removes(profile, path)] == []
