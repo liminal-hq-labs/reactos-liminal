@@ -195,7 +195,7 @@ def test_a_duplicate_reg_path_is_refused(base_recipe_path, tmp_path):
 
 def test_files_merge_by_destination_across_extends(base_recipe_path, tmp_path):
 	base = load(base_recipe_path)
-	assert len(base.data["files"]) == 2
+	assert len(base.data["files"]) == 6
 	child_dir = tmp_path / "quill"
 	child_dir.mkdir()
 	write(child_dir, "mine.cmd", "@echo mine\n")
@@ -210,6 +210,10 @@ def test_files_merge_by_destination_across_extends(base_recipe_path, tmp_path):
 	assert [entry["destination"] for entry in files] == [
 		"ReactOS/system32/afterfetch.exe",
 		"ReactOS/System32/AFTERFETCH.cmd",
+		"ReactOS/system32/neofetch.cmd",
+		"ReactOS/system32/fastfetch.cmd",
+		"ReactOS/system32/screenfetch.cmd",
+		"ReactOS/system32/winfetch.cmd",
 		"Quill/run.cmd",
 	]
 	assert files[0]["source"] == "built:afterfetch"
@@ -221,3 +225,9 @@ def test_inherited_file_sources_stay_relative_to_the_recipe_that_wrote_them(base
 	files = {entry["destination"]: entry["source"] for entry in load(child).data["files"]}
 	assert files["ReactOS/system32/afterfetch.cmd"] == str(base_recipe_path.parent.parent / "guest" / "cmd" / "afterfetch.cmd")
 	assert files["ReactOS/system32/afterfetch.exe"] == "built:afterfetch"
+
+
+def test_the_fetch_names_are_shims_that_run_afterfetch(base_recipe_path):
+	guest_cmd = base_recipe_path.parent.parent / "guest" / "cmd"
+	for name in ("neofetch", "fastfetch", "screenfetch", "winfetch"):
+		assert "\nafterfetch.exe %*\n" in (guest_cmd / f"{name}.cmd").read_text()

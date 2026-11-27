@@ -83,7 +83,8 @@ sha256 = "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
 
 # Files written into the image. `afterfetch` is a small system-information command with an Afterglow logo, run from the command prompt;
 # it sits in system32, so it is on the PATH. The native program in colour is `afterfetch.exe`, which the command prompt finds before the
-# batch file; `afterfetch.cmd` stays as the plain-text fallback (docs/afterfetch.md).
+# batch file; `afterfetch.cmd` stays as the plain-text fallback. `neofetch`, `fastfetch`, `screenfetch` and `winfetch` are one-line shims that
+# run `afterfetch.exe` (docs/afterfetch.md).
 [[files]]
 source = "built:afterfetch"
 destination = "ReactOS/system32/afterfetch.exe"
@@ -91,6 +92,22 @@ destination = "ReactOS/system32/afterfetch.exe"
 [[files]]
 source = "../guest/cmd/afterfetch.cmd"
 destination = "ReactOS/system32/afterfetch.cmd"
+
+[[files]]
+source = "../guest/cmd/neofetch.cmd"
+destination = "ReactOS/system32/neofetch.cmd"
+
+[[files]]
+source = "../guest/cmd/fastfetch.cmd"
+destination = "ReactOS/system32/fastfetch.cmd"
+
+[[files]]
+source = "../guest/cmd/screenfetch.cmd"
+destination = "ReactOS/system32/screenfetch.cmd"
+
+[[files]]
+source = "../guest/cmd/winfetch.cmd"
+destination = "ReactOS/system32/winfetch.cmd"
 
 [outputs.disk]
 zero_free = true

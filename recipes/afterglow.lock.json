@@ -23,7 +23,11 @@
 		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1"
 	},
 	"files": {
-		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a"
+		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a",
+		"../guest/cmd/neofetch.cmd": "0f15609cf20ea891bf824067b8564d9f4b690d48424de59963169979b768b06e",
+		"../guest/cmd/fastfetch.cmd": "323b0f6515dd8daa3f89f3ff7a4dd88eb310da81fc5af6e21a51c83df27ddcc2",
+		"../guest/cmd/screenfetch.cmd": "8c7a9aae4d8dc6c8b7402866e749e337ca866e128ea93980546bb9adad4ed69f",
+		"../guest/cmd/winfetch.cmd": "07e6410464e584fe4fa6658fc0ab8632e4372e92856d335fdb60d75fb110267d"
 	},
 	"builds": {
 		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"

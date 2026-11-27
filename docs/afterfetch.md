@@ -70,6 +70,10 @@ A recipe that extends the base and lists its own `[[files]]` replaces the base l
 
 CI builds it in the shared Rust image (`.github/workflows/ci.yml`, job `afterfetch.exe`): rustfmt, clippy, the unit tests, the build, the executable checks and a second build in another directory that must match.
 
+## Other names
+
+`neofetch`, `fastfetch`, `screenfetch` and `winfetch` run `afterfetch`. Each is a one-line batch file in [`guest/cmd`](../guest/cmd), `afterfetch.exe %*`, written to `ReactOS/system32` by the base recipe's `[[files]]` entries, so a recipe that extends the base inherits them (entries merge by destination). The shim names the program with its extension so it can never find itself, and passes its arguments on; `afterfetch.exe` takes none and ignores them, so `neofetch --plain` prints the same picture. No program is copied and no third-party code is used.
+
 ## The batch fallback
 
 [`guest/cmd/afterfetch.cmd`](../guest/cmd/afterfetch.cmd) prints the same picture in one colour (`cmd.exe` can colour only the whole screen). It takes its facts from `whoami`, `ver`, `uptime`, `systeminfo` and the display adapter's registry key. What this ReactOS `cmd.exe` taught while it was written:
