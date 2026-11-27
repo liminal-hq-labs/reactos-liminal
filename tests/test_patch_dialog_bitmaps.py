@@ -236,7 +236,77 @@ def test_the_result_is_checked_against_its_pin_and_an_unpinned_set_is_refused(se
 
 def test_the_shipped_table_names_files_and_hashes_only():
 	spec = patch_dialog_bitmaps.load_spec()
-	assert [item["path"] for item in spec["files"]] == [SHELL, GINA, GINA_COPY]
+	assert [item["path"] for item in spec["files"]] == [SHELL, GINA, GINA_COPY, "ReactOS/system32/cards.dll"]
 	assert all(set(item) <= {"path", "module", "stock_path", "stock_sha256"} for item in spec["files"])  # no resource ids here
 	assert patch_dialog_bitmaps.FAMILY in json.loads(patch_bitmaps.PINS_FILE.read_text())["families"]
 	assert patch_icons.PINS_FILE.name == "shell32-icons.json"
+
+
+def dib8(fill: int, width: int = WIDTH, height: int = HEIGHT) -> bytes:
+	"""An 8-bit bottom-up DIB with a 256-entry colour table, as the stock card backs are."""
+	stride = (width + 3) // 4 * 4
+	pixels = bytes([fill]) * stride * height
+	return struct.pack("<IiiHHIIiiII", 40, width, height, 1, 8, 0, len(pixels), 0, 0, 256, 0) + bytes(1024) + pixels
+
+
+CARD_RESOURCES = [
+	{
+		"id": "card-back",
+		"file": "desktop/cards/card-back.svg",
+		"bitmap": "card-back.bmp",
+		"module": "cards.dll",
+		"resource": 54,
+		"name": "Background_1",
+		"size": [WIDTH, HEIGHT],
+		"bits": 8,
+	}
+]
+
+
+@pytest.fixture
+def cards(fat, tmp_path, monkeypatch):
+	stock = make_dll({}, {}, bitmaps={53: dib8(1), 54: dib8(2), 55: dib8(3)})
+	fat.make_directory("ReactOS")
+	fat.make_directory("ReactOS/system32")
+	local = tmp_path / "cards.dll"
+	local.write_bytes(stock)
+	fat.copy_in(local, "ReactOS/system32/cards.dll")
+	path = "ReactOS/system32/cards.dll"
+	spec = {"files": [{"path": path, "stock_sha256": hashlib.sha256(stock).hexdigest()}]}
+	monkeypatch.setattr(patch_dialog_bitmaps, "load_spec", lambda: spec)
+	tree = tmp_path / "tree"
+	write_tree(tree, CARD_RESOURCES, {"desktop/cards": {"card-back.bmp": bmp24(0x44)}})
+	scratch = tmp_path / "scratch"
+	scratch.mkdir()
+	pins_file = tmp_path / "pins.json"
+	monkeypatch.setattr(patch_dialog_bitmaps, "PINS_FILE", pins_file)
+	pins_file.write_text(json.dumps({"families": {}}))
+	return fat, tree, scratch, stock, path
+
+
+def test_art_at_another_depth_goes_in_a_new_section_and_only_its_entry_moves(cards, tmp_path):
+	fat, tree, scratch, stock, path = cards
+	with patch_base.recording():
+		patched = run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)
+	assert [item.image_path for item in patched] == [path]
+	new = patched[0].local_file.read_bytes()
+	assert bitmap_of(new, 54) == dib24(0x44)  # 24-bit now, same width and height
+	assert bitmap_of(new, 53) == dib8(1) and bitmap_of(new, 55) == dib8(3)  # the other backs are untouched
+	assert b".agbmp" in new[:0x400]  # the new section's header
+	assert new.startswith(stock[:0x80])  # the DOS header and stub did not move
+	assert struct.unpack_from("<I", new, PeFile(new).checksum_offset)[0] == pe_checksum(new, PeFile(new).checksum_offset)
+
+
+def test_art_of_a_size_the_map_does_not_name_is_refused(cards, tmp_path, monkeypatch):
+	fat, tree, scratch, _stock, _path = cards
+	write_tree(tree, CARD_RESOURCES, {"desktop/cards": {"card-back.bmp": bmp24(0x44, WIDTH + 4, HEIGHT)}})
+	with patch_base.recording(), pytest.raises(PatchError, match="is not a 6 x 3, 8-bit or 24-bit bitmap"):
+		run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)
+
+
+def test_a_stock_bitmap_of_another_depth_than_the_map_says_is_refused(cards, tmp_path):
+	fat, tree, scratch, _stock, _path = cards
+	resources = [{**CARD_RESOURCES[0], "bits": 24}]
+	write_tree(tree, resources, {"desktop/cards": {"card-back.bmp": bmp24(0x44)}})
+	with patch_base.recording(), pytest.raises(PatchError, match="is 6 x 3 at 8 bits in the file"):
+		run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)

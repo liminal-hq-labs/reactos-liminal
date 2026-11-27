@@ -1,5 +1,5 @@
 {
-	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md. The `map-icons` family holds the remaining modules the map names, including the ones the `base` trim removes; a patcher leaves a trimmed file alone (RL-53.3). `explorer.exe` and its copy `agexplorer.exe` list group 100 (the program's own icon, the first group in the file, which Explorer's file views draw) because the map names only group 101 (the Start menu entry) for `explorer`.",
+	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md. The `map-icons` family holds the remaining modules the map names, including the ones the `base` trim removes; a patcher leaves a trimmed file alone (RL-53.3). `explorer.exe` and its copy `agexplorer.exe` list group 100 (the program's own icon, the first group in the file, which Explorer's file views draw) because the map names only group 101 (the Start menu entry) for `explorer`. A file with `new_file` has no stock file: the patcher creates it as a resource-only DLL holding the groups the map names for it (`imageres.dll`, which only the Show Desktop button loads), and refuses when the stock disk already has one. The colours Afterglow's map records as compiled into code (`colours`: the felt of `sol.exe` and `spider.exe`) are written into the file of the module that holds them, over the exact bytes the map names, after the stock file's SHA-256 is checked.",
 	"families": {
 		"cpl-icons": {
 			"patcher": "afterglow.cpl-icons",
@@ -284,6 +284,82 @@
 				{
 					"path": "ReactOS/system32/write.exe",
 					"stock_sha256": "76234577f9ce4afe98ee4f5ef53026cc0402c7508a1e67be07ee05112757937c"
+				},
+				{
+					"path": "ReactOS/system32/bthci.dll",
+					"stock_sha256": "1f7ed85962e65cd9141be4106c9691255956146cabd852991c4344f28e3050b5"
+				},
+				{
+					"path": "ReactOS/system32/winsrv.dll",
+					"stock_sha256": "2c7cdb84fa47ce45062439ecfd2ef2fb9c742dfe06f26afce7cc9b6c4089e9c3"
+				},
+				{
+					"path": "ReactOS/system32/progman.exe",
+					"stock_sha256": "183d52f60b6cc604e4f1476a44db425dede2647aaed6a51f038c0a1d27090f9c"
+				},
+				{
+					"path": "ReactOS/system32/mmc.exe",
+					"stock_sha256": "7e2ad31ad98fd150114d0e31c238ffc9245280cc2da5e6fb9dd05ec38fc01520"
+				},
+				{
+					"path": "ReactOS/system32/openglcfg.cpl",
+					"stock_sha256": "191c2c36024a6b5571384d55999e03c4e5364668baaa2319acb69a6e99dd4523"
+				},
+				{
+					"path": "ReactOS/system32/3dtext.scr",
+					"stock_sha256": "ac12143afe60a890b2f1e0bd34389eb75f94c0315a554eaeecb77fdce532b557"
+				},
+				{
+					"path": "ReactOS/system32/blankscr.scr",
+					"stock_sha256": "3eb6abd70e6119fec8e45ef39342cd09d486f33d8a7b4d4620bd50c448dd174d"
+				},
+				{
+					"path": "ReactOS/system32/butterflies.scr",
+					"stock_sha256": "b47d552fd1fc92f2e2ebc041fa0a3935a30d606f9438cc69eaa78bfa68b0ee08"
+				},
+				{
+					"path": "ReactOS/system32/circles.scr",
+					"stock_sha256": "10992239b7a1734f3648830ae5a06a1fe475030e149864eb1933c0738f313e99"
+				},
+				{
+					"path": "ReactOS/system32/cylfrac.scr",
+					"stock_sha256": "3002ea5c9ac1cffa7458ddba5c188d0b6f3ee00f851fa7ddf507333d2073adda"
+				},
+				{
+					"path": "ReactOS/system32/logon.scr",
+					"stock_sha256": "8854a5f9e239d96413c60bd0185847ead1a9d33dbfbf64dba8cf96098ec6e05d"
+				},
+				{
+					"path": "ReactOS/system32/matrix.scr",
+					"stock_sha256": "a93f68763fc7c4fd80e0fddf55ece26801a505ed19b095f60c0f2d6b563c409d"
+				},
+				{
+					"path": "ReactOS/system32/mazescr.scr",
+					"stock_sha256": "175ebfba0d3014867f9ef831385e755dabdb3b39aacdad46ba16facb8f9edb47"
+				},
+				{
+					"path": "ReactOS/system32/ssstars.scr",
+					"stock_sha256": "fd71646a0fe8d70fa6bc6e1f4ec31c8d0b6d7d81b0377aafb6b088ff198a893f"
+				},
+				{
+					"path": "ReactOS/system32/starfield.scr",
+					"stock_sha256": "f2fbc7703fc5540916edeffd9f029bad830c81f925c36ee2f451affa9ffe5b23"
+				},
+				{
+					"path": "ReactOS/system32/screenshot.exe",
+					"stock_sha256": "618296616d7f85df8ba1f0286e6480997e8db570b55edd6a72c94c6827577d5a"
+				},
+				{
+					"path": "ReactOS/system32/telnet.exe",
+					"stock_sha256": "db7e91493c4adbed8c16f51a1ca8b4015cbd57fc1af1f3d30e272605fa46c7e5"
+				},
+				{
+					"path": "ReactOS/system32/wined3dcfg.cpl",
+					"stock_sha256": "6e5d61a0c49216152e493f27ac93fbf05b30a21429f7ad039bddfd2f5799cb59"
+				},
+				{
+					"path": "ReactOS/system32/imageres.dll",
+					"new_file": true
 				}
 			]
 		}

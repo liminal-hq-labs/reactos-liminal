@@ -17,6 +17,7 @@ digest of the art used and of those earlier copies, and stays in the work direct
 import json
 from pathlib import Path
 
+from . import pe_resources
 from .fetch import sha256_file
 from .icon_map import load_bitmaps
 from .log import log
@@ -29,6 +30,8 @@ from .pe_resource import PeError, PeFile, dib_from_bmp, dib_info, replace_bitmap
 
 SPEC_FILE = Path(__file__).resolve().parent / "dialog_bitmaps.json"
 FAMILY = "dialog-bitmaps"
+SECTION_NAME = b".agbmp"
+SECTION_FLAGS = 0x40000040  # initialized data, readable
 
 
 def load_spec() -> dict:
@@ -52,30 +55,61 @@ def render_bitmaps(source_tree: Path, scratch: Path, resources: list[dict]) -> d
 
 
 def write_bitmaps(stock: bytes, resources: list[dict], rendered: dict[str, tuple[bytes, str]]) -> tuple[bytes, list[str]]:
-	"""Write each resource's art over the same bitmap of a PE file. Refuses a bitmap whose stock size or depth, or whose new size or
-	depth, is not the one the map records."""
+	"""Write each resource's art over the same bitmap of a PE file. Refuses a bitmap whose stock size or depth, or whose new size, is not
+	the one the map records. Art of the stock depth goes over the old DIB where it is. Art at another depth (the 24-bit card backs over
+	the 8-bit stock ones, which have no room for it) goes in a new section with the resource's entry pointed at it, as the icon patchers
+	do; the width and height still match, so the program that loads it draws it the same way."""
 	data = stock
 	report = []
+	grown: list[tuple[int, bytes]] = []
 	try:
 		for resource in resources:
 			width, height = resource["size"]
-			shape = (width, height, resource["bits"])
 			dib = dib_from_bmp(rendered[resource["bitmap"]][0])
 			info = dib_info(dib)
-			if (info.width, info.height, info.bits_per_pixel, info.compression) != (*shape, 0):
-				raise PatchError(f"{resource['bitmap']} is not a {width} x {height}, {resource['bits']}-bit bitmap")
+			if (info.width, info.height, info.compression) != (width, height, 0) or info.bits_per_pixel not in (resource["bits"], 24):
+				depths = " or ".join(f"{bits}-bit" for bits in sorted({resource["bits"], 24}))
+				raise PatchError(f"{resource['bitmap']} is not a {width} x {height}, {depths} bitmap")
 			slot = PeFile(data).bitmap(resource["resource"])
 			old = dib_info(data[slot.data_offset : slot.data_offset + slot.size])
-			if (old.width, old.height, old.bits_per_pixel, old.compression) != (*shape, 0):
+			if (old.width, old.height, old.bits_per_pixel, old.compression) != (width, height, resource["bits"], 0):
 				raise PatchError(
 					f"bitmap {resource['resource']} ({resource['name']}) is {old.width} x {old.height} at {old.bits_per_pixel} bits "
 					f"in the file; the map says {width} x {height} at {resource['bits']}"
 				)
-			data = replace_bitmap(data, resource["resource"], dib, same_size=True)
-			report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}")
-	except PeError as error:
+			if info.bits_per_pixel == resource["bits"]:
+				data = replace_bitmap(data, resource["resource"], dib, same_size=True)
+				report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}")
+			else:
+				grown.append((resource["resource"], dib))
+				report.append(
+					f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}, {info.bits_per_pixel}-bit over the "
+					f"stock {old.bits_per_pixel}-bit one, in a new section"
+				)
+		if grown:
+			data = _write_grown(data, grown)
+	except (PeError, pe_resources.PeError) as error:
 		raise PatchError(f"the file cannot be patched: {error}") from error
 	return data, report
+
+
+def _write_grown(data: bytes, grown: list[tuple[int, bytes]]) -> bytes:
+	"""Put the DIBs in one new section and point each bitmap's resource entry at its bytes."""
+	pe = pe_resources.PeFile(data)
+	entries = pe.data_entries(pe_resources.RT_BITMAP)
+	content = bytearray()
+	edits = []
+	for resource_id, dib in grown:
+		if len(entries.get(resource_id, [])) != 1:
+			raise pe_resources.PeError(f"bitmap {resource_id} is not in the file in exactly one language")
+		content += bytes(-len(content) % 4)
+		edits.append((entries[resource_id][0], len(content), len(dib)))
+		content += dib
+	new_rva = pe.append_section(SECTION_NAME, bytes(content), SECTION_FLAGS)
+	for entry, offset, size in edits:
+		pe.point_entry_at(entry, new_rva + offset, size)
+	pe.update_checksum()
+	return pe.to_bytes()
 
 
 def dialog_bitmaps(golden: FatImage, source_tree: Path, files: Path, scratch: Path) -> list[PatchedFile]:

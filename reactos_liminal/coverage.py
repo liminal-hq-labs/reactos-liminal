@@ -29,6 +29,37 @@ PATCHED, SKIPPED, UNVERIFIED = "patched", "skipped", "unverified"
 BITMAP_MODULES = {"browseui.dll"}  # modules whose resources are toolbar cells, not icon groups
 
 
+# Why an icon the map leaves unmapped stays unpatched, from reading ReactOS 0.4.16's source and its stock files for something that shows
+# the art. The icons are drawn for the Afterglow set, but no resource of the image is that thing, and none is invented for them.
+UNMAPPED_REASONS = {
+	"cd-disc": (
+		"no resource shows a disc; the nearest, setupapi.dll 51, is the Device Manager's DVD/CD-ROM drives class icon "
+		"(hivesys.inf `Icon` -51), a drive"
+	),
+	"clock": "the taskbar clock is text drawn by Explorer, not an icon; Date and Time's own icon is `datetime`",
+	"floppy-disk": (
+		"no resource shows a disk; setupapi.dll 50 is named by no device class, and shell32.dll 7, the floppy drive, is `floppy`"
+	),
+	"monitor": (
+		"the Monitor device class names no icon in hivesys.inf, and the monitor in Display Properties (desk.cpl 1001) is a "
+		"160 x 120 bitmap, not an icon"
+	),
+	"ram-module": (
+		"no resource shows memory; the Ramdisk class takes setupapi.dll 5, the network card icon, and setupapi.dll 159 is named by no class"
+	),
+	"readme": "a shortcut's icon, not a resource: the Read Me shortcut names no icon, so it shows the .txt file type's",
+	"showdesk": "the first Show Desktop design; the button asks for imageres.dll 110, which `showdesktop` takes",
+	"trynet": (
+		"the tray network icons are netshell.dll 105 to 109, which the `lan` icons take (`lan`, `lanoff`, `lanrec`, `lantrans`, "
+		"`lanboth`); no resource is left for this one"
+	),
+	"usb-key": (
+		"no resource shows a USB drive; setupapi.dll 20 is the Universal Serial Bus controllers class, and no class names "
+		"setupapi.dll 21 (a removable drive)"
+	),
+}
+
+
 @dataclass(frozen=True)
 class Row:
 	icon_id: str
@@ -57,7 +88,8 @@ def build_rows(entries: dict[str, dict], recorder: PinRecorder, listed_modules: 
 		by_icon[icon_id].append(resource)
 	for icon_id, resources in by_icon.items():
 		if not resources:
-			rows.append(Row(icon_id, "-", "-", "-", UNVERIFIED, (), "the map names no verified ReactOS resource for this icon"))
+			detail = UNMAPPED_REASONS.get(icon_id, "the map names no verified ReactOS resource for this icon")
+			rows.append(Row(icon_id, "-", "-", "-", UNVERIFIED, (), detail))
 			continue
 		for resource in resources:
 			key = _key(resource)
@@ -69,7 +101,10 @@ def build_rows(entries: dict[str, dict], recorder: PinRecorder, listed_modules: 
 			evidence = "+".join(resource.get("evidence") or []) or "-"
 			target = f"{kind} {number}"
 			if key in recorder.patched and recorder.patched[key][0] == icon_id:
-				note = "" if "binary" in evidence else "the map has source evidence only; the patcher checked the stock binary"
+				if any(path in recorder.created for path in recorder.patched[key][1]):
+					note = "a new file: the stock disk has none, so the patcher creates it with this group"
+				else:
+					note = "" if "binary" in evidence else "the map has source evidence only; the patcher checked the stock binary"
 				rows.append(Row(icon_id, module, target, evidence, PATCHED, tuple(recorder.patched[key][1]), note))
 			elif key in recorder.skipped:
 				rows.append(Row(icon_id, module, target, evidence, SKIPPED, (), "; ".join(recorder.skipped[key])))

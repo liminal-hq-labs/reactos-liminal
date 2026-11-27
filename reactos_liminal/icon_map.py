@@ -103,3 +103,36 @@ def load_bitmaps(source_tree: Path) -> list[dict]:
 	if not found:
 		raise PatchError(f"{map_file} has no `bitmaps` list; the pinned Afterglow commit predates the dialog art")
 	return found
+
+
+@dataclass(frozen=True)
+class ColourEdit:
+	"""One colour compiled into code: the bytes the stock file holds at a file offset and the bytes Afterglow's art is drawn to match."""
+
+	colour_id: str
+	offset: int
+	stock: bytes
+	afterglow: bytes
+	instruction: str
+
+
+def load_colours(source_tree: Path, module: str) -> list[ColourEdit]:
+	"""The `colours` of Afterglow's map that live in `module`'s code, each as the offset and the stock and new bytes. A map with no
+	`colours` list (an older pin) has none."""
+	map_file = source_tree / "desktop" / "icons" / "map.json"
+	if not map_file.is_file():
+		raise PatchError(f"{map_file} is missing; the pinned Afterglow commit has no icon map")
+	edits = []
+	for colour in json.loads(map_file.read_text()).get("colours", []):
+		for site in colour.get("code", []):
+			if site.get("module") != module:
+				continue
+			try:
+				stock, afterglow = bytes.fromhex(site["stock_bytes"]), bytes.fromhex(site["afterglow_bytes"])
+				offset = int(site["offset"], 16)
+			except (KeyError, ValueError) as error:
+				raise PatchError(f"Afterglow's map.json has a malformed colour site for {module}: {error}") from error
+			if len(stock) != len(afterglow):
+				raise PatchError(f"Afterglow's map.json colour {colour['id']!r} in {module} changes the length of the code")
+			edits.append(ColourEdit(colour["id"], offset, stock, afterglow, site.get("instruction", "")))
+	return edits
