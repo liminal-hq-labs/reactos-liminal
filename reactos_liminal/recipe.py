@@ -35,6 +35,7 @@ PATCHERS = (
 	"afterglow.icons",
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
+	"afterglow.dialog-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.logon",
 	"afterglow.boot",
@@ -180,6 +181,17 @@ def _name_list(allowed: tuple[str, ...] | None):
 	return check
 
 
+def _patcher_list(value: Any, key: str) -> list[str]:
+	"""The patcher names, in order. `afterglow.dialog-icons` patches the user32.dll that `afterglow.pointers` writes, so it needs that
+	patcher listed before it; the other way round, the pointers copy would replace the icons."""
+	names = _name_list(PATCHERS)(value, key)
+	if "afterglow.dialog-icons" in names and (
+		"afterglow.pointers" not in names or names.index("afterglow.pointers") > names.index("afterglow.dialog-icons")
+	):
+		raise RecipeError(f"{key}: afterglow.dialog-icons builds on the user32.dll of afterglow.pointers, which must be listed before it")
+	return names
+
+
 def _str_list(value: Any, key: str) -> list[str]:
 	return _name_list(None)(value, key)
 
@@ -286,7 +298,7 @@ SCHEMA: dict[str, Any] = {
 		"extra": (_str_list, []),
 	},
 	"patchers": {
-		"list": (_name_list(PATCHERS), []),
+		"list": (_patcher_list, []),
 	},
 	"files": (_table_list(FILE_SPEC), []),
 	"shortcuts": (_table_list(SHORTCUT_SPEC), []),

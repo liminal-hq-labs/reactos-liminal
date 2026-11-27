@@ -36,7 +36,15 @@ from .recipe import Recipe, load
 from .rustbuild import build_program, declaring_file
 from .wallpaper import render_wallpaper, wanted
 
-ICON_PATCHERS = ("afterglow.icons", "afterglow.cpl-icons", "afterglow.program-icons", "afterglow.toolbar-bitmaps")
+# `afterglow.pointers` leads because `afterglow.dialog-icons` builds on the user32.dll it writes; it records nothing itself.
+ICON_PATCHERS = (
+	"afterglow.pointers",
+	"afterglow.icons",
+	"afterglow.cpl-icons",
+	"afterglow.program-icons",
+	"afterglow.dialog-icons",
+	"afterglow.toolbar-bitmaps",
+)
 SECTION = "[inputs.afterglow]"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
