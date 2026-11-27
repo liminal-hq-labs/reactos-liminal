@@ -201,7 +201,7 @@ def test_extra_paths_resolve_relative_to_the_recipe(tmp_path):
 	(folder / "mine.txt").write_text("f a.bin\n")
 	recipe = load(write_recipe(folder, "mine.toml", 'extra = ["mine.txt"]'))
 	assert recipe.section("trim", "extra") == [str(folder / "mine.txt")]
-	assert recipe.section("trim", "profile") == "base"  # from the extended recipe
+	assert recipe.section("trim", "profile") == "none"  # from the extended recipe
 	# the plan finds the file wherever the process runs
 	plan = plan_image(recipe, tmp_path / "work")
 	assert any("extra trim list" in step and "mine.txt" in step and "1 entries" in step for step in plan.steps)

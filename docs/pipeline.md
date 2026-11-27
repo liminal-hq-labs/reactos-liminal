@@ -59,7 +59,7 @@ The Afterglow source is pinned by commit and by the SHA-256 of the uncompressed 
 
 ## `rl verify` and `rl lock`
 
-`rl lock RECIPE` writes `NAME.lock.json` beside the recipe: the pinned inputs as the recipe resolves them (the ISO and Afterglow pins), the SHA-256 of the rendered answers file, of the trim lists and of the recipe's `[[files]]` sources. It holds nothing machine-specific and no time, so it is committed and the same everywhere.
+`rl lock RECIPE` writes `NAME.lock.json` beside the recipe: the pinned inputs as the recipe resolves them (the ISO and Afterglow pins), the SHA-256 of the rendered answers file, of the trim lists and of the recipe's `[[files]]` sources. Each recipe has its own lock: `afterglow.lock.json` for the full image and `afterglow-compact.lock.json` for the compact one. It holds nothing machine-specific and no time, so it is committed and the same everywhere.
 
 `rl verify RECIPE` re-checks, and writes nothing and downloads nothing:
 
@@ -80,7 +80,7 @@ Zeroes the free clusters of the image's FAT32 partition (deleted files leave the
 - **Every chunk gets a file,** including all-zero ones (a few bytes each), because v86 asks for any chunk the guest reads. A short last chunk holds only the bytes it covers.
 - **Level** is `outputs.parts.zstd_level` (default 19), run through the `zstd` command with one thread per part and four parts at a time. Parts are identical across runs.
 
-On the base image: 512 parts, 468 all zero, 48 MB compressed, about 22 seconds.
+On the compact image: 512 parts, 468 all zero, 48 MB compressed, about 22 seconds. The full image has far fewer all-zero parts and compresses to more.
 
 ## `rl manifest`, `rl summary`, `rl hash`
 

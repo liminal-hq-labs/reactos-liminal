@@ -154,7 +154,9 @@ jobs:
 
       # Always runs, hit or miss: the ISO and the Afterglow tar are hashed again, and the lock file must match the recipe.
       - name: Verify the pins
-        run: ./rl verify "$RECIPE" --work "$RL_WORK" --require iso,afterglow-tar
+        run: |
+          ./rl verify "$RECIPE" --work "$RL_WORK" --require iso,afterglow-tar
+          ./rl verify recipes/afterglow-compact.toml --work "$RL_WORK" --require iso,afterglow-tar
 
       - name: Save the ISO
         if: steps.iso-cache.outputs.cache-hit != 'true'
@@ -217,6 +219,12 @@ jobs:
           started=$SECONDS
           ./rl image "$RECIPE" --work "$RL_WORK"
           echo "image=$((SECONDS - started))" >> "$RUNNER_TEMP/timings"
+
+      # The compact recipe differs from the base recipe by its trim alone, so CI builds the full image, verifies both locks above, and
+      # only plans the compact image: its trim list is read and checked against the patched files and the licence paths.
+      - name: Plan the compact image
+        if: steps.image.outcome == 'success'
+        run: ./rl image recipes/afterglow-compact.toml --dry-run --work "$RL_WORK"
 
       - name: Split the image into v86 parts
         id: parts

@@ -39,7 +39,16 @@ PATCHERS = (
 	"afterglow.logon",
 	"afterglow.boot",
 )
-REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons", "afterglow-logon")
+REG_FILES = (
+	"display",
+	"quiet",
+	"watermark-off",
+	"mouse-linear",
+	"hide-desktop-icons",
+	"afterglow-logon",
+	"regional-canada",
+	"pointer-defaults",
+)
 TRIM_PROFILES = ("none", "base")
 
 

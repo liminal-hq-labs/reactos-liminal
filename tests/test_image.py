@@ -59,12 +59,18 @@ def test_the_pipeline_order_is_fixed_and_patchers_come_before_the_trim():
 	assert image.PIPELINE[0] == "copy" and image.PIPELINE[-1] == "settings"
 
 
-def test_the_plan_lists_the_steps_in_order_and_runs_nothing(base_recipe_path, tmp_path, no_processes):
-	plan = plan_image(recipe_module.load(base_recipe_path), tmp_path / "work")
+def test_the_plan_lists_the_steps_in_order_and_runs_nothing(compact_recipe_path, tmp_path, no_processes):
+	plan = plan_image(recipe_module.load(compact_recipe_path), tmp_path / "work")
 	text = plan.describe()
 	assert text.index("patchers:") < text.index("trim profile") < text.index("files:") < text.index("settings:")
 	assert "afterglow.pointers" in text and "128 entries" in text
-	assert "skipped" in plan_image(recipe_module.load(base_recipe_path), tmp_path / "work", with_settings=False).describe()
+	assert "regional-canada" in text and "pointer-defaults" in text
+	assert "skipped" in plan_image(recipe_module.load(compact_recipe_path), tmp_path / "work", with_settings=False).describe()
+
+
+def test_the_base_plan_removes_nothing(base_recipe_path, tmp_path, no_processes):
+	text = plan_image(recipe_module.load(base_recipe_path), tmp_path / "work").describe()
+	assert "trim profile 'none': 0 entries" in text
 
 
 def test_the_cli_dry_run(base_recipe_path, tmp_path, no_processes, capsys):

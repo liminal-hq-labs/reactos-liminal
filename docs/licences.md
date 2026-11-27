@@ -5,7 +5,7 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 ## What the image is
 
 - **Base:** the official ReactOS 0.4.16 install CD, `ReactOS-0.4.16-i386.iso`, SHA-256 `6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855`.
-- **Recipe:** `afterglow`, with trim profile `base` and patchers `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot`.
+- **Recipe:** `afterglow`, with trim profile `none` and patchers `afterglow.pointers`, `afterglow.start`, `afterglow.icons`, `afterglow.cpl-icons`, `afterglow.program-icons`, `afterglow.toolbar-bitmaps`, `afterglow.logon`, `afterglow.boot`.
 - **Afterglow:** [`liminal-hq/afterglow-themes`](https://github.com/liminal-hq/afterglow-themes) at commit `0ab3b272046f0e4e777653945c03238e5040b5cb`.
 
 ## Components and licences
@@ -17,8 +17,8 @@ Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs is an unofficia
 | Third-party code listed in ReactOS's `media/doc/3rd Party Files.txt` (zlib, libpng, FreeType, mbed TLS, ACPICA and others) | their own licences, including GPL-3.0-or-later, GPL-2.0, Apache-2.0, MIT and BSD-style licences | named in the ReactOS source tree; texts are in the corresponding source | ReactOS\system32 |
 | WineVDM (otvdm) | GPL-2.0 | Program Files\otvdm\LICENSE | Program Files\otvdm |
 | Fonts (Liberation, Croscore, DejaVu-derived, ReactOS clones and others in `media/fonts/`) | OFL-1.1, GPL with the font exception and others, per the ReactOS source's `media/fonts/doc/` | named in the ReactOS source tree; texts are in the corresponding source | ReactOS\Fonts |
-| Wallpapers shipped with ReactOS | CC-BY-NC-3.0 (Backwoods, Borealis, Deep Sea; Angelus is NC-SA), CC0-1.0, CC-BY-SA-4.0, CC-BY-1.0 and CC-BY-4.0, as each wallpaper's credits file says | credits files beside the wallpapers | ReactOS\Web\Wallpaper (removed by the `base` trim profile) |
-| Wine Gecko (the browser engine) | MPL-2.0 and the licences inside it | shipped with Gecko | ReactOS\system32\gecko (removed by the `base` trim profile) |
+| Wallpapers shipped with ReactOS | CC-BY-NC-3.0 (Backwoods, Borealis, Deep Sea; Angelus is NC-SA), CC0-1.0, CC-BY-SA-4.0, CC-BY-1.0 and CC-BY-4.0, as each wallpaper's credits file says | credits files beside the wallpapers | ReactOS\Web\Wallpaper |
+| Wine Gecko (the browser engine) | MPL-2.0 and the licences inside it | shipped with Gecko | ReactOS\system32\gecko |
 | Afterglow desktop theme (style, pointers, wallpapers) | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | ReactOS\Resources\Themes\Afterglow |
 | ReactOS Liminal's own settings, shortcuts and scripts | Apache-2.0 OR MIT | Apache-2.0.txt and MIT.txt | the settings and desktop |
 

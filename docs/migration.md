@@ -12,7 +12,7 @@ The copy was taken from the `site/try-reactos/guest/` and `site/try-reactos/tool
 
 Generic things move here: the unattended install, the trim, the golden disk, the Afterglow fetch and prepare steps, the pointer patch, the parts and manifest tools and the QEMU helpers. Quill-specific things stay in Quill and become Quill's recipe later: the emblem overlay (`quillify.py` and its wallpaper), the Quill programs and demo documents, the desktop icon builder for the Quill shortcuts, and the page and harness.
 
-The base build is the Afterglow remaster, and its trim is the `base` profile. Quill is a downstream consumer of it and owns its own extra trim: the six network card drivers (`e1000`, `rtl8139`, `pcnet`, `dc21x4`, `nvnet`, `netkvm`) that v86 does not emulate move to the Quill repository as a trim file named in its recipe's `[trim] extra` (see [RL-5](decisions.md) and [RL-20](decisions.md)).
+The base build was the Afterglow remaster with the `base` trim; that trim is now the compact recipe (`recipes/afterglow-compact.toml`), and the base recipe is the full ReactOS (RL-48). Quill is a downstream consumer of it and owns its own extra trim: the six network card drivers (`e1000`, `rtl8139`, `pcnet`, `dc21x4`, `nvnet`, `netkvm`) that v86 does not emulate move to the Quill repository as a trim file named in its recipe's `[trim] extra` (see [RL-5](decisions.md) and [RL-20](decisions.md)).
 
 ## Where each file went
 

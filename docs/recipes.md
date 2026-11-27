@@ -10,7 +10,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 | `[inputs.reactos_iso]` | `name`, `url`, `zip_sha256`, `sha256` (all required) | — |
 | `[inputs.afterglow]` | `repo`, `commit`, `tar_sha256`, `msstyles_sha256` (required), `apply_reg`, `wallpaper`, `wallpaper_sha256` | `desktop/install/afterglow-original.reg`, none, none |
 | `[install]` | `locale`, `time_zone_index`, `computer_name`, `owner_name`, `classic_shell`, `memory_mb`, `disk_size_mb` | `0409`, `85`, `REACTOS`, `ReactOS user`, `true`, `768`, `4096` |
-| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"stretch"`, `["display", "quiet", "watermark-off"]` (the base recipe adds `afterglow-logon`), none |
+| `[settings]` | `display_width`, `display_height`, `page_file`, `icon_size`, `wallpaper`, `wallpaper_style`, `reg_files`, `remove_desktop_shortcuts` | `1024`, `768`, `"64 64"`, `32`, none, `"stretch"`, `["display", "quiet", "watermark-off"]` (the base recipe adds `afterglow-logon`, `regional-canada` and `pointer-defaults`), none |
 | `[builds.afterfetch]` | `source` (a Rust project, relative to the recipe that declares it), `sha256` of its build output (both required) | the base recipe builds `tools/afterfetch` |
 | `[[files]]` | `source` (relative to the recipe, or `built:NAME` for a `[builds]` output), `destination` (under the disk root) | none (the base recipe writes `afterfetch.exe` and `afterfetch.cmd`; a recipe that extends it keeps those entries and merges its own by destination, see [Extending a recipe](#extending); `built:afterfetch` works in a consumer recipe because the base recipe declares the build) |
 | `[[shortcuts]]` | `name`, `target` (required), `arguments`, `working_dir`, `description`, `icon`, `icon_index`, `show` (1, 3 or 7) | none |
@@ -21,7 +21,7 @@ A recipe is a TOML file. `rl explain RECIPE` prints it resolved (after `extends`
 
 Hashes are 64 lowercase hex digits; the Afterglow commit is the full 40 digits. A size is a number of bytes or a string such as `"8MiB"`. `chunk_size` is a power of two of at least 64 KiB.
 
-`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons` and `afterglow-logon` (selects `agmsgina.dll`; needs the `afterglow.logon` patcher). An entry that ends in `.reg` is a path to a registry file of your own, relative to the recipe that lists it, and is applied after the named files, like `trim.extra` is applied after the profile: a downstream recipe lists `"quill.reg"` and keeps the base recipe's named files. When a recipe that extends another lists named files, those replace the base recipe's named files; the paths of every recipe in the chain are kept, base first. The file must exist and start with the line `Windows Registry Editor Version 5.00`, and `rl lock` records its sum. The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
+`reg_files` names files in `guest/reg/`: `display` (made from the display size), `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons`, `afterglow-logon` (selects `agmsgina.dll`; needs the `afterglow.logon` patcher), `regional-canada` (English (Canada), the location Canada and 24-hour time, for the user and `HKU\.DEFAULT`) and `pointer-defaults` (the pointer shadow on, and the stock "ReactOS Default" system scheme emptied so the list is "Afterglow" and "(None)"). An entry that ends in `.reg` is a path to a registry file of your own, relative to the recipe that lists it, and is applied after the named files, like `trim.extra` is applied after the profile: a downstream recipe lists `"quill.reg"` and keeps the base recipe's named files. When a recipe that extends another lists named files, those replace the base recipe's named files; the paths of every recipe in the chain are kept, base first. The file must exist and start with the line `Windows Registry Editor Version 5.00`, and `rl lock` records its sum. The desktop icon size and wallpaper are always written from their keys. See [trim.md](trim.md) for the profiles.
 
 ### Wallpaper
 
@@ -44,6 +44,12 @@ extra = ["my-demo-trim.txt"]
 ```
 
 `my-demo-trim.txt` sits beside this recipe and holds `f PATH` and `d PATH` lines ([trim.md](trim.md#adding-your-own-removals)). A recipe that extends another keeps the extra lists of the recipes it extends and adds its own after them; every other list replaces.
+
+## The base recipe and the compact recipe
+
+`recipes/afterglow.toml` is the full ReactOS with the Afterglow desktop: `trim.profile = "none"`, so nothing is removed (every app, game, screensaver, applet, wallpaper and font, and Gecko, so the Internet Browser works when the guest has a network). `recipes/afterglow-compact.toml` is the same recipe extended with `[trim] profile = "base"`, the compact trim ([trim.md](trim.md)); it has its own name (`afterglow-compact`, so its disk is `images/afterglow-compact.img`) and its own lock file, `afterglow-compact.lock.json`. The two have the same golden-disk key, because the install does not depend on the trim, so `rl image recipes/afterglow-compact.toml --golden GOLDEN_DISK_OF_THE_BASE_RECIPE` reuses the base recipe's golden disk instead of installing again (a golden disk's file name carries the recipe name). `./rl lock` and `./rl verify` take a recipe each, and CI verifies both locks.
+
+A consumer that wants the compact image extends `rl:recipes/afterglow-compact.toml`; one that extends `rl:recipes/afterglow.toml` gets the full image. Quill's remix recipe (`site/try-reactos/qagrr/qagrr.toml`) extends `rl:recipes/afterglow.toml` and relied on the trim that recipe then carried, so it needs `extends = "rl:recipes/afterglow-compact.toml"` to keep its compaction (RL-48); that change is made in the Quill repository when it takes this release.
 
 ## Work directory
 

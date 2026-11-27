@@ -1,0 +1,94 @@
+Windows Registry Editor Version 5.00
+
+; Regional settings: English (Canada), the standards and formats of Windows' en-CA, the location Canada and 24-hour time.
+;
+; ReactOS reads all of this from HKCU\Control Panel\International (kernel32 and the Regional Options applet, intl.cpl); the logon box
+; and the system use HKU\.DEFAULT, so both get the same values. The user locale is `Locale`, a hex string that winlogon passes to
+; NtSetDefaultLocale at logon. The time format is `sTimeFormat`: the taskbar clock calls GetTimeFormat with no format and
+; TIME_NOSECONDS, so "HH:mm:ss" shows 14:55 there and 14:55:07 in the Regional Options sample. `iTime`, `iTLZero` and `iTimePrefix` are
+; what the applet's Time dialog shows (24-hour clock, leading zero, no prefix). The system locale is Nls\Language "Default"; the keyboard
+; layout and `InstallLanguage` (the language of the user interface) stay as they are.
+;
+; The Default User profile template (the NTUSER.DAT a new account copies) is not changed.
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Nls\Language]
+"Default"="1009"
+
+[HKEY_CURRENT_USER\Control Panel\International]
+"Locale"="00001009"
+"LocaleName"="en-CA"
+"sLanguage"="ENC"
+"sCountry"="Canada"
+"iCountry"="1"
+"iMeasure"="0"
+"iPaperSize"="1"
+"sCurrency"="$"
+"iCurrency"="0"
+"iNegCurr"="1"
+"iCurrDigits"="2"
+"sDecimal"="."
+"sThousand"=","
+"sList"=","
+"iDigits"="2"
+"iLZero"="1"
+"iNegNumber"="1"
+"sShortDate"="yyyy-MM-dd"
+"sLongDate"="MMMM d, yyyy"
+"sYearMonth"="MMMM, yyyy"
+"sDate"="-"
+"iDate"="2"
+"iFirstDayOfWeek"="6"
+"iFirstWeekOfYear"="0"
+"iCalendarType"="1"
+"iTime"="1"
+"iTLZero"="1"
+"iTimePrefix"="0"
+"sTime"=":"
+"sTimeFormat"="HH:mm:ss"
+"s1159"="a.m."
+"s2359"="p.m."
+
+[HKEY_CURRENT_USER\Control Panel\International\Geo]
+"Nation"="39"
+"Name"="CA"
+
+[HKEY_USERS\.DEFAULT\Control Panel\International]
+"Locale"="00001009"
+"LocaleName"="en-CA"
+"sLanguage"="ENC"
+"sCountry"="Canada"
+"iCountry"="1"
+"iMeasure"="0"
+"iPaperSize"="1"
+"sCurrency"="$"
+"iCurrency"="0"
+"iNegCurr"="1"
+"iCurrDigits"="2"
+"sDecimal"="."
+"sThousand"=","
+"sList"=","
+"iDigits"="2"
+"iLZero"="1"
+"iNegNumber"="1"
+"sShortDate"="yyyy-MM-dd"
+"sLongDate"="MMMM d, yyyy"
+"sYearMonth"="MMMM, yyyy"
+"sDate"="-"
+"iDate"="2"
+"iFirstDayOfWeek"="6"
+"iFirstWeekOfYear"="0"
+"iCalendarType"="1"
+"iTime"="1"
+"iTLZero"="1"
+"iTimePrefix"="0"
+"sTime"=":"
+"sTimeFormat"="HH:mm:ss"
+"s1159"="a.m."
+"s2359"="p.m."
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\Geo]
+"Nation"="39"
+"Name"="CA"

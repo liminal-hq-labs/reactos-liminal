@@ -4,10 +4,10 @@ A trim profile is a list of files and folders that `rl image` and `rl trim` remo
 
 | Profile | What it removes |
 |---|---|
-| `none` | Nothing: the disk as installed |
-| `base` | The Afterglow remaster's trim: Gecko (57 MB) and the installer folder, the games, screensavers, the DirectX helper libraries, the wallpapers, apps and applets a kiosk does not use, 26 fonts, the Btrfs, ext2 and NFS drivers, the other visual styles and their Start menu entries. **It keeps the network card drivers and the network stack.** |
+| `none` | Nothing: the disk as installed. The base recipe (`recipes/afterglow.toml`) uses it, so the Afterglow remaster is the full ReactOS |
+| `base` | The compact trim, selected by `recipes/afterglow-compact.toml` (the profile keeps its file name, `profiles/base.txt`): Gecko (57 MB) and the installer folder, the games, screensavers, the DirectX helper libraries, the wallpapers, apps and applets a kiosk does not use, 26 fonts, the Btrfs, ext2 and NFS drivers, the other visual styles and their Start menu entries. **It keeps the network card drivers and the network stack.** |
 
-`base` is a complete list in its own right and keeps WineVDM (`Program Files/otvdm`), which the Windows 3.x programs need. It also keeps `Program Files/Internet Explorer/iexplore.exe` (75 KB): the Internet Browser desktop item and the web protocol handlers run it, and with it missing a double-click did nothing and said nothing. Without Gecko its window opens blank; Gecko stays out of the image (RL-40). It keeps `ReactOS/system32/rapps.exe` (1.7 MB), the Applications Manager that the desktop shortcut and the Start menu entry run (RL-42); only its console twin `rapps.com` is removed. With no network the Manager opens its Updating Database box and then says "Unable to download the package! Check Internet Connection!", so it fails with a message and does not hang; with a network it works as in stock ReactOS.
+`base` is a complete list in its own right and keeps WineVDM (`Program Files/otvdm`), which the Windows 3.x programs need. It also keeps `Program Files/Internet Explorer/iexplore.exe` (75 KB): the Internet Browser desktop item and the web protocol handlers run it, and with it missing a double-click did nothing and said nothing. Without Gecko its window opens blank; the compact image leaves Gecko out (RL-40), and the full image keeps it, so the browser works there when there is a network (RL-48). It keeps `ReactOS/system32/rapps.exe` (1.7 MB), the Applications Manager that the desktop shortcut and the Start menu entry run (RL-42); only its console twin `rapps.com` is removed. With no network the Manager opens its Updating Database box and then says "Unable to download the package! Check Internet Connection!", so it fails with a message and does not hang; with a network it works as in stock ReactOS.
 
 ## Order and protection
 
@@ -16,7 +16,7 @@ Patchers run before the trim. The trim then refuses to remove, and `rl` checks b
 - a file a patcher wrote, or a folder that holds one;
 - a licence file or folder: `LICENSES/`, `NOTICE.txt`, `CHANGES.txt` and `Program Files/otvdm/LICENSE`.
 
-A list that reaches one is an error, not a skipped line, and that includes every `extra` list. Gecko's own licence file goes with Gecko, which `base` removes. After the trim, every patched file is confirmed to be on the disk.
+A list that reaches one is an error, not a skipped line, and that includes every `extra` list. Gecko's own licence file goes with Gecko: the full image keeps both, and the compact image removes both. After the trim, every patched file is confirmed to be on the disk.
 
 ## Adding your own removals
 

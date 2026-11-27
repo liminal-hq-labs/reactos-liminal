@@ -31,6 +31,11 @@ def base_recipe_path() -> Path:
 
 
 @pytest.fixture
+def compact_recipe_path() -> Path:
+	return REPO / "recipes" / "afterglow-compact.toml"
+
+
+@pytest.fixture
 def fake_iso_recipe(tmp_path):
 	"""A recipe whose ISO pin matches a synthetic zip served from a file:// URL. Returns (recipe, zip_path, iso_bytes)."""
 	archive = tmp_path / "source" / "iso.zip"

@@ -1,0 +1,35 @@
+{
+	"schema": 1,
+	"recipe": "afterglow-compact",
+	"inputs": {
+		"reactos_iso": {
+			"name": "ReactOS-0.4.16-i386.iso",
+			"url": "https://downloads.sourceforge.net/project/reactos/ReactOS/0.4.16/ReactOS-0.4.16-i386.zip",
+			"zip_sha256": "e5851510cf5b79ef51a76b8155dd5ef7faca1155f44d0a1d41c35b77ece4ce2a",
+			"sha256": "6f15ca6e1edf5527b8489958d16c54f0da0e7948c305d7c89e74687c6cbf6855"
+		},
+		"afterglow": {
+			"repo": "liminal-hq/afterglow-themes",
+			"commit": "0ab3b272046f0e4e777653945c03238e5040b5cb",
+			"tar_sha256": "bfc0d57a0a280646d7c787dd1dbb700f66a90272f47992d4afa01d37ca7f0460",
+			"msstyles_sha256": "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f",
+			"apply_reg": "desktop/install/afterglow-original.reg",
+			"wallpaper": "dusk-dark-smooth",
+			"wallpaper_sha256": "71cdfd787f10cc1e1dbf361920857073914769899ba6b6c1a569909a063c825d"
+		}
+	},
+	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
+	"trim_lists": {
+		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1"
+	},
+	"files": {
+		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a",
+		"../guest/cmd/neofetch.cmd": "0f15609cf20ea891bf824067b8564d9f4b690d48424de59963169979b768b06e",
+		"../guest/cmd/fastfetch.cmd": "323b0f6515dd8daa3f89f3ff7a4dd88eb310da81fc5af6e21a51c83df27ddcc2",
+		"../guest/cmd/screenfetch.cmd": "8c7a9aae4d8dc6c8b7402866e749e337ca866e128ea93980546bb9adad4ed69f",
+		"../guest/cmd/winfetch.cmd": "07e6410464e584fe4fa6658fc0ab8632e4372e92856d335fdb60d75fb110267d"
+	},
+	"builds": {
+		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
+	}
+}

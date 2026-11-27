@@ -47,7 +47,7 @@ def test_the_manifest_lists_outputs_and_pins(base_recipe_path, dist):
 	assert manifest["parts"]["files"] == 2 and manifest["parts"]["bytes"] == 15
 	pin = manifest["pinned"]
 	assert pin["reactos_iso_sha256"].startswith("6f15ca6e") and pin["chunk_size"] == 8 * 1024 * 1024
-	assert pin["trim_profile"] == "base" and pin["patchers"] == [
+	assert pin["trim_profile"] == "none" and pin["patchers"] == [
 		"afterglow.pointers",
 		"afterglow.start",
 		"afterglow.icons",
@@ -84,7 +84,7 @@ def test_the_summary_has_the_tables_and_the_source_offer(base_recipe_path, dist)
 		"## ReactOS image",
 		"| `state.bin.zst` |",
 		"| install | 150 |",
-		"trim profile `base`",
+		"trim profile `none`",
 		"8388608 bytes",
 		"Before this is published",
 	):

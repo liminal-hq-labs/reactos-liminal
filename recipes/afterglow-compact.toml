@@ -1,0 +1,13 @@
+# The compact Afterglow remaster: the base recipe with the `base` trim profile, which removes Gecko, the games, screensavers, wallpapers,
+# unused apps and applets, 26 fonts and some drivers (docs/trim.md). The network card drivers and the network stack stay.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[recipe]
+name = "afterglow-compact"
+description = "The compact Afterglow remaster of ReactOS 0.4.16: the base recipe with the base trim profile"
+extends = "afterglow.toml"
+
+[trim]
+profile = "base"

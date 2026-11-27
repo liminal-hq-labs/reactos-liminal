@@ -32,6 +32,11 @@ def base():
 	return load(REPO / "recipes" / "afterglow.toml")
 
 
+@pytest.fixture
+def compact():
+	return load(REPO / "recipes" / "afterglow-compact.toml")
+
+
 def test_the_held_texts_match_their_recorded_sums_and_are_the_licences():
 	texts = licence_texts()
 	assert set(texts) == {"GPL-2.0.txt", "LGPL-2.1.txt", "Apache-2.0.txt", "MIT.txt"}
@@ -62,12 +67,12 @@ def test_the_notice_says_unofficial_and_carries_the_source_offer_and_credits(bas
 	assert "ReactOS Team" in text and "Afterglow" in text
 	assert base.section("inputs", "reactos_iso")["sha256"] in text
 	assert "\r\n" in text and "\n" not in text.replace("\r\n", "")
-	assert "Gecko" not in text  # the base trim removes it
+	assert "Gecko" in text and "Wallpapers shipped with ReactOS" in text  # the base recipe is the full image, so nothing is left out
 
 
-def test_the_notice_names_gecko_when_the_trim_keeps_it(base):
-	base.data["trim"]["profile"] = "none"
-	assert "Gecko" in notice_text(base).decode("ascii")
+def test_the_notice_leaves_out_gecko_and_the_wallpapers_when_the_trim_removes_them(compact):
+	text = notice_text(compact).decode("ascii")
+	assert "Gecko" not in text and "Wallpapers shipped with ReactOS" not in text
 
 
 def test_text_for_the_disk_is_ascii_and_refuses_anything_else():
@@ -139,7 +144,12 @@ def test_the_licences_page_is_made_from_the_recipe(base):
 	assert base.section("inputs", "afterglow")["commit"] in page and "`afterglow.pointers`" in page
 	assert "GPL-2.0-or-later" in page and "LGPL-2.1" in page and "three years" in page
 	assert "—" in page  # real em dashes in the docs
-	assert "removed by the `base` trim profile" in page
+	assert "removed by the" not in page  # the base recipe removes nothing
+
+
+def test_the_licences_page_marks_what_the_compact_trim_removes(compact):
+	page = licences_page(compact)
+	assert "ReactOS\\system32\\gecko (removed by the `base` trim profile)" in page
 
 
 def test_the_committed_licences_page_matches_the_generator(base):
