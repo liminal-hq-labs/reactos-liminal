@@ -1,0 +1,10 @@
+Windows Registry Editor Version 5.00
+
+; Makes agexplorer.exe, the copy of explorer.exe with the Afterglow Start orb and menu banner, the shell. Delete the value (or set it back to
+; explorer.exe) for the stock Start button; the stock explorer.exe stays on the disk.
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]
+"Shell"="agexplorer.exe"

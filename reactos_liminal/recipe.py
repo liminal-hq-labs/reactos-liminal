@@ -25,7 +25,7 @@ NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
 MIN_CHUNK_SIZE = 64 * 1024
 
-PATCHERS = ("afterglow.pointers",)
+PATCHERS = ("afterglow.pointers", "afterglow.start")
 REG_FILES = ("display", "quiet", "watermark-off", "mouse-linear", "hide-desktop-icons")
 TRIM_PROFILES = ("none", "base")
 
@@ -94,6 +94,18 @@ def _locale(value: Any, key: str) -> str:
 	if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{4}", value):
 		raise RecipeError(f'{key}: expected a four-digit hexadecimal locale id such as "0409"')
 	return value.upper()
+
+
+def _scene(value: Any, key: str) -> str:
+	if not isinstance(value, str) or not re.fullmatch(r"[a-z]+-(dark|light)-(smooth|stepped)", value):
+		raise RecipeError(f'{key}: expected an Afterglow wallpaper such as "dusk-dark-smooth" (palette, mode, style)')
+	return value
+
+
+def _guest_path(value: Any, key: str) -> str:
+	if not isinstance(value, str) or not re.fullmatch(r"[Cc]:\\[^\\/:*?\"<>|]+(\\[^\\/:*?\"<>|]+)*", value):
+		raise RecipeError(f"{key}: expected a path on drive C: with backslashes, such as C:\\ReactOS\\afterglow.bmp")
+	return value
 
 
 def _page_file(value: Any, key: str) -> str:
@@ -188,6 +200,8 @@ SCHEMA: dict[str, Any] = {
 			"tar_sha256": (_sha256, _REQ),
 			"msstyles_sha256": (_sha256, _REQ),
 			"apply_reg": (_str, "desktop/install/afterglow-original.reg"),
+			"wallpaper": (_scene, None),
+			"wallpaper_sha256": (_sha256, None),
 		},
 	},
 	"install": {
@@ -204,7 +218,8 @@ SCHEMA: dict[str, Any] = {
 		"display_height": (_int(480, 4096), 768),
 		"page_file": (_page_file, "64 64"),
 		"icon_size": (_int(16, 256), 32),
-		"wallpaper": (_str, None),
+		"wallpaper": (_guest_path, None),
+		"wallpaper_style": (_choice("stretch", "centre", "tile"), "stretch"),
 		"reg_files": (_name_list(REG_FILES), ["display", "quiet", "watermark-off"]),
 		"remove_desktop_shortcuts": (_str_list, []),
 	},
@@ -345,6 +360,11 @@ def load(path: str | Path) -> Recipe:
 	if "recipe" not in raw:
 		raise RecipeError("recipe: required (a [recipe] table with a name)")
 	data = _validate(raw, SCHEMA, "")
+	pin = data.get("inputs", {}).get("afterglow", {})
+	if ("wallpaper" in pin) != ("wallpaper_sha256" in pin):
+		raise RecipeError("inputs.afterglow: wallpaper and wallpaper_sha256 go together")
+	if "wallpaper" in pin and "wallpaper" not in data["settings"]:
+		raise RecipeError("settings.wallpaper: required when inputs.afterglow.wallpaper names a scene (the path the BMP is written to)")
 	if "reactos_iso" not in data.get("inputs", {}):
 		raise RecipeError("inputs.reactos_iso: required (the pinned ISO)")
 	return Recipe(data=data, chain=chain)

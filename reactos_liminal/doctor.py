@@ -31,6 +31,8 @@ TOOLS = (
 	Tool("llvm-rc", "builds the Afterglow visual style", required=False),
 	Tool("lld-link", "builds the Afterglow visual style", required=False),
 	Tool("rsvg-convert", "renders Afterglow's vector art", required=False),
+	Tool("node", "renders Afterglow's wallpapers", required=False),
+	Tool("magick", "ImageMagick 7: crops, scales and writes Afterglow's wallpaper BMP", required=False),
 )
 
 

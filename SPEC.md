@@ -102,7 +102,8 @@ rl serve DIR                            # range-capable static server for a loca
 - **Patchers before the trim.** Each patcher takes a stock file from the golden disk, is checked against it, and yields a patched copy that is written to the image before the trim. The trim never removes a patched file or a licence file (`LICENSES/`, `NOTICE.txt`, `CHANGES.txt`, `Program Files/otvdm/LICENSE`): a profile entry that is, or holds, one is refused before anything is removed, and every patched file is confirmed present afterwards.
 - **Trim profiles** are lists of `f PATH` and `d PATH` lines in `profiles/`: `none` removes nothing; `base` is the Afterglow remaster's trim, which keeps the network card drivers and the network stack. A recipe adds its own removals with `[trim] extra`, a list of files in the same format that are resolved relative to the recipe that lists them and applied after the profile, in order; they go through the same protection check, and a missing or malformed file is an error naming `trim.extra`. A downstream project keeps such a list in its own repository. A missing path is reported and skipped. `rl trim` works on a copy and refuses a golden disk.
 - **Settings.** The recipe's display size, desktop icon size, wallpaper path and the registry files it lists (`display`, `quiet`, `watermark-off`, `mouse-linear`, `hide-desktop-icons`) go on a settings CD; the build VM runs one script that applies them and the page file, then shuts down.
-- **Patchers built:** `afterglow.pointers` (a patched copy of `user32.dll` carrying the Afterglow system pointers, checked against the sum Afterglow records).
+- **Patchers built:** `afterglow.pointers` (a patched copy of `user32.dll` carrying the Afterglow system pointers, checked against the sum Afterglow records) and `afterglow.start` (`agexplorer.exe`, a copy of `explorer.exe` with the Afterglow Start orb and menu banner, selected by `Winlogon\Shell`; hash-guarded on the stock file, the art and the result).
+- **Wallpaper built:** the recipe names an Afterglow scene and the guest path; `rl image` renders it from the SVG master to a BMP, checks it against the recipe's pin, writes it and sets it (`stretch`, `centre` or `tile`). The base recipe uses `dusk-dark-smooth`.
 
 ## Hash guards and patching
 
@@ -118,14 +119,16 @@ rl serve DIR                            # range-capable static server for a loca
 
 | Target | Change | Off switch | Status |
 |---|---|---|---|
-| Visual style, schemes, caption metrics, pointer scheme, wallpaper | Files and registry from Afterglow's release | Display Properties | Planned |
+| Visual style, schemes, caption metrics, pointer scheme | Files and registry from Afterglow's release | Display Properties | Planned |
+| Wallpaper | A BMP rendered from Afterglow's SVG master, set by registry | Display Properties | Built |
 | `user32.dll` | System pointers in a new resource section | Restore the original | Planned |
 | `msgina.dll` → `agmsgina.dll` | Logon banner, bar, Shut Down dialog art; selected by `Winlogon\GinaDLL`, with `EnforceFriendlyShutdown` = 1 | Delete `GinaDLL` (`rl unpatch logon`) | Planned |
 | `win32k.sys` | Cold-boot colours (the `SysColors[]` entries), on by default, as a separate `agwin32k.sys` selected by `SubSystems\Kmode` if ReactOS honours it | One registry value, or restore the original | Planned |
 | `reactos.exe`, `syssetup.dll` | Setup watermark and header art | Restore the original | Planned |
 | Install media | Extra cabinet, `txtsetup.sif` `[Cabinets]`, both `unattend.inf` files, live environment, volume label and autorun icon | Use the official ISO | Planned |
 | `freeldr.ini` | A minimal menu (`MinimalUI=Yes`) with a gold selection bar and an entry "Afterglow for ReactOS"; the stock entry stays as the fallback | Pick the stock entry | Planned |
-| Kernel boot logo (`agntoskr.exe`), Start button art (`explorer.exe`), console colours, screensaver | Under evaluation in spikes; each would be hash-guarded with its source patch in `patches/` | — | Planned, pending spikes |
+| `explorer.exe` → `agexplorer.exe` | Start button orb (bitmap 143) and Start menu banner (bitmap 158), same size and format; selected by `Winlogon\Shell` | Set `Shell` back to `explorer.exe` | Built |
+| Kernel boot logo (`agntoskr.exe`), console colours, screensaver | Under evaluation in spikes; each would be hash-guarded with its source patch in `patches/` | — | Planned, pending spikes |
 
 ### What is not patched
 
