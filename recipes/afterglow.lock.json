@@ -21,7 +21,9 @@
 	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
 	"trim_lists": {
-		"profile:base": "593b8b0914d921012ca0357c16acd75e3554e5285b308a6f61074e6689de7e5d"
+		"profile:base": "09dabed9a0e787fb2f21e234a83b496d4b3f28dd10067839fd7a6b0f2a243e33"
 	},
-	"files": {}
+	"files": {
+		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a"
+	}
 }
