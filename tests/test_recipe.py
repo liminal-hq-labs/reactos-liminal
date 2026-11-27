@@ -25,8 +25,15 @@ def test_base_recipe_loads_with_pinned_inputs(base_recipe_path):
 	iso = recipe.section("inputs", "reactos_iso")
 	assert iso["name"] == "ReactOS-0.4.16-i386.iso"
 	assert len(iso["sha256"]) == 64 and len(iso["zip_sha256"]) == 64
-	assert len(recipe.section("inputs", "afterglow")["commit"]) == 40
-	assert "afterglow.pointers" in recipe.section("patchers", "list")
+	assert recipe.section("inputs", "afterglow")["commit"] == "c0be85912a66c366974086d8d83c58de5884ab45"
+	assert recipe.section("patchers", "list") == [
+		"afterglow.pointers",
+		"afterglow.start",
+		"afterglow.icons",
+		"afterglow.cpl-icons",
+		"afterglow.program-icons",
+		"afterglow.toolbar-bitmaps",
+	]
 	assert recipe.section("trim", "profile") == "base"
 
 
@@ -77,7 +84,10 @@ def test_unknown_trim_profile_and_patcher_are_refused(base_recipe_path, tmp_path
 	text = base_recipe_path.read_text().replace('profile = "base"', 'profile = "tiny"')
 	with pytest.raises(RecipeError, match="trim.profile"):
 		load(write(tmp_path, "trim.toml", text))
-	text = base_recipe_path.read_text().replace('list = ["afterglow.pointers", "afterglow.start", "afterglow.icons"]', 'list = ["made.up"]')
+	text = base_recipe_path.read_text().replace(
+		'list = ["afterglow.pointers", "afterglow.start", "afterglow.icons", "afterglow.cpl-icons", "afterglow.program-icons", "afterglow.toolbar-bitmaps"]',
+		'list = ["made.up"]',
+	)
 	with pytest.raises(RecipeError, match="patchers.list"):
 		load(write(tmp_path, "patch.toml", text))
 

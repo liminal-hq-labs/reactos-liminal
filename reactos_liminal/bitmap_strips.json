@@ -1,0 +1,92 @@
+{
+	"note": "Explorer toolbar strips in browseui.dll: RT_BITMAP, 32 bits per pixel with straight alpha, square cells (the strip's height) loaded as image lists by dll/win32/browseui/toolsband.cpp. A cell is replaced in place, so the strip keeps its id, size and depth. Cell indexes are the *ImageIndex constants in toolsband.cpp.",
+	"files": [
+		{
+			"path": "ReactOS/system32/browseui.dll",
+			"stock_sha256": "4a8f287b8140d0943f022bb5119db3487bb3c6b7dcb8f721a5f1c5766d54f67e",
+			"strips": [
+				{
+					"id": 214,
+					"cell": 24,
+					"count": 47,
+					"use": "large, normal"
+				},
+				{
+					"id": 215,
+					"cell": 24,
+					"count": 47,
+					"use": "large, hot"
+				},
+				{
+					"id": 216,
+					"cell": 16,
+					"count": 47,
+					"use": "small, normal"
+				},
+				{
+					"id": 217,
+					"cell": 16,
+					"count": 47,
+					"use": "small, hot"
+				}
+			],
+			"cells": [
+				{
+					"index": 0,
+					"afterglow": "back",
+					"use": "Back"
+				},
+				{
+					"index": 1,
+					"afterglow": "forward",
+					"use": "Forward"
+				},
+				{
+					"index": 8,
+					"afterglow": "undo",
+					"use": "Undo"
+				},
+				{
+					"index": 10,
+					"afterglow": "del",
+					"use": "Delete"
+				},
+				{
+					"index": 17,
+					"afterglow": "search",
+					"use": "Search"
+				},
+				{
+					"index": 22,
+					"afterglow": "views",
+					"use": "Views"
+				},
+				{
+					"index": 28,
+					"afterglow": "up",
+					"use": "Up one level"
+				},
+				{
+					"index": 43,
+					"afterglow": "folders",
+					"use": "Folders"
+				},
+				{
+					"index": 44,
+					"afterglow": "move",
+					"use": "Move to"
+				},
+				{
+					"index": 45,
+					"afterglow": "copy",
+					"use": "Copy to"
+				},
+				{
+					"index": 46,
+					"afterglow": "folderopts",
+					"use": "Folder Options"
+				}
+			]
+		}
+	]
+}

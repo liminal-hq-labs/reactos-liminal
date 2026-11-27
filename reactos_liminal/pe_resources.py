@@ -6,6 +6,7 @@
 import struct
 from dataclasses import dataclass
 
+RT_BITMAP = 2
 RT_ICON = 3
 RT_GROUP_ICON = 14
 DIRECTORY_RESOURCE = 2  # index of the resource table in the data directory
@@ -109,6 +110,18 @@ class PeFile:
 		rva, size = struct.unpack_from("<II", self.data, data_entry_offset)
 		start = self.rva_to_offset(rva)
 		return bytes(self.data[start : start + size])
+
+	def entry_location(self, data_entry_offset: int) -> tuple[int, int]:
+		"""The file offset and size of the bytes a data entry points at."""
+		rva, size = struct.unpack_from("<II", self.data, data_entry_offset)
+		return self.rva_to_offset(rva), size
+
+	def overwrite_entry(self, data_entry_offset: int, content: bytes) -> None:
+		"""Replace a resource's bytes where they are; the new bytes must be exactly as long as the old."""
+		start, size = self.entry_location(data_entry_offset)
+		if len(content) != size:
+			raise PeError(f"the new resource is {len(content)} bytes, the old one {size}")
+		self.data[start : start + size] = content
 
 	def point_entry_at(self, data_entry_offset: int, rva: int, size: int) -> None:
 		struct.pack_into("<II", self.data, data_entry_offset, rva, size)

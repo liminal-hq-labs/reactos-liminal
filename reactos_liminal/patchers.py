@@ -4,6 +4,7 @@
 #
 # (c) Copyright 2026 Liminal HQ, Scott Morris
 # SPDX-License-Identifier: Apache-2.0 OR MIT
+import importlib
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -59,7 +60,23 @@ def _afterglow_icons(*arguments) -> list[PatchedFile]:
 	return afterglow_icons(*arguments)
 
 
-PATCHERS = {"afterglow.pointers": _afterglow_pointers, "afterglow.start": _afterglow_start, "afterglow.icons": _afterglow_icons}
+def _lazy(module: str, function: str):
+	"""A patcher that lives in a module which imports this one: import it when it runs."""
+
+	def run(*arguments) -> list[PatchedFile]:
+		return getattr(importlib.import_module(f".{module}", __package__), function)(*arguments)
+
+	return run
+
+
+PATCHERS = {
+	"afterglow.pointers": _afterglow_pointers,
+	"afterglow.start": _afterglow_start,
+	"afterglow.icons": _afterglow_icons,
+	"afterglow.cpl-icons": _lazy("patch_family", "cpl_icons"),
+	"afterglow.program-icons": _lazy("patch_family", "program_icons"),
+	"afterglow.toolbar-bitmaps": _lazy("patch_bitmaps", "toolbar_bitmaps"),
+}
 
 
 def run_patchers(names: list[str], golden: FatImage, source_tree: Path | None, files: Path | None, scratch: Path) -> list[PatchedFile]:

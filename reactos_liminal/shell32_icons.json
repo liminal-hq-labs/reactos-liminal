@@ -1,7 +1,25 @@
 {
-	"note": "Icon groups in ReactOS 0.4.16 shell32.dll (SHA-256 below). tier core: Afterglow's map.json names the same group; extra: verified in the survey (docs/icon-survey.md) but not yet in Afterglow's map; not replaced: left as ReactOS draws it. frames are width@bits per pixel.",
+	"note": "Icon groups in ReactOS 0.4.16 shell32.dll (SHA-256 below). tier core: Afterglow's map.json names the same group; extra: verified in the survey (docs/icon-survey.md) but not yet in Afterglow's map; phase 2: system icons beyond the first set (Start menu, file types, Control Panel and Start menu folders), named in the table and not yet in Afterglow's map; not replaced: left as ReactOS draws it. frames are width@bits per pixel.",
 	"stock_sha256": "88858710130e8e97eecfc246e61dd1aaf45b410718f4b818be39a9a69a01cf72",
 	"groups": [
+		{
+			"group": 1,
+			"name": "IDI_SHELL_DOCUMENT",
+			"afterglow": "doc",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Generic document",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 3,
+			"name": "IDI_SHELL_EXE",
+			"afterglow": "program",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Programs without an icon of their own (.exe, .com)",
+			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
 		{
 			"group": 4,
 			"name": "IDI_SHELL_FOLDER",
@@ -106,22 +124,47 @@
 		},
 		{
 			"group": 20,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
+			"name": "IDI_SHELL_PROGRAMS_FOLDER",
+			"afterglow": "programs",
+			"apply": true,
+			"tier": "phase 2",
 			"used_by": "Programs folder (by id)",
-			"reason": "no Afterglow icon",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
 			"group": 21,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
-			"used_by": "Recent",
-			"reason": "no Afterglow icon",
+			"name": "IDI_SHELL_RECENT_DOCUMENTS",
+			"afterglow": "documents",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Recent folder",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 22,
+			"name": "IDI_SHELL_CONTROL_PANEL",
+			"afterglow": "controlpanel",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Control Panel in the Start menu and the Control Panel folder",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 23,
+			"name": "IDI_SHELL_SEARCH",
+			"afterglow": "search",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Search",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 24,
+			"name": "IDI_SHELL_HELP",
+			"afterglow": "help",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Help files (.hlp)",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
@@ -182,32 +225,29 @@
 		},
 		{
 			"group": 38,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
+			"name": "IDI_SHELL_PRINTERS_FOLDER",
+			"afterglow": "printers",
+			"apply": true,
+			"tier": "phase 2",
 			"used_by": "Printers folder (CSIDL)",
-			"reason": "Afterglow has a printers icon, but its group is not verified against Afterglow's map",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
 			"group": 39,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
+			"name": "IDI_SHELL_FONTS_FOLDER",
+			"afterglow": "fonts",
+			"apply": true,
+			"tier": "phase 2",
 			"used_by": "Fonts folder",
-			"reason": "Afterglow has a fonts icon, but its group is not verified against Afterglow's map",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
 			"group": 40,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
-			"used_by": "Start Menu folder",
-			"reason": "no Afterglow icon",
+			"name": "IDI_SHELL_TSKBAR_STARTMENU",
+			"afterglow": "taskbarstart",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Taskbar and Start Menu; the Start Menu folder",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
@@ -251,13 +291,48 @@
 		},
 		{
 			"group": 138,
-			"name": null,
-			"afterglow": null,
-			"apply": false,
-			"tier": "not replaced",
-			"used_by": "Printers",
-			"reason": "Afterglow has a printers icon, but its group is not verified against Afterglow's map",
+			"name": "IDI_SHELL_PRINTER2",
+			"afterglow": "printers",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Printers (registry DefaultIcon of the Printers item)",
 			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 152,
+			"name": "IDI_SHELL_TEXT_FILE",
+			"afterglow": "text",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Text files (.txt)",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 154,
+			"name": "IDI_SHELL_SYSTEM_FILE",
+			"afterglow": "library",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "System files (.dll, .sys, .cpl, .drv, .ocx)",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 155,
+			"name": "IDI_SHELL_FONT_FILE",
+			"afterglow": "font",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Font files (.fon, .fnt)",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 156,
+			"name": "IDI_SHELL_TT_FONT_FILE",
+			"afterglow": "font",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "TrueType and OpenType font files",
+			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
 		},
 		{
 			"group": 172,
@@ -268,6 +343,15 @@
 			"used_by": "Items under Entire Network",
 			"reason": "no Afterglow icon",
 			"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 210,
+			"name": "IDI_SHELL_FOLDER_OPTIONS",
+			"afterglow": "folderopts",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Folder Options",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@8 16@32 16@4"
 		},
 		{
 			"group": 235,
@@ -304,6 +388,78 @@
 			"tier": "core",
 			"used_by": "My Videos, Shared Videos",
 			"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+		},
+		{
+			"group": 257,
+			"name": "IDI_SHELL_NETWORK_CONNECTIONS2",
+			"afterglow": "netconn",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Network Connections in the Start menu",
+			"stock_frames": "48@4 32@4 24@4 16@4 48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32"
+		},
+		{
+			"group": 323,
+			"name": "IDI_SHELL_SEARCH1",
+			"afterglow": "search",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Search",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 324,
+			"name": "IDI_SHELL_HELP2",
+			"afterglow": "help",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Help and Support",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 326,
+			"name": "IDI_SHELL_PROGRAMS_FOLDER1",
+			"afterglow": "programs",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Programs",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 327,
+			"name": "IDI_SHELL_RECENT_DOCUMENTS1",
+			"afterglow": "documents",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Documents",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 328,
+			"name": "IDI_SHELL_RUN1",
+			"afterglow": "run",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Run",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 329,
+			"name": "IDI_SHELL_SHUTDOWN1",
+			"afterglow": "shutdown",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Shut Down",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
+		},
+		{
+			"group": 330,
+			"name": "IDI_SHELL_CONTROL_PANEL1",
+			"afterglow": "settings",
+			"apply": true,
+			"tier": "phase 2",
+			"used_by": "Start menu: Settings",
+			"stock_frames": "48@32 48@8 48@4 32@32 32@8 32@4 16@32 16@8 16@4"
 		}
 	]
 }

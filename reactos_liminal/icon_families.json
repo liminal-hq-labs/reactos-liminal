@@ -1,0 +1,239 @@
+{
+	"note": "Icon groups replaced in files other than shell32.dll. Each file is guarded by the SHA-256 of the stock 0.4.16 i386 file; stock_frames are width@bits per pixel. See docs/icon-survey.md.",
+	"families": {
+		"cpl-icons": {
+			"patcher": "afterglow.cpl-icons",
+			"map_kind": "applet",
+			"files": [
+				{
+					"path": "ReactOS/system32/access.cpl",
+					"stock_sha256": "e789d26a60411dde1609f952e42662dddc63f0eb0adeb5f100136ccebc2ecbf8",
+					"groups": [
+						{
+							"group": 110,
+							"afterglow": "access",
+							"use": "Accessibility Options",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/appwiz.cpl",
+					"stock_sha256": "e65b88a3e637dbbe9d9739bbb233051e0f83c6c41f0aac2371b1138ab0e60e3b",
+					"groups": [
+						{
+							"group": 1500,
+							"afterglow": "addremove",
+							"use": "Add or Remove Programs",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/desk.cpl",
+					"stock_sha256": "895c813152637459fee8f3dc0b5430ec2bb7475d7e35306cb9751f7f893b6458",
+					"groups": [
+						{
+							"group": 40,
+							"afterglow": "display",
+							"use": "Display",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						},
+						{
+							"group": 100,
+							"afterglow": "display",
+							"use": "Display (theme-compatibility id)",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/hdwwiz.cpl",
+					"stock_sha256": "b3856a9e84b3de1d8059d516bb08879348235c91be616a5c102c187d092dc732",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "addhw",
+							"use": "Add Hardware",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/inetcpl.cpl",
+					"stock_sha256": "5dafecdd7962ffc1c2d924a4ea3a126f568fd0730656779a1228da575c9a86a5",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "inetsettings",
+							"use": "Internet Options",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/intl.cpl",
+					"stock_sha256": "1820e51f95f81ce2a8f6a976595765185f4ec66c449eeb2af08664bb4c34486c",
+					"groups": [
+						{
+							"group": 200,
+							"afterglow": "regional",
+							"use": "Regional and Language Options",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@8"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/main.cpl",
+					"stock_sha256": "d6e65c9dae365134e0e25f44f836efaa72f955f9f379fa46d3b0dbfee8cabde9",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "mouse",
+							"use": "Mouse",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						},
+						{
+							"group": 200,
+							"afterglow": "keyboard",
+							"use": "Keyboard",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						},
+						{
+							"group": 300,
+							"afterglow": "printers",
+							"use": "Printers (folder shortcut)",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						},
+						{
+							"group": 400,
+							"afterglow": "fonts",
+							"use": "Fonts (folder shortcut)",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						},
+						{
+							"group": 500,
+							"afterglow": "admintools",
+							"use": "Administrative Tools (folder shortcut)",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/mmsys.cpl",
+					"stock_sha256": "26b2c616f35dc4118f76e168503208e57a240ad9a31386748f5bf1535150129a",
+					"groups": [
+						{
+							"group": 3004,
+							"afterglow": "sound",
+							"use": "Sounds and Audio Devices",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/powercfg.cpl",
+					"stock_sha256": "33fada18cdef25c4eeda94df94897a3488466561fcd0b178d38ea64bdadefe67",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "power",
+							"use": "Power Options",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/sysdm.cpl",
+					"stock_sha256": "d68f02dc31123572208b59a91edfc56bdd51d44fb057075034d8f88dc6d612d2",
+					"groups": [
+						{
+							"group": 50,
+							"afterglow": "system",
+							"use": "System",
+							"stock_frames": "48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/timedate.cpl",
+					"stock_sha256": "5a093efdea68be3385a7e7a19eaf98cfa8f4895ffd10b62e54858997ed23a529",
+					"groups": [
+						{
+							"group": 1,
+							"afterglow": "datetime",
+							"use": "Date and Time",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				}
+			]
+		},
+		"program-icons": {
+			"patcher": "afterglow.program-icons",
+			"map_kind": null,
+			"files": [
+				{
+					"path": "ReactOS/system32/cmd.exe",
+					"stock_sha256": "29f286c3077f406a05dfbfaed0825845f1982de71ac2dd30bdccbc6f1a6b038f",
+					"groups": [
+						{
+							"group": 1,
+							"afterglow": "cmd",
+							"use": "Command Prompt",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/notepad.exe",
+					"stock_sha256": "90b2639e7462461879cf8302804c2c7436fb2062e4c2302a12412674bf3348e3",
+					"groups": [
+						{
+							"group": 521,
+							"afterglow": "text",
+							"use": "Notepad",
+							"stock_frames": "48@4 32@4 16@4 48@8 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/cabview.dll",
+					"stock_sha256": "73dceb891465f2213c923d683e1fac2064588835c4ea3951af569529ba3a9453",
+					"groups": [
+						{
+							"group": 1,
+							"afterglow": "archive",
+							"use": "Cabinet (.cab) files",
+							"stock_frames": "48@24 32@8 16@8 48@32 32@32 16@32"
+						}
+					]
+				},
+				{
+					"path": "ReactOS/system32/shimgvw.dll",
+					"stock_sha256": "39a18af40db42e6b1011d7f0f62487a8f580276c6afed3e92587dad0b7958de2",
+					"groups": [
+						{
+							"group": 1,
+							"afterglow": "image",
+							"use": "Image files: .jpg, .emf, .wmf",
+							"stock_frames": "16@8 24@8 32@8 48@8 16@24 24@24 32@24 48@24 16@32 24@32 32@32 48@32"
+						},
+						{
+							"group": 2,
+							"afterglow": "image",
+							"use": "Image files: .bmp",
+							"stock_frames": "48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32"
+						},
+						{
+							"group": 5,
+							"afterglow": "image",
+							"use": "Image files: .gif, .png",
+							"stock_frames": "48@8 32@8 24@8 16@8 48@32 32@32 24@32 16@32"
+						}
+					]
+				}
+			]
+		}
+	}
+}
