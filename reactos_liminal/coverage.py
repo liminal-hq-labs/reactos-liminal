@@ -143,11 +143,33 @@ def build_rows(
 	return rows
 
 
+BITFIELDS_MODULES = {"comctl32.dll", "hhctrl.ocx", "ieframe.dll"}  # stock strips with a 108-byte header and BI_BITFIELDS masks
+
+
+def bitmap_rows(bitmaps: list[dict], written: dict[str, list[str]]) -> list[tuple[dict, str, str]]:
+	"""The dialog and panel bitmaps of the map that `afterglow.dialog-bitmaps` is in charge of, as `(entry, status, note)`. `written` maps a
+	lower-case module name to the image paths the patcher wrote for it; the toolbar strips of `browseui.dll` have rows of their own."""
+	rows = []
+	for item in bitmaps:
+		module = item["module"].lower()
+		if module in BITMAP_MODULES:
+			continue
+		if module in written:
+			rows.append((item, PATCHED, ""))
+		elif module in BITFIELDS_MODULES:
+			rows.append((item, SKIPPED, "the stock strip is BI_BITFIELDS (a 108-byte header), which the bitmap patcher does not accept yet"))
+		else:
+			rows.append((item, SKIPPED, "no file of the image takes this bitmap yet, or the trim removes it"))
+	return rows
+
+
 def counts(rows: list[Row]) -> dict[str, int]:
 	return {status: sum(1 for row in rows if row.status == status) for status in (PATCHED, SKIPPED, UNVERIFIED)}
 
 
-def render(rows: list[Row], compact: Profile) -> str:
+def render(
+	rows: list[Row], compact: Profile, bitmaps: list[tuple[dict, str, str]] | None = None, written: dict[str, list[str]] | None = None
+) -> str:
 	"""The report as markdown. `compact` is the trim profile of the compact image."""
 	total = counts(rows)
 	icons = {row.icon_id for row in rows}
@@ -177,6 +199,30 @@ def render(rows: list[Row], compact: Profile) -> str:
 		lines.append(
 			f"| `{row.icon_id}` | {module} | {row.target} | {row.evidence} | {row.status} | {files} | {compact_text} | {row.detail} |"
 		)
+	if bitmaps:
+		patched = sum(1 for _item, status, _note in bitmaps if status == PATCHED)
+		lines += [
+			"",
+			"## Bitmaps",
+			"",
+			"The dialog, wizard and panel bitmaps of the map, written by `afterglow.dialog-bitmaps` (the toolbar strips of `browseui.dll` "
+			f"are above). {len(bitmaps)} rows: {patched} patched, {len(bitmaps) - patched} skipped.",
+			"",
+			"| Bitmap | Module | Resource | Size | Status | Files | Compact | Note |",
+			"|---|---|---|---|---|---|---|---|",
+		]
+		for item, status, note in bitmaps:
+			paths = (written or {}).get(item["module"].lower(), [])
+			if paths:
+				compact_text = "removed by trim" if any(removes(compact, path) for path in paths) else "kept"
+			else:
+				compact_text = "-"
+			files = "<br>".join(f"`{path}`" for path in paths) or "-"
+			width, height = item["size"]
+			lines.append(
+				f"| `{item['id']}` | `{item['module']}` | bitmap {item['resource']} | {width} x {height} at {item['bits']} bits | {status} | "
+				f"{files} | {compact_text} | {note} |"
+			)
 	return "\n".join(lines) + "\n"
 
 

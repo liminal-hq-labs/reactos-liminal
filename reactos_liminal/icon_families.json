@@ -362,6 +362,146 @@
 					"stock_sha256": "6e5d61a0c49216152e493f27ac93fbf05b30a21429f7ad039bddfd2f5799cb59"
 				},
 				{
+					"path": "ReactOS/system32/zipfldr.dll",
+					"stock_sha256": "831ac9071cd8637836f3fb127ad0e2a18ea1db8482a41b58fe9364c1639cbb8d"
+				},
+				{
+					"path": "ReactOS/system32/url.dll",
+					"stock_sha256": "de86f7fe083ec12309996828ad81b49266c0ac9d530e6293e9e7c6e3f0c66f33"
+				},
+				{
+					"path": "ReactOS/system32/msxml3.dll",
+					"stock_sha256": "9736c2aec5e2ed0bf2a874320c6c0ce5718e739eac0ac4e7354841f7c853bd68"
+				},
+				{
+					"path": "ReactOS/system32/mshta.exe",
+					"stock_sha256": "d758e9ab9cc13c2eaa2c821e052bd185c936669f032ca92c71b332505b20eff6"
+				},
+				{
+					"path": "ReactOS/system32/cryptext.dll",
+					"stock_sha256": "4189570f65e84619a97c02fd98f14c5c21aae847147d63f5ddd8a22aac8be62f"
+				},
+				{
+					"path": "ReactOS/system32/msiexec.exe",
+					"stock_sha256": "905b62126406ed90d6ffb9e86fb04d11cf68a2df9d1026755c2db82eead8bf53"
+				},
+				{
+					"path": "ReactOS/system32/themeui.dll",
+					"stock_sha256": "eee13c1dbbdde51af5b5fffd80bd184412ee65af76a5fc4d8ff85cbe1af78f66"
+				},
+				{
+					"path": "ReactOS/system32/setupapi.dll",
+					"stock_sha256": "458d5da73b3c966ccc9131234b1a0481cd3953138dafc5fb15c034f27ea0f445"
+				},
+				{
+					"path": "ReactOS/system32/deskadp.dll",
+					"stock_sha256": "d506e6c0459faf3d0ce6f6972d806e7ded3a3ad5b38fce3ed31ba6e1fc017a0d"
+				},
+				{
+					"path": "ReactOS/system32/deskmon.dll",
+					"stock_sha256": "2d55a36abd4efa391a25cf48cf806b5e61bbef493aea074de68f85daf0142f32"
+				},
+				{
+					"path": "ReactOS/system32/batt.dll",
+					"stock_sha256": "de96b850355f82058a794ba0ab5629f947639b2db19c30980a12f807e191702f"
+				},
+				{
+					"path": "ReactOS/system32/input.dll",
+					"stock_sha256": "a82c2015666584bce7443f1263ab570ef3e4c2514eb0f1662c7b3cee61302ebd"
+				},
+				{
+					"path": "ReactOS/system32/mydocs.dll",
+					"stock_sha256": "5f003578ab88f4043cd6ac98cdc789af300cd849a11711444755d271586f6d95"
+				},
+				{
+					"path": "ReactOS/system32/netcfgx.dll",
+					"stock_sha256": "9e6385bedea8c69d0397e0f585880f3abe0df3e4c7f5e4d2f71aee6f67b7d73f"
+				},
+				{
+					"path": "ReactOS/system32/netid.dll",
+					"stock_sha256": "065a9f76e246ba6a7bb189442225519edf966f005225d67833357a5dfe7b6d2a"
+				},
+				{
+					"path": "ReactOS/system32/hhctrl.ocx",
+					"stock_sha256": "c956f260084f2594281778edf6f2f39d4ccb75a43fea2f8c4f2a20ca21ab3e58"
+				},
+				{
+					"path": "ReactOS/system32/fontview.exe",
+					"stock_sha256": "72f2f06c5f6976c2f7a66969bf9c6ce8c4a6d581772480fbea137934f60690d5"
+				},
+				{
+					"path": "ReactOS/system32/gdihv.exe",
+					"stock_sha256": "ee92f50f0b927b2241b96e2ad85eb8f2079927167ebc10ff7347acabbe8510ba"
+				},
+				{
+					"path": "ReactOS/system32/iernonce.dll",
+					"stock_sha256": "4708f0c10076caf8a8e89d940404a129043c30b58a000197625833d646ebf430"
+				},
+				{
+					"path": "ReactOS/system32/runonce.exe",
+					"stock_sha256": "b0b19c2e01dc70edf30688bddd380fc9dfbcdc388adcbb9f2df62011da4f69d1"
+				},
+				{
+					"path": "ReactOS/system32/rundll32.exe",
+					"stock_sha256": "0056d716a0f856285a86098c065ee340179cb89fdcea14882568d5cb8662b4f3"
+				},
+				{
+					"path": "ReactOS/system32/regedt32.exe",
+					"stock_sha256": "a93ecd1e067218ec921c973eaa79a3a50b25327a2ab047688c5454862574b6d1"
+				},
+				{
+					"path": "ReactOS/system32/ntvdm.exe",
+					"stock_sha256": "1ebb025e9e4df9333c527a8fce8ee5201d1d307ce6f77c44300a6b5ae2575989"
+				},
+				{
+					"path": "ReactOS/system32/netplwiz.dll",
+					"stock_sha256": "035cdfb9a7d6bed0ae0036edf89a6adec241d3884ab5b2cfd03035228893e641"
+				},
+				{
+					"path": "ReactOS/system32/msutb.dll",
+					"stock_sha256": "5ab11912dab4244ab57e6940505d5c5e82a819fda026d596ae0a78c889103d8e"
+				},
+				{
+					"path": "ReactOS/system32/userenv.dll",
+					"stock_sha256": "06d2a7a82e8c947d88cff62759da46e9fd5d1c7b420e85329ec4626fdac6bab7"
+				},
+				{
+					"path": "ReactOS/system32/winlogon.exe",
+					"stock_sha256": "eb8d0decc975b47f2ac50cba9b23ad86cd619c52de1e5691c225e5badfc988ed"
+				},
+				{
+					"path": "ReactOS/system32/certmgr.exe",
+					"stock_sha256": "77af451e81e99897983d43029c6f847da8f4fb2e129939966ac3d57192056b69"
+				},
+				{
+					"path": "ReactOS/system32/cleanmgr.exe",
+					"stock_sha256": "975402b778d5e9d26cd830ce379310b6c9633de8236596c8449c915f31d69d8c"
+				},
+				{
+					"path": "ReactOS/system32/frag.exe",
+					"stock_sha256": "36eb659c01d0fcb054838fd59bb5633154f8dc46f6b5022124b2976fee2b8ca0"
+				},
+				{
+					"path": "ReactOS/system32/comdlg32.dll",
+					"stock_sha256": "45a54ce402a5a8fbb0f90377463f3a7568b69b42fb482101648ce8be7082a6a2"
+				},
+				{
+					"path": "ReactOS/system32/hotplug.dll",
+					"stock_sha256": "939d7543a68db419fc1602598f1013023745e048e733ed0de83f4f74880d82ba"
+				},
+				{
+					"path": "ReactOS/system32/comctl32.dll",
+					"stock_sha256": "c21b2c46d277371fc23c6138c0ae443e89fe88b9eee36dc8e701f3cfe94ed318"
+				},
+				{
+					"path": "ReactOS/winsxs/x86_microsoft.windows.common-controls_6595b64144ccf1df_5.82.2600.2982_none_deadbeef/comctl32.dll",
+					"stock_sha256": "c21b2c46d277371fc23c6138c0ae443e89fe88b9eee36dc8e701f3cfe94ed318"
+				},
+				{
+					"path": "ReactOS/winsxs/x86_microsoft.windows.common-controls_6595b64144ccf1df_6.0.2600.2982_none_deadbeef/comctl32.dll",
+					"stock_sha256": "c21b2c46d277371fc23c6138c0ae443e89fe88b9eee36dc8e701f3cfe94ed318"
+				},
+				{
 					"path": "ReactOS/system32/imageres.dll",
 					"new_file": true
 				}

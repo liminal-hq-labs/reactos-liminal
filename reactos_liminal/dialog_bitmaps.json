@@ -18,6 +18,60 @@
 		{
 			"path": "ReactOS/system32/cards.dll",
 			"stock_sha256": "17867dff1511586911dfe92330f105ffc247fbcd2ef223a00d9d84b7e7f6feb1"
+		},
+		{
+			"path": "ReactOS/system32/aclui.dll",
+			"stock_sha256": "756209146aec55736385bcf32030b23e7f875f01871a2dee5d9c5c8cae17b462"
+		},
+		{
+			"path": "ReactOS/system32/appwiz.cpl",
+			"stock_sha256": "e65b88a3e637dbbe9d9739bbb233051e0f83c6c41f0aac2371b1138ab0e60e3b"
+		},
+		{
+			"path": "ReactOS/system32/credui.dll",
+			"stock_sha256": "159289bb5aa841a0a33360b26980b7be5dc2e0bc67bdaca13d0e1aa8465e382a"
+		},
+		{
+			"path": "ReactOS/system32/cryptui.dll",
+			"stock_sha256": "b24afeabb5d2e1658c8b120f08197cfc5f3b00d8fd77362de4258bf9c7c08c3b"
+		},
+		{
+			"path": "ReactOS/system32/desk.cpl",
+			"stock_sha256": "895c813152637459fee8f3dc0b5430ec2bb7475d7e35306cb9751f7f893b6458"
+		},
+		{
+			"path": "ReactOS/system32/devmgr.dll",
+			"stock_sha256": "0670f9388529d74252a08d0c4b25a93be6a971f0ab770600bf448278cbbf2fd3"
+		},
+		{
+			"path": "ReactOS/system32/hdwwiz.cpl",
+			"stock_sha256": "b3856a9e84b3de1d8059d516bb08879348235c91be616a5c102c187d092dc732"
+		},
+		{
+			"path": "ReactOS/system32/newdev.dll",
+			"stock_sha256": "4555fed28cbe771ba52d746acf48f05407b5af3c34064f5f4ad136f24c6ffcec"
+		},
+		{
+			"path": "ReactOS/system32/servman.exe",
+			"stock_sha256": "fedc937af119f17ef243407e02f777f994488bba6dae785610d04f3cf7931668"
+		},
+		{
+			"path": "ReactOS/system32/shimgvw.dll",
+			"stock_sha256": "39a18af40db42e6b1011d7f0f62487a8f580276c6afed3e92587dad0b7958de2"
+		},
+		{
+			"path": "ReactOS/system32/taskmgr.exe",
+			"stock_sha256": "579a15a60994106506c673ffa92a2c15d7cb156e294b7c005c2e4b27e94e4975"
+		},
+		{
+			"path": "ReactOS/system32/zipfldr.dll",
+			"stock_sha256": "831ac9071cd8637836f3fb127ad0e2a18ea1db8482a41b58fe9364c1639cbb8d"
+		},
+		{
+			"path": "ReactOS/agexplorer.exe",
+			"module": "explorer.exe",
+			"stock_path": "ReactOS/explorer.exe",
+			"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
 		}
 	]
 }
