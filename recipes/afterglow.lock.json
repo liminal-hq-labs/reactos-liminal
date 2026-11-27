@@ -10,8 +10,8 @@
 		},
 		"afterglow": {
 			"repo": "liminal-hq/afterglow-themes",
-			"commit": "84a8d5cf31e33700f7f621b441c79027397700c0",
-			"tar_sha256": "6006aa7ad7e8f2f01464c1f80c8bf8311c10a16aa266f4c0e444daffe3ae87f3",
+			"commit": "0ab3b272046f0e4e777653945c03238e5040b5cb",
+			"tar_sha256": "bfc0d57a0a280646d7c787dd1dbb700f66a90272f47992d4afa01d37ca7f0460",
 			"msstyles_sha256": "2512dfd6be320295698717487c24bee2eb8b38ed64f351aa42bfd26b3dc81f4f",
 			"apply_reg": "desktop/install/afterglow-original.reg",
 			"wallpaper": "dusk-dark-smooth",
@@ -23,7 +23,11 @@
 		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1"
 	},
 	"files": {
-		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a"
+		"../guest/cmd/afterfetch.cmd": "6fdd9978e451bc46ab5385efb577b71345b840f96db8cf86fc8577a4d61bec8a",
+		"../guest/cmd/neofetch.cmd": "0f15609cf20ea891bf824067b8564d9f4b690d48424de59963169979b768b06e",
+		"../guest/cmd/fastfetch.cmd": "323b0f6515dd8daa3f89f3ff7a4dd88eb310da81fc5af6e21a51c83df27ddcc2",
+		"../guest/cmd/screenfetch.cmd": "8c7a9aae4d8dc6c8b7402866e749e337ca866e128ea93980546bb9adad4ed69f",
+		"../guest/cmd/winfetch.cmd": "07e6410464e584fe4fa6658fc0ab8632e4372e92856d335fdb60d75fb110267d"
 	},
 	"builds": {
 		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2"
