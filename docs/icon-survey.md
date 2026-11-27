@@ -272,3 +272,7 @@ Afterglow's full-image pass (its commit `4c8847f`) drew art for files the full i
 `cd-disc`, `floppy-disk`, `usb-key`, `ram-module`, `monitor`, `clock`, `showdesk`, `trynet` and `readme` stay unpatched. Each was checked against the 0.4.16 source (`hivesys.inf`, `setupapi`, `devmgr`, `hotplug`, `sysdm`, `timedate`, `netshell`) and the stock binaries, and none is the picture of any resource; the reason for each is the note in [icon-coverage.md](icon-coverage.md). The nearest are the device-class icons of `setupapi.dll`, which Device Manager draws at 16 px from each class's `Icon` value: `hivesys.inf` gives 12 classes an icon, among them DVD/CD-ROM drives (51), Universal Serial Bus controllers (20), Disk drives (53) and Ramdisk (5, the network card icon). Those are class icons of drives and controllers, not a disc, a key or a memory module, and the Monitor class names none. A target for them is Afterglow's call, made in its map, and the pin then carries it.
 
 The stock icons of programs the map does not list stay stock too (the Virtual CDRom Control Panel, the otvdm WineVDM launcher, the Read Me shortcut).
+
+### Round 3
+
+What is still stock after the current pin, ranked by where a visitor meets it, and the patch list for Afterglow's icons v5 (the NT Object Namespace and System Registry folders, Registry Editor's values, the Go button and four dialog pictures), are in [plans/icon-round-3.md](plans/icon-round-3.md).
