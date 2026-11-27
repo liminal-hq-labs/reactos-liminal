@@ -1,0 +1,49 @@
+# Stock shortcuts and the programs they run, so a trim that removes a program removes its shortcuts too.
+#
+# Each line is `PATH => TARGET`: the shortcut the stock ReactOS install writes into each user's profile, and the program it runs. PATH
+# under a profile folder (`Documents and Settings/Default User`, `Administrator`, `NetworkService` and `All Users`) and TARGET under the
+# FAT32 root. A trim that removes a TARGET removes its shortcuts from every profile, and a Start menu folder left empty, so a menu
+# never lists a program that is not on the disk. `rl audit` on the full image lists exactly these links; the stock list is complete
+# when it reports no shortcut missing here.
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+Application Data/Microsoft/Internet Explorer/Quick Launch/Applications Manager.lnk => ReactOS/system32/rapps.exe
+Application Data/Microsoft/Internet Explorer/Quick Launch/Command Prompt.lnk => ReactOS/system32/cmd.exe
+Application Data/Microsoft/Internet Explorer/Quick Launch/ReactOS Explorer.lnk => ReactOS/explorer.exe
+Desktop/Applications Manager.lnk => ReactOS/system32/rapps.exe
+Desktop/Command Prompt.lnk => ReactOS/system32/cmd.exe
+Desktop/Read Me.lnk => ReactOS/readme.txt
+Start Menu/Programs/Accessories/Accessibility/Accessibility Utility Manager.lnk => ReactOS/system32/utilman.exe
+Start Menu/Programs/Accessories/Accessibility/Magnify.lnk => ReactOS/system32/magnify.exe
+Start Menu/Programs/Accessories/Accessibility/On-Screen Keyboard.lnk => ReactOS/system32/osk.exe
+Start Menu/Programs/Accessories/Calculator.lnk => ReactOS/system32/calc.exe
+Start Menu/Programs/Accessories/Command Prompt.lnk => ReactOS/system32/cmd.exe
+Start Menu/Programs/Accessories/Communications/Remote Desktop Connection.lnk => ReactOS/system32/mstsc.exe
+Start Menu/Programs/Accessories/Entertainment/Multimedia Player.lnk => ReactOS/system32/mplay32.exe
+Start Menu/Programs/Accessories/Entertainment/Sound Recorder.lnk => ReactOS/system32/sndrec32.exe
+Start Menu/Programs/Accessories/Entertainment/Volume Control.lnk => ReactOS/system32/sndvol32.exe
+Start Menu/Programs/Accessories/Notepad.lnk => ReactOS/system32/notepad.exe
+Start Menu/Programs/Accessories/Paint.lnk => ReactOS/system32/mspaint.exe
+Start Menu/Programs/Accessories/System Tools/Character Map.lnk => ReactOS/system32/charmap.exe
+Start Menu/Programs/Accessories/System Tools/Clipboard Viewer.lnk => ReactOS/system32/clipbrd.exe
+Start Menu/Programs/Accessories/System Tools/FontSub.lnk => ReactOS/system32/fontsub.exe
+Start Menu/Programs/Accessories/System Tools/Keyboard Layout Switcher.lnk => ReactOS/system32/kbswitch.exe
+Start Menu/Programs/Accessories/System Tools/ReactX Diagnostic.lnk => ReactOS/system32/dxdiag.exe
+Start Menu/Programs/Accessories/System Tools/Registry Editor.lnk => ReactOS/regedit.exe
+Start Menu/Programs/Accessories/System Tools/SnapShot.lnk => ReactOS/system32/screenshot.exe
+Start Menu/Programs/Accessories/System Tools/Task Manager.lnk => ReactOS/system32/taskmgr.exe
+Start Menu/Programs/Accessories/System Tools/Virtual CDRom Control Panel.lnk => ReactOS/system32/vcdcontroltool.exe
+Start Menu/Programs/Accessories/WordPad.lnk => ReactOS/system32/wordpad.exe
+Start Menu/Programs/Administrative Tools/Device Manager.lnk => ReactOS/system32/devmgmt.exe
+Start Menu/Programs/Administrative Tools/Event Viewer.lnk => ReactOS/system32/eventvwr.exe
+Start Menu/Programs/Administrative Tools/Service Manager.lnk => ReactOS/system32/servman.exe
+Start Menu/Programs/Administrative Tools/System Configuration.lnk => ReactOS/system32/msconfig.exe
+Start Menu/Programs/Games/Solitaire.lnk => ReactOS/system32/sol.exe
+Start Menu/Programs/Games/Spider Solitaire.lnk => ReactOS/system32/spider.exe
+Start Menu/Programs/Games/WineMine.lnk => ReactOS/system32/winmine.exe
+Start Menu/Programs/ReactOS Applications Manager.lnk => ReactOS/system32/rapps.exe
+Start Menu/Programs/ReactOS Explorer.lnk => ReactOS/explorer.exe
+Start Menu/Programs/Wine Internet Explorer.lnk => Program Files/Internet Explorer/iexplore.exe
+Start Menu/Programs/WineVDM/WineVDM.lnk => Program Files/otvdm/otvdmw.exe

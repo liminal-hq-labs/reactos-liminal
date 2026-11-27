@@ -149,8 +149,9 @@ def test_extra_is_applied_after_the_profile(tmp_path):
 	base = load_profile("base")
 	assert lines(profile)[: len(base.entries)] == lines(base)
 	# sol.exe is already in base, so only the driver is new
-	assert lines(profile)[len(base.entries) :] == ["f ReactOS/system32/drivers/e1000.sys"]
-	assert [count for _, count in profile.sources] == [len(base.entries), 1]
+	assert lines(profile)[len(base.entries)] == "f ReactOS/system32/drivers/e1000.sys"
+	assert [name for name, _ in profile.sources][:2] == ["base", str(tmp_path / "mine.txt")]
+	assert [count for _, count in profile.sources][:2] == [len(base.entries), 1]
 
 
 def test_extra_removes_files_on_the_disk_and_is_in_the_report(fat, tmp_path):
@@ -275,3 +276,76 @@ def test_no_file_the_patchers_write_is_one_the_base_profile_removes():
 	paths += [file_spec["path"] for file_spec in patch_dialog_bitmaps.load_spec()["files"]]
 	profile = trim.build_profile("base", [])
 	assert [path for path in paths if trim.removes(profile, path)] == []
+
+
+def test_the_stock_shortcut_list_is_well_formed():
+	shortcuts = trim.load_shortcuts()
+	assert len(shortcuts) >= 38
+	for link, target in shortcuts.items():
+		assert link.endswith(".lnk") and not target.startswith("/") and ".." not in link.split("/")
+	assert shortcuts["Start Menu/Programs/Accessories/Calculator.lnk"] == "ReactOS/system32/calc.exe"
+
+
+def test_a_malformed_shortcut_list_names_its_line(tmp_path):
+	path = tmp_path / "shortcuts.txt"
+	path.write_text("# comment\nA.lnk => x.exe\nB.lnk x.exe\n")
+	with pytest.raises(TrimError, match=r"shortcuts.txt, line 3"):
+		trim.load_shortcuts(path)
+
+
+def test_removing_a_program_removes_its_shortcut_in_every_profile_and_an_emptied_folder():
+	profile = parse_profile("p", "f ReactOS/system32/calc.exe\nf ReactOS/system32/sol.exe\nf ReactOS/system32/winmine.exe\n")
+	shortcuts = {
+		"Start Menu/Programs/Accessories/Calculator.lnk": "ReactOS/system32/calc.exe",
+		"Start Menu/Programs/Accessories/Notepad.lnk": "ReactOS/system32/notepad.exe",
+		"Start Menu/Programs/Games/Solitaire.lnk": "ReactOS/system32/sol.exe",
+		"Start Menu/Programs/Games/WineMine.lnk": "ReactOS/system32/winmine.exe",
+	}
+	found = lines_of(trim.shortcut_entries(profile, shortcuts))
+	for owner in trim.PROFILE_FOLDERS:
+		assert f"f Documents and Settings/{owner}/Start Menu/Programs/Accessories/Calculator.lnk" in found
+		assert f"d Documents and Settings/{owner}/Start Menu/Programs/Games" in found  # every link in the folder goes, so the folder does
+	assert not any("Notepad" in line for line in found) and not any("Games/Solitaire" in line for line in found)
+
+
+def lines_of(entries):
+	return [f"{entry.kind} {entry.path}" for entry in entries]
+
+
+def test_a_shortcut_the_profile_already_removes_is_not_repeated():
+	profile = parse_profile("p", "f ReactOS/system32/calc.exe\nf Documents and Settings/Administrator/Start Menu/Programs/Calculator.lnk\n")
+	shortcuts = {"Start Menu/Programs/Calculator.lnk": "ReactOS/system32/calc.exe"}
+	found = lines_of(trim.shortcut_entries(profile, shortcuts))
+	assert "f Documents and Settings/Administrator/Start Menu/Programs/Calculator.lnk" not in found and len(found) == 3
+
+
+def test_the_profile_none_removes_no_shortcut_and_the_base_profile_removes_those_of_its_programs():
+	assert trim.build_profile("none").entries == []
+	base = lines_of(trim.build_profile("base").entries)
+	for owner in ("Default User", "NetworkService"):
+		assert f"f Documents and Settings/{owner}/Start Menu/Programs/Accessories/Calculator.lnk" in base
+		assert f"d Documents and Settings/{owner}/Start Menu/Programs/Games" in base
+	# a program the compact image keeps keeps its shortcut
+	assert not any("Notepad.lnk" in line or "Task Manager.lnk" in line for line in base)
+	assert trim.build_profile("base").sources[-1][0] == "shortcuts/stock.txt"
+
+
+def test_an_extra_list_that_removes_a_program_removes_its_shortcut_too(tmp_path):
+	extra = tmp_path / "extra.txt"
+	extra.write_text("f ReactOS/system32/notepad.exe\n")
+	profile = build_profile("base", [str(extra)])
+	assert "f Documents and Settings/Administrator/Start Menu/Programs/Accessories/Notepad.lnk" in lines_of(profile.entries)
+
+
+def test_a_user_without_a_listed_shortcut_is_not_reported_as_missing(fat, tmp_path):
+	source = tmp_path / "f.bin"
+	source.write_bytes(b"x")
+	for folder in ("Documents and Settings", "Documents and Settings/Default User", "Documents and Settings/Default User/Start Menu"):
+		fat.make_directory(folder)
+	fat.make_directory("Documents and Settings/Default User/Start Menu/Programs")
+	fat.copy_in(source, "Documents and Settings/Default User/Start Menu/Programs/Calculator.lnk")
+	profile = parse_profile("p", "f ReactOS/system32/calc.exe\nf ReactOS/system32/stale.exe\n")
+	profile.entries += trim.shortcut_entries(profile, {"Start Menu/Programs/Calculator.lnk": "ReactOS/system32/calc.exe"})
+	report = apply_profile(fat, profile)
+	assert not fat.exists("Documents and Settings/Default User/Start Menu/Programs/Calculator.lnk")
+	assert [entry.path for entry in report.missing] == ["ReactOS/system32/calc.exe", "ReactOS/system32/stale.exe"]

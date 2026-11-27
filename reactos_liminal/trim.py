@@ -10,6 +10,9 @@ from .mtools import FatImage
 from .paths import REPO
 
 PROFILES_DIR = REPO / "profiles"
+SHORTCUTS_FILE = PROFILES_DIR / "shortcuts" / "stock.txt"
+SHORTCUTS_SOURCE = "shortcuts/stock.txt"  # the name its entries and report line carry
+PROFILE_FOLDERS = ("Default User", "Administrator", "NetworkService", "All Users")  # under `Documents and Settings`
 
 # The licence texts and notices the disk must keep, as paths under the FAT32 root. `LICENSES` is a folder: everything in it is kept.
 # The release steps write the first three; the last is the licence of WineVDM, which the trim keeps. Gecko's licence goes with Gecko,
@@ -98,8 +101,51 @@ def load_extra(paths: list[str]) -> list[Profile]:
 	return lists
 
 
+def load_shortcuts(path: Path = SHORTCUTS_FILE) -> dict[str, str]:
+	"""The stock shortcuts: each one's path under a profile folder, and the path of the program it runs under the FAT32 root."""
+	shortcuts = {}
+	for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+		line = raw.strip()
+		if not line or line.startswith("#"):
+			continue
+		link, arrow, target = line.partition("=>")
+		if not arrow or not link.strip() or not target.strip():
+			raise TrimError(f"{path.name}, line {number}: expected 'PATH => TARGET', got {raw!r}")
+		shortcuts[link.strip()] = target.strip()
+	return shortcuts
+
+
+def shortcut_entries(profile: Profile, shortcuts: dict[str, str] | None = None) -> list[TrimEntry]:
+	"""The entries that remove the shortcuts of every program the profile removes, in each user's profile, and the folder of a group of
+	shortcuts when all of them go. A shortcut the profile already removes (or sits inside a folder it removes) is not repeated."""
+	shortcuts = load_shortcuts() if shortcuts is None else shortcuts
+	gone = {link for link, target in shortcuts.items() if removes(profile, target)}
+	folders = {}
+	for link in shortcuts:
+		folders.setdefault(link.rsplit("/", 1)[0], []).append(link)
+	entries = []
+	for folder, links in sorted(folders.items()):
+		whole_folder = folder.startswith("Start Menu/Programs/") and all(link in gone for link in links)
+		for owner in PROFILE_FOLDERS:
+			root = f"Documents and Settings/{owner}"
+			if whole_folder:
+				entries.append(TrimEntry("d", f"{root}/{folder}", SHORTCUTS_SOURCE))
+				continue
+			entries += [TrimEntry("f", f"{root}/{link}", SHORTCUTS_SOURCE) for link in links if link in gone]
+	return [entry for entry in entries if not _already_removed(profile, entry)]
+
+
+def _already_removed(profile: Profile, entry: TrimEntry) -> bool:
+	return (
+		removes(profile, entry.path)
+		if entry.kind == "f"
+		else any(_normal(other.path) == _normal(entry.path) and other.kind == "d" for other in profile.entries)
+	)
+
+
 def build_profile(name: str, extra_paths: list[str] = ()) -> Profile:
-	"""The named profile followed by each extra list, in order. An entry an earlier list already removes is not repeated."""
+	"""The named profile followed by each extra list, in order, then the shortcuts of every program they remove. An entry an earlier
+	list already removes is not repeated."""
 	profile = load_profile(name)
 	seen = {(entry.kind, _normal(entry.path)) for entry in profile.entries}
 	for extra in load_extra(list(extra_paths)):
@@ -107,6 +153,10 @@ def build_profile(name: str, extra_paths: list[str] = ()) -> Profile:
 		seen.update((entry.kind, _normal(entry.path)) for entry in fresh)
 		profile.entries += fresh
 		profile.sources.append((extra.name, len(fresh)))
+	derived = shortcut_entries(profile)
+	if derived:
+		profile.entries += derived
+		profile.sources.append((SHORTCUTS_SOURCE, len(derived)))
 	return profile
 
 
@@ -152,7 +202,10 @@ def apply_profile(disk: FatImage, profile: Profile, patched_paths: set[str] | li
 	free_before = disk.free_bytes()
 	for entry in profile.entries:
 		removed = disk.delete_tree(entry.path) if entry.kind == "d" else disk.delete_file(entry.path)
-		(report.removed if removed else report.missing).append(entry)
+		if removed:
+			report.removed.append(entry)
+		elif entry.source != SHORTCUTS_SOURCE:  # a user without that shortcut is expected, not a stale line
+			report.missing.append(entry)
 	report.bytes_freed = disk.free_bytes() - free_before
 	for path in patched_paths:
 		if not disk.exists(path):

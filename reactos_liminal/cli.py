@@ -10,6 +10,7 @@ from pathlib import Path
 
 from . import __version__, doctor
 from .afterglow import fetch_afterglow
+from .audit import audit_image
 from .fetch import FetchError, fetch_iso
 from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
@@ -19,6 +20,7 @@ from .isobuild import IsoBuildError
 from .licences import LicenceError, licences_page
 from .lock import REQUIRABLE, LockError, cache_keys, failures, verify, write_lock
 from .manifest import ManifestError, build_manifest, job_summary, parse_pairs, write_manifest
+from .mtools import FatImage, MtoolsError
 from .parts import PartsError, make_parts
 from .patchers import PatchError
 from .paths import WorkDirError, resolve_work
@@ -221,6 +223,23 @@ def _cmd_parts(args: argparse.Namespace) -> int:
 	return 0
 
 
+def _cmd_audit(args: argparse.Namespace) -> int:
+	image = Path(args.image)
+	if not image.is_file():
+		print(f"rl: no such image: {image}", file=sys.stderr)
+		return 2
+	report = audit_image(FatImage(image))
+	text = report.render(f"Shortcut and registry audit of {image.name}")
+	if args.out:
+		Path(args.out).write_text(text)
+	else:
+		print(text, end="")
+	blocking = report.blocking(args.strict)
+	for finding in blocking:
+		print(f"dead: {finding.kind}: {finding.where} -> {finding.target}", file=sys.stderr)
+	return 1 if blocking else 0
+
+
 def _cmd_manifest(args: argparse.Namespace) -> int:
 	recipe = load(args.recipe)
 	dist = Path(args.dist)
@@ -372,6 +391,19 @@ def build_parser() -> argparse.ArgumentParser:
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_trim)
 
+	sub = commands.add_parser(
+		"audit",
+		help="list every shortcut and registry launch point of a built image with its target, and whether the target is on the disk",
+	)
+	sub.add_argument("image", help="the finished disk image (read only)")
+	sub.add_argument("--out", metavar="FILE", help="write the Markdown report here instead of printing it")
+	sub.add_argument(
+		"--strict",
+		action="store_true",
+		help="fail on any dead entry; by default only shortcuts, Run keys, the Winlogon shell and control panel applets fail",
+	)
+	sub.set_defaults(func=_cmd_audit)
+
 	sub = commands.add_parser("parts", help="split an image into zstd parts for v86, with a manifest")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the part size and level)")
 	sub.add_argument("image", help="the image to split; free space is zeroed first unless --no-zero-free")
@@ -435,6 +467,7 @@ def main(argv: list[str] | None = None) -> int:
 		LicenceError,
 		IsoError,
 		IsoBuildError,
+		MtoolsError,
 	) as error:
 		print(f"rl: {error}", file=sys.stderr)
 		return 2

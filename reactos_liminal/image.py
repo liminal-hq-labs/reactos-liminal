@@ -22,6 +22,7 @@ from pathlib import Path
 
 from . import settings as settings_module
 from .afterglow import fetch_afterglow, prepare_afterglow
+from .audit import audit_image
 from .fetch import sha256_file
 from .install import golden_path
 from .licences import TEXTS, ChangeRecord, PatchChange, write_licence_files
@@ -33,7 +34,7 @@ from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
 from .rustbuild import BUILT_PREFIX, build_programs, used_builds
-from .trim import LICENCE_PATHS, TrimReport, apply_profile, build_profile, check_profile, removes
+from .trim import LICENCE_PATHS, SHORTCUTS_SOURCE, TrimReport, apply_profile, build_profile, check_profile, removes
 from .vm import PrivateVm
 from .wallpaper import FOLDER as wallpaper_folder_path
 from .wallpaper import WallpaperError, image_path, render_set, render_wallpaper, scenes, set_destination, stock_list, wanted
@@ -71,11 +72,14 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		"patchers: " + (", ".join(patchers) if patchers else "none") + " (each checked against the stock file; run before the trim)"
 	)
 	plan.steps.append(
-		f"trim profile {profile.name!r}: {len(profile.entries)} entries; refuses a patched file or a licence file "
+		f"trim profile {profile.name!r}: {profile.sources[0][1]} entries; refuses a patched file or a licence file "
 		f"({', '.join(LICENCE_PATHS)})"
 	)
 	for name, count in profile.sources[1:]:
-		plan.steps.append(f"  extra trim list {name}: {count} entries, applied after the profile and checked the same way")
+		if name == SHORTCUTS_SOURCE:
+			plan.steps.append(f"  shortcuts of the programs removed ({name}): {count} entries, in every user's profile")
+		else:
+			plan.steps.append(f"  extra trim list {name}: {count} entries, applied after the profile and checked the same way")
 	if used_builds(recipe):
 		plan.steps.insert(
 			0, "build: " + ", ".join(used_builds(recipe)) + " from source (pinned toolchain; output checked against its SHA-256)"
@@ -318,7 +322,8 @@ def build_image(
 		report: TrimReport = apply_profile(disk, profile, patched_paths)
 		record.trim = report
 		for name, count in report.sources[1:]:
-			log("image", f"   extra trim list {name}: {count} entries")
+			what = "shortcuts of the programs removed" if name == SHORTCUTS_SOURCE else "extra trim list"
+			log("image", f"   {what} {name}: {count} entries")
 		log("image", f"   removed {len(report.removed)}, missing {len(report.missing)}, freed {report.bytes_freed // (1024 * 1024)} MiB")
 
 		log("image", "4. files and shortcuts")
@@ -341,8 +346,21 @@ def build_image(
 				settings_module.apply_in_guest(vm, spec)
 			except settings_module.SettingsError as error:
 				raise ImageError(str(error)) from error
+	_log_audit(out)
 	log("image", f"done: {out} ({disk.free_bytes() // (1024 * 1024)} MiB free inside)")
 	return out
+
+
+def _log_audit(image: Path) -> None:
+	"""Say what the finished image launches that is not on its disk. Reported, not fatal: `rl audit` is the check that fails."""
+	report = audit_image(FatImage(image))
+	blocking = report.blocking()
+	log(
+		"image",
+		f"audit: {len(report.findings)} entries checked, {len(report.dead)} dead, {len(blocking)} in a menu, at logon or in the applets",
+	)
+	for finding in blocking:
+		log("image", f"   dead {finding.kind}: {finding.where} -> {finding.target}")
 
 
 def trim_image(
