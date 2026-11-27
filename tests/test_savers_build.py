@@ -194,7 +194,10 @@ def test_a_built_file_must_name_a_declared_output(tmp_path):
 def test_an_in_tree_build_has_one_program_and_no_output_name(tmp_path):
 	path = tmp_path / "r.toml"
 	path.write_text(
-		RECIPE.replace('[builds.pack]\nrepo = "owner/pack"\ncommit = "{COMMIT}"\ntar_sha256 = "{tar}"\nscript = "scripts/build.sh"\n\n[builds.pack.outputs]\n"ONE.SCR" = "{one}"\n"TWO.SCR" = "{two}"\n', '[builds.pack]\nsource = "tool"\nsha256 = "{one}"\n')
+		RECIPE.replace(
+			'[builds.pack]\nrepo = "owner/pack"\ncommit = "{COMMIT}"\ntar_sha256 = "{tar}"\nscript = "scripts/build.sh"\n\n[builds.pack.outputs]\n"ONE.SCR" = "{one}"\n"TWO.SCR" = "{two}"\n',
+			'[builds.pack]\nsource = "tool"\nsha256 = "{one}"\n',
+		)
 		.format(ZEROS=ZEROS, one=ONE)
 		.replace("built:pack/TWO.SCR", "built:pack/X.SCR")
 	)
@@ -271,7 +274,9 @@ def test_pin_savers_measures_every_stale_sum_and_writes_them(tmp_path):
 
 def test_pin_savers_needs_a_build_from_another_repository(tmp_path):
 	path = tmp_path / "r.toml"
-	path.write_text(f'[recipe]\nname = "r"\n[inputs.reactos_iso]\nname = "x.iso"\nurl = "file:///x"\nzip_sha256 = "{ZEROS}"\nsha256 = "{ZEROS}"\n')
+	path.write_text(
+		f'[recipe]\nname = "r"\n[inputs.reactos_iso]\nname = "x.iso"\nurl = "file:///x"\nzip_sha256 = "{ZEROS}"\nsha256 = "{ZEROS}"\n'
+	)
 	with pytest.raises(PinError, match="no \\[builds\\]"):
 		pin_savers(path, tmp_path / "work")
 

@@ -369,7 +369,9 @@ def licences_page(recipe: Recipe) -> str:
 		out.append(f"- **Afterglow:** [`{afterglow['repo']}`](https://github.com/{afterglow['repo']}) at commit `{afterglow['commit']}`.")
 	for name, table in recipe.data.get("builds", {}).items():
 		if "repo" in table:
-			out.append(f"- **{name}:** [`{table['repo']}`](https://github.com/{table['repo']}) at commit `{table['commit']}`, built from source.")
+			out.append(
+				f"- **{name}:** [`{table['repo']}`](https://github.com/{table['repo']}) at commit `{table['commit']}`, built from source."
+			)
 	out += ["", "## Components and licences", "", "| Component | Licence | Text | Where |", "|---|---|---|---|"]
 	for component in COMPONENTS:
 		if _absent(recipe, component):
