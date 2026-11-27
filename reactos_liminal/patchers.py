@@ -14,7 +14,7 @@ from .patch_base import PatchedFile, PatchError, remember_patched  # noqa: F401 
 from .patch_bitmaps import toolbar_bitmaps
 from .patch_boot import afterglow_boot
 from .patch_dialog_bitmaps import dialog_bitmaps
-from .patch_family import cpl_icons, dialog_icons, program_icons
+from .patch_family import cpl_icons, dialog_icons, map_icons, program_icons
 from .patch_icons import afterglow_icons
 from .patch_logon import afterglow_logon
 from .patch_start import afterglow_start
@@ -51,6 +51,7 @@ PATCHERS = {
 	"afterglow.cpl-icons": cpl_icons,
 	"afterglow.program-icons": program_icons,
 	"afterglow.dialog-icons": dialog_icons,
+	"afterglow.map-icons": map_icons,
 	"afterglow.toolbar-bitmaps": toolbar_bitmaps,
 	"afterglow.dialog-bitmaps": dialog_bitmaps,
 	"afterglow.logon": afterglow_logon,

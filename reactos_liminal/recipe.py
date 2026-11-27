@@ -44,6 +44,7 @@ PATCHERS = (
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
+	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
 	"afterglow.boot",
@@ -221,6 +222,11 @@ def _name_list(allowed: tuple[str, ...] | None):
 # dialog bitmaps then take the newest copy of each path they patch.
 PATCHER_ORDER = (
 	("afterglow.pointers", "afterglow.dialog-icons"),
+	("afterglow.pointers", "afterglow.map-icons"),
+	("afterglow.start", "afterglow.map-icons"),
+	("afterglow.logon", "afterglow.map-icons"),
+	("afterglow.icons", "afterglow.map-icons"),
+	("afterglow.map-icons", "afterglow.dialog-bitmaps"),
 	("afterglow.start", "afterglow.program-icons"),
 	("afterglow.logon", "afterglow.program-icons"),
 	("afterglow.icons", "afterglow.dialog-bitmaps"),

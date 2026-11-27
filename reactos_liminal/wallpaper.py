@@ -12,8 +12,9 @@
 # written to that path, and the settings step selects it.
 #
 # Display Properties lists the files of the Windows folder and of `WallPaperDir` (`%SystemRoot%\Web\Wallpaper`) that GDI+ can open, and
-# a wallpaper's name in the list is its file name without the extension, so the set's files are named for people: "Afterglow Dusk
-# (dark, smooth).bmp". The list is in directory order, and the set is written in name order into a folder with no other image in it.
+# a wallpaper's name in the list is its file name without the extension, so the set's files are named like ReactOS's own (Nebula,
+# Borealis): "Dusk.bmp", "Dusk Light.bmp". The list is in directory order, and the set is written in name order into a folder with no
+# other image in it.
 import json
 import re
 import shutil
@@ -116,9 +117,16 @@ def scenes(recipe: Recipe) -> list[str]:
 
 
 def friendly_name(scene: str) -> str:
-	"""The name a person sees in Display Properties: "Afterglow Dusk (dark, smooth)" for `dusk-dark-smooth`."""
+	"""The name a person sees in Display Properties, short and in title case like ReactOS's own (Nebula, Borealis): the palette name, then
+	what differs from the default scene, which is dark and smooth. `dusk-dark-smooth` is "Dusk", `dusk-light-smooth` is "Dusk Light",
+	`dusk-dark-stepped` is "Dusk Stepped" and `dusk-light-stepped` is "Dusk Light Stepped"."""
 	palette, mode, style = scene.split("-")
-	return f"Afterglow {palette.capitalize()} ({mode}, {style})"
+	parts = [palette.capitalize()]
+	if mode == "light":
+		parts.append("Light")
+	if style == "stepped":
+		parts.append("Stepped")
+	return " ".join(parts)
 
 
 def set_destination(scene: str) -> str:

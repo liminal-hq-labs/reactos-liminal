@@ -1,5 +1,5 @@
 {
-	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md.",
+	"note": "Files other than shell32.dll that an icon patcher rewrites, each guarded by the SHA-256 of the stock 0.4.16 i386 file. Which groups of a file are replaced comes from Afterglow's map.json: every group it verifies for that module. A `groups` list on a file adds only groups the map does not name, each with its icon. See docs/icon-survey.md. The `map-icons` family holds the remaining modules the map names, including the ones the `base` trim removes; a patcher leaves a trimmed file alone (RL-53.3). `explorer.exe` and its copy `agexplorer.exe` list group 100 (the program's own icon, the first group in the file, which Explorer's file views draw) because the map names only group 101 (the Start menu entry) for `explorer`.",
 	"families": {
 		"cpl-icons": {
 			"patcher": "afterglow.cpl-icons",
@@ -153,7 +153,13 @@
 				},
 				{
 					"path": "ReactOS/explorer.exe",
-					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "explorer"
+						}
+					]
 				},
 				{
 					"path": "ReactOS/system32/msgina.dll",
@@ -163,7 +169,13 @@
 					"path": "ReactOS/agexplorer.exe",
 					"module": "explorer.exe",
 					"stock_path": "ReactOS/explorer.exe",
-					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7"
+					"stock_sha256": "4e54225b041fe93ce0b252c6fda3c6c3cdae6203ba6a2d1e5b77873cd86488f7",
+					"groups": [
+						{
+							"group": 100,
+							"afterglow": "explorer"
+						}
+					]
 				},
 				{
 					"path": "ReactOS/system32/agmsgina.dll",
@@ -179,6 +191,99 @@
 				{
 					"path": "ReactOS/system32/user32.dll",
 					"stock_sha256": "8ddd64afb96b576f899e3d73ea3a44355474f6c74a3ccd3ff75caa696b711958"
+				}
+			]
+		},
+		"map-icons": {
+			"patcher": "afterglow.map-icons",
+			"files": [
+				{
+					"path": "ReactOS/system32/joy.cpl",
+					"stock_sha256": "8f2131e2b93cf0aeac3138943bcce6246bb9c5297890a244c23ac1fb4e150cc0"
+				},
+				{
+					"path": "ReactOS/system32/telephon.cpl",
+					"stock_sha256": "6306332ded6c69832163e15d1f570ecb6985aed22292281e3d927dfb8198c5f6"
+				},
+				{
+					"path": "ReactOS/system32/usrmgr.cpl",
+					"stock_sha256": "54dc9239c9c36f1653860ab3a1e781aeedc3d5e4f7f638e84277cf811ced778c"
+				},
+				{
+					"path": "ReactOS/system32/calc.exe",
+					"stock_sha256": "6e7f0d03e1afd01a25d29bfa8834a71b5323ca94c579d0e2041875b4ed099b1e"
+				},
+				{
+					"path": "ReactOS/system32/charmap.exe",
+					"stock_sha256": "54e6db22fe77184c4963a3c2f73f4308681393b60a1ff41e191e4dcc703f98ec"
+				},
+				{
+					"path": "ReactOS/system32/control.exe",
+					"stock_sha256": "f9a34e9f78f82d716c5bd44b1b6d85ba1a78526bab828836d452c81c731c1662"
+				},
+				{
+					"path": "ReactOS/system32/ctfmon.exe",
+					"stock_sha256": "cbba9633a3a690ee3e4999fcd3a75b230b7b173578e5730d6f096af9ec49a419"
+				},
+				{
+					"path": "ReactOS/system32/dxdiag.exe",
+					"stock_sha256": "eb1d92a925fcb16efb58fe9e9523c77e0886ddcd032e1416d400646008fe24ea"
+				},
+				{
+					"path": "ReactOS/hh.exe",
+					"stock_sha256": "af71972ea5c443761a514be68dc0ddcd3dc9a7a4d0fbea508f662ba9566f7fc9"
+				},
+				{
+					"path": "ReactOS/system32/ieframe.dll",
+					"stock_sha256": "beec78a43103e29e34da38bd4ce3dd27f62c68ff83c903a2ab220e5bae059d6d"
+				},
+				{
+					"path": "ReactOS/system32/magnify.exe",
+					"stock_sha256": "a17c8c00a14594f00859534013703bf50d0d9e3504a395b2d31e78e82597a72a"
+				},
+				{
+					"path": "ReactOS/system32/mplay32.exe",
+					"stock_sha256": "c79be89b2d4a3fa28334afeb01b1d39980be1c5e915c8bb618c6e9304028c9b4"
+				},
+				{
+					"path": "ReactOS/system32/mspaint.exe",
+					"stock_sha256": "f1c5ce159d419fe9a265f9e9fa3321a9aa3a8f3f5c6ccc8304796354e551d9a2"
+				},
+				{
+					"path": "ReactOS/system32/mstsc.exe",
+					"stock_sha256": "8db81358f80f1ca31364a52b21d859831da484106da2c773838f2c5c7036bacb"
+				},
+				{
+					"path": "ReactOS/system32/osk.exe",
+					"stock_sha256": "a7a25a8033cd059ec0ec7b1973e822a4af614f137584c9cd0ca1f79e0c16b26e"
+				},
+				{
+					"path": "ReactOS/system32/sndrec32.exe",
+					"stock_sha256": "30fb6e5bb99c609f5dbe32a942009eee8715d8061351f5de4e943459af47684b"
+				},
+				{
+					"path": "ReactOS/system32/sol.exe",
+					"stock_sha256": "a3458ec0f12199c0aca5ea319c0c15f481e607a3ad4318466ae278a00fd4a131"
+				},
+				{
+					"path": "ReactOS/system32/spider.exe",
+					"stock_sha256": "e13be1bfb78b7f3f9779e22b2265e1880456c7c4d9d2f4d4a8761c2cb593f0ac"
+				},
+				{
+					"path": "ReactOS/winhlp32.exe",
+					"stock_sha256": "906d9dd30c41c2d84aeb588741fa0d997a6c8beca9b752314183de92079d809e"
+				},
+				{
+					"path": "ReactOS/system32/winmine.exe",
+					"stock_sha256": "03e87561e90cc5e11a53bd6f3b31da2c01f1d920310fb62dd5898e04c431cbed"
+				},
+				{
+					"path": "ReactOS/system32/wordpad.exe",
+					"stock_sha256": "02427cf826dc027be68c1db994ff03a95351e3574b814793a6563440f44eb2cb"
+				},
+				{
+					"path": "ReactOS/system32/write.exe",
+					"stock_sha256": "76234577f9ce4afe98ee4f5ef53026cc0402c7508a1e67be07ee05112757937c"
 				}
 			]
 		}

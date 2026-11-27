@@ -41,6 +41,11 @@ class FatImage:
 	def exists(self, path: str) -> bool:
 		return self.run("mdir", "-a", f"::/{path}", check=False).returncode == 0
 
+	def list_files(self) -> list[str]:
+		"""Every file on the partition, as paths with forward slashes and no leading slash."""
+		listing = self.run("mdir", "-s", "-b", "::/").stdout.decode(errors="replace")
+		return [line[3:] for line in listing.splitlines() if line.startswith("::/")]
+
 	def read(self, path: str) -> bytes:
 		return self.run("mtype", f"::/{path}").stdout
 

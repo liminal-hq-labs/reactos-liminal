@@ -26,7 +26,7 @@ from .icon_map import load_map, module_groups, require_icon
 from .icon_survey import load_table
 from .log import log
 from .mtools import FatImage
-from .patch_base import PatchedFile, PatchError, active_recorder
+from .patch_base import PatchedFile, PatchError, active_recorder, note_patched
 from .pe_resources import RT_GROUP_ICON, RT_ICON, GroupFrame, PeError, PeFile, build_group, parse_group, read_ico
 
 SHELL32 = "ReactOS/system32/shell32.dll"
@@ -188,6 +188,33 @@ def patch_icon_groups(stock: bytes, icons: dict[int, bytes]) -> tuple[bytes, lis
 		raise PatchError(f"the file cannot be patched: {error}") from error
 
 
+def stock_group_problem(stock: bytes, group_id: int) -> str | None:
+	"""Why a stock file's icon group cannot take an Afterglow icon, or None when it can: the group is there, owns at least one icon
+	frame of its own (one no other group lists) and every frame it names is in the file. This is the check that stands in for
+	Afterglow's `binary` evidence on a resource the map verified from the ReactOS source alone."""
+	try:
+		pe = PeFile(stock)
+		groups = pe.data_entries(RT_GROUP_ICON)
+		if group_id not in groups:
+			return f"the stock file has no icon group {group_id}"
+		frames_by_id = pe.data_entries(RT_ICON)
+		listed: dict[int, set[int]] = {}
+		for other_id, entries in groups.items():
+			for frame in parse_group(pe.entry_data(entries[0])):
+				listed.setdefault(frame.icon_id, set()).add(other_id)
+		frames = parse_group(pe.entry_data(groups[group_id][0]))
+		own = [frame for frame in frames if listed[frame.icon_id] == {group_id}]
+		if not own:
+			return f"icon group {group_id} owns no frame of its own"
+		if any(frame.icon_id not in frames_by_id for frame in frames):
+			return f"icon group {group_id} names a frame the file does not hold"
+		if any(frame.width != frame.height or frame.width not in (16, 24, 32, 48) for frame in frames):
+			return f"icon group {group_id} holds a frame size other than 16, 24, 32 or 48 px"
+	except PeError as error:
+		return f"the file cannot be read: {error}"
+	return None
+
+
 def shell32_groups(entries: dict[str, dict], table: dict) -> dict[int, str]:
 	"""The shell32.dll groups to replace, as `{group: Afterglow icon id}`: every group Afterglow's map verifies, plus the rows of the
 	table that name an icon for a group the map does not (a theme-compatibility alias, say). Where the map names a group it decides."""
@@ -227,6 +254,8 @@ def afterglow_icons(golden: FatImage, source_tree: Path, files: Path, scratch: P
 	except PatchError:
 		patched.unlink(missing_ok=True)
 		raise
+	for group, icon_id in groups.items():
+		note_patched("shell32.dll", group, icon_id, SHELL32)
 	for line in report:
 		log("patch", f"   {line}")
 	log("patch", f"   afterglow.icons: shell32.dll patched, {len(groups)} groups ({result})")

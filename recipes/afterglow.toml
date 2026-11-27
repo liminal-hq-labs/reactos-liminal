@@ -54,12 +54,12 @@ display_width = 1024
 display_height = 768
 page_file = "64 64"
 icon_size = 32
-wallpaper = "C:\\ReactOS\\Web\\Wallpaper\\Afterglow Dusk (dark, smooth).bmp"
+wallpaper = "C:\\ReactOS\\Web\\Wallpaper\\Dusk.bmp"
 wallpaper_style = "stretch"
 reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-canada", "pointer-defaults"]
 
 # The wallpapers Display Properties lists. `scenes = "all"` puts every Afterglow scene (the five palettes, dark and light, smooth and stepped:
-# 20 BMPs of 2.3 MB) in `C:\ReactOS\Web\Wallpaper`, named for people ("Afterglow Dusk (dark, smooth)"), and `replace_stock` removes ReactOS's
+# 20 BMPs of 2.3 MB) in `C:\ReactOS\Web\Wallpaper`, named for people ("Dusk"), and `replace_stock` removes ReactOS's
 # own wallpapers (`profiles/wallpapers/stock.txt`) so the list holds only Afterglow's. The sums are in `pins/afterglow-wallpapers.json`. The
 # desktop wallpaper above is one of them. afterglow-compact.toml sets both back: the compact image carries only its one wallpaper.
 [wallpapers]
@@ -89,6 +89,7 @@ list = [
 	"afterglow.cpl-icons",
 	"afterglow.program-icons",
 	"afterglow.dialog-icons",
+	"afterglow.map-icons",
 	"afterglow.toolbar-bitmaps",
 	"afterglow.dialog-bitmaps",
 	"afterglow.boot",
