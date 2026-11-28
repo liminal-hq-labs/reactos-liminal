@@ -32,7 +32,7 @@ SEARCH_FOLDERS = ("ReactOS/system32", "ReactOS")  # where a bare file name is fo
 USER_PROFILES = ("Default User", "Administrator", "NetworkService", "All Users")
 SHORTCUT_FOLDERS = ("start menu", "desktop", "quick launch")  # the folders whose links a user sees
 
-BLOCKING_KINDS = ("shortcut", "run", "winlogon", "applet", "screensaver")
+BLOCKING_KINDS = ("shortcut", "run", "winlogon", "applet", "screensaver", "preinstalled device")
 RUN_KEYS = ("Run", "RunOnce", "RunServices", "RunServicesOnce")
 EXECUTABLE_END = re.compile(r"\.(exe|com|bat|cmd|scr|cpl|msc|dll)\b", re.IGNORECASE)
 ENVIRONMENT_USE = re.compile(r"%([^%]+)%")
@@ -312,14 +312,79 @@ def audit_screensavers(disk: Disk, report: AuditReport, expected: tuple[str, ...
 			)
 
 
-def audit_image(image: FatImage, expected_savers: tuple[str, ...] = ()) -> AuditReport:
-	"""Check every shortcut, registry launch point, screensaver and desktop.ini on the image. `expected_savers` are the `.scr` file names
-	the recipe writes into the system folder."""
+SYSTEM_HIVE = "ReactOS/system32/config/SYSTEM"
+CONTROL_SETS = ("ControlSet001", "CurrentControlSet")
+
+
+def _driver_path(image_path: str) -> str:
+	"""A service's `ImagePath` as a path `Disk.resolve` can check: drivers name `system32\\drivers\\x.sys` relative to the system folder, or
+	`\\SystemRoot\\...`."""
+	if image_path.lower().startswith("\\systemroot\\"):
+		return "C:\\ReactOS\\" + image_path[len("\\SystemRoot\\") :]
+	if ":" in image_path or image_path.startswith("%"):
+		return image_path
+	return "C:\\ReactOS\\" + image_path.lstrip("\\")
+
+
+def audit_devices(disk: Disk, report: AuditReport, expected: tuple[str, ...] = ()) -> None:
+	"""The PCI devices the machine already knows (`Enum\\PCI` in the SYSTEM hive) and the driver each is bound to. A device with a
+	`Service` is one finding: `ok` when the service's driver file is on the disk, `dead` when it is not (a trimmed driver). `expected` are
+	hardware ids a recipe pre-installs (`PCI\\VEN_8086&DEV_2415`); one that has no device key with a service, or whose service has no
+	`ImagePath` and `Services` key, is a dead `preinstalled device` entry, which fails the audit."""
+	if not disk.exists(SYSTEM_HIVE):
+		return
+	try:
+		hive = Hive(disk.image.read(SYSTEM_HIVE))
+	except HiveError as error:
+		report.findings.append(Finding("registry", SYSTEM_HIVE, "", UNCHECKED, f"cannot read the hive: {error}"))
+		return
+	control_set = next((name for name in CONTROL_SETS if hive.open_key(f"{name}\\Enum") is not None), None)
+	found = set()
+	enum = hive.open_key(f"{control_set}\\Enum\\PCI") if control_set else None
+	for hardware in enum.subkeys() if enum else []:
+		for instance in hardware.subkeys():
+			service = _registry_text(instance, "Service")
+			if not service:
+				continue
+			where = f"HKLM\\SYSTEM\\{control_set}\\Enum\\PCI\\{hardware.name}\\{instance.name}"
+			owner = hive.open_key(f"{control_set}\\Services\\{service}")
+			image_path = _registry_text(owner, "ImagePath") if owner is not None else ""
+			if not image_path:
+				report.findings.append(Finding("device", where, service, DEAD, "the device names a service that has no ImagePath"))
+				continue
+			status, note = disk.resolve(_driver_path(image_path))
+			report.findings.append(Finding("device", where, image_path, status, note))
+			found.add(hardware.name.upper().split("&SUBSYS_")[0])
+	for hardware_id in expected:
+		wanted = hardware_id.upper().replace("PCI\\", "", 1)
+		if wanted not in found:
+			report.findings.append(
+				Finding(
+					"preinstalled device",
+					f"Enum\\PCI\\{wanted}",
+					hardware_id,
+					DEAD,
+					"the recipe pre-installs it but the SYSTEM hive has no bound device",
+				)
+			)
+
+
+def expected_devices(recipe) -> tuple[str, ...]:
+	"""The hardware ids a recipe's registry files pre-install."""
+	if "ac97-preinstall" in recipe.section("settings", "reg_files"):
+		return ("PCI\\VEN_8086&DEV_2415",)
+	return ()
+
+
+def audit_image(image: FatImage, expected_savers: tuple[str, ...] = (), expected_devices: tuple[str, ...] = ()) -> AuditReport:
+	"""Check every shortcut, registry launch point, screensaver, bound device and desktop.ini on the image. `expected_savers` are the `.scr`
+	file names the recipe writes into the system folder; `expected_devices` are the hardware ids it pre-installs."""
 	disk = Disk(image)
 	report = AuditReport(files=len(disk.paths))
 	audit_shortcuts(disk, report)
 	audit_registry(disk, report)
 	audit_screensavers(disk, report, expected_savers)
+	audit_devices(disk, report, expected_devices)
 	audit_desktop_ini(disk, report)
 	return report
 

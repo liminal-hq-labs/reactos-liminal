@@ -1,0 +1,1704 @@
+Windows Registry Editor Version 5.00
+
+; The machine's devices and the AC'97 sound card driver, installed ahead of time. ReactOS's plug and play installs each device it
+; finds that the image's first boot (in QEMU) did not know: the Quill demo's emulator (v86) has other disk, video, network, bus
+; and sound hardware, and the AC'97 driver among it. That takes tens of seconds after the desktop appears, and the browser
+; machine's disk is not kept, so it was repeated at every cold boot and every Reset. These are the keys that boot added or
+; changed, with nothing the system rewrites at each start. Made by tools/ac97/make-ac97-reg.py; see docs/ac97-preinstall.md.
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E965-E325-11CE-BFC1-08002BE10318}\0001]
+"DriverDate"="8-11-2016"
+"DriverDateData"=hex:00,80,9e,4d,63,f3,d1,01
+"DriverDesc"="CD-ROM Drive"
+"DriverVersion"="1.0.0.0"
+"InfPath"="cdrom.inf"
+"InfSection"="cdrom_install"
+"InfSectionExt"=""
+"MatchingDeviceId"="GenCdRom"
+"ProviderName"="Microsoft"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E967-E325-11CE-BFC1-08002BE10318}\0001]
+"DriverDate"="8-29-2018"
+"DriverDateData"=hex:00,80,9b,3a,2b,3f,d4,01
+"DriverDesc"="Disk drive"
+"DriverVersion"="1.0.0.0"
+"InfPath"="disk.inf"
+"InfSection"="disk_install"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="GenDisk"
+"ProviderName"="Microsoft"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}\0001]
+"DriverDate"="10-17-2022"
+"DriverDateData"=hex:00,00,5e,66,bb,e1,d8,01
+"DriverDesc"="Bochs Graphics Adapter"
+"DriverVersion"="1.0.0.0"
+"InfPath"="bochsmp.inf"
+"InfSection"="Bochs"
+"InfSectionExt"=""
+"MatchingDeviceId"="PCI\\VEN_1234&DEV_1111"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}\0001\Settings]
+"InstalledDisplayDrivers"=hex(7):66,00,72,00,61,00,6d,00,65,00,62,00,75,00,66,\
+  00,00,00,00,00
+"VgaCompatible"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E96A-E325-11CE-BFC1-08002BE10318}\0003]
+"EnumPropPages32"="storprop.dll,IdePropPageProvider"
+"DriverDate"="9-10-2008"
+"DriverDateData"=hex:00,80,f9,2a,d8,12,c9,01
+"DriverDesc"="Intel PIIX3 IDE DMA controller"
+"DriverVersion"="0.39.10.0"
+"InfPath"="hdc.inf"
+"InfSection"="PciIde_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="PCI\\VEN_8086&DEV_7010"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E96A-E325-11CE-BFC1-08002BE10318}\0004]
+"EnumPropPages32"="storprop.dll,IdePropPageProvider"
+"DriverDate"="9-10-2008"
+"DriverDateData"=hex:00,80,f9,2a,d8,12,c9,01
+"DriverDesc"="ATA Channel"
+"DriverVersion"="0.39.10.0"
+"InfPath"="hdc.inf"
+"InfSection"="Atapi_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="Internal_IDE_Channel"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E96A-E325-11CE-BFC1-08002BE10318}\0005]
+"EnumPropPages32"="storprop.dll,IdePropPageProvider"
+"DriverDate"="9-10-2008"
+"DriverDateData"=hex:00,80,f9,2a,d8,12,c9,01
+"DriverDesc"="ATA Channel"
+"DriverVersion"="0.39.10.0"
+"InfPath"="hdc.inf"
+"InfSection"="Atapi_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="Internal_IDE_Channel"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000]
+"AssociatedFilters"="wdmaud,swmidi,redbook"
+"Driver"="ac97.sys"
+"NTMPDriver"="ac97.sys,sbemul.sys"
+"DriverDate"="2-22-2007"
+"DriverDateData"=hex:00,00,2b,65,14,56,c7,01
+"DriverDesc"="Intel 82801AA AC'97 Audio Controller"
+"DriverVersion"="6.0.6000.1"
+"InfPath"="ac97.inf"
+"InfSection"="ac97"
+"InfSectionExt"=".NTX86"
+"MatchingDeviceId"="PCI\\VEN_8086&DEV_2415"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers]
+"SubClasses"="wave,midi,mixer"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\midi]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\midi\wdmaud.drv]
+"Driver"="wdmaud.drv"
+"Description"="Intel 82801 AC'97 Audio Controller"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\mixer]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\mixer\wdmaud.drv]
+"Driver"="wdmaud.drv"
+"Description"="Intel 82801 AC'97 Audio Controller"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\wave]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Drivers\wave\wdmaud.drv]
+"Driver"="wdmaud.drv"
+"Description"="Intel 82801 AC'97 Audio Controller"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}\0000\Settings]
+"DisableMicIn"=hex:01
+"DisableCenterLFE"=hex:01
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E96E-E325-11CE-BFC1-08002BE10318}\0001]
+"DriverDate"="3-11-2012"
+"DriverDateData"=hex:00,00,e6,e6,19,ff,cc,01
+"DriverDesc"="Default Monitor"
+"DriverVersion"="1.0.0.0"
+"InfPath"="monitor.inf"
+"InfSection"="Monitor_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="MONITOR\\Default_Monitor"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}\0001]
+"Port"="c100"
+"Irq"="B"
+"DriverDate"="2-15-2007"
+"DriverDateData"=hex:00,c0,46,3c,94,50,c7,01
+"DriverDesc"="Realtek RTL8029 PCI Ethernet Adapter"
+"DriverVersion"="1.2.0.0"
+"InfPath"="netne.inf"
+"InfSection"="NE2000_Inst_Pci.ndi"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="PCI\\VEN_10EC&DEV_8029"
+"ProviderName"="ReactOS Project"
+"NetCfgInstanceId"="{8fb472e0-9e50-4a7b-9506-ee0294a09620}"
+"Characteristics"=dword:00000004
+"ComponentId"="PCI\\VEN_10EC&DEV_8029&SUBSYS_11001AF4&REV_00"
+"BusType"="5"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}\0001\Linkage]
+"Export"="\\Device\\{8fb472e0-9e50-4a7b-9506-ee0294a09620}"
+"RootDevice"="{8fb472e0-9e50-4a7b-9506-ee0294a09620}"
+"UpperBind"="Tcpip"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}\0001\Ndi]
+"Service"="ne2000"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}\0001\Ndi\Interfaces]
+"UpperRange"="ndis5"
+"LowerRange"="ethernet"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E978-E325-11CE-BFC1-08002BE10318}\0002]
+"EnumPropPages32"="msports.dll,ParallelPortPropPageProvider"
+"PortSubClass"=hex:00
+"DriverDate"="10-8-2005"
+"DriverDateData"=hex:00,80,cc,39,9b,cb,c5,01
+"DriverDesc"="Standard LPT printer port"
+"DriverVersion"="1.1.0.0"
+"InfPath"="ports.inf"
+"InfSection"="LptPort_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="*PNP0400"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E978-E325-11CE-BFC1-08002BE10318}\0003]
+"EnumPropPages32"="msports.dll,SerialPortPropPageProvider"
+"PortSubClass"=hex:01
+"UpperFilters"=hex(7):73,00,65,00,72,00,65,00,6e,00,75,00,6d,00,00,00,00,00
+"DriverDate"="10-8-2005"
+"DriverDateData"=hex:00,80,cc,39,9b,cb,c5,01
+"DriverDesc"="Serial communication port"
+"DriverVersion"="1.1.0.0"
+"InfPath"="ports.inf"
+"InfSection"="ComPort_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="*PNP0501"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E97D-E325-11CE-BFC1-08002BE10318}\0018]
+"DriverDate"="8-7-2006"
+"DriverDateData"=hex:00,c0,f6,6c,b4,b9,c6,01
+"DriverDesc"="PCI bus"
+"DriverVersion"="1.2.0.0"
+"InfPath"="machine.inf"
+"InfSection"="PCI_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="*PNP0A03"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E97D-E325-11CE-BFC1-08002BE10318}\0019]
+"DriverDate"="8-7-2006"
+"DriverDateData"=hex:00,c0,f6,6c,b4,b9,c6,01
+"DriverDesc"="Intel 440FX - 82441FX PMC [Natoma]"
+"DriverVersion"="1.2.0.0"
+"InfPath"="machine.inf"
+"InfSection"="NO_DRV"
+"InfSectionExt"=""
+"MatchingDeviceId"="PCI\\VEN_8086&DEV_1237"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E97D-E325-11CE-BFC1-08002BE10318}\0020]
+"DriverDate"="8-7-2006"
+"DriverDateData"=hex:00,c0,f6,6c,b4,b9,c6,01
+"DriverDesc"="Plug & Play Software Bus Enumerator"
+"DriverVersion"="1.2.0.0"
+"InfPath"="machine.inf"
+"InfSection"="SWENUM_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="ROOT\\SWENUM"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E97D-E325-11CE-BFC1-08002BE10318}\0021]
+"DriverDate"="8-7-2006"
+"DriverDateData"=hex:00,c0,f6,6c,b4,b9,c6,01
+"DriverDesc"="Intel 82371SB PIIX3 PCI to ISA Bridge"
+"DriverVersion"="1.2.0.0"
+"InfPath"="machine.inf"
+"InfSection"="PCI_ISA_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="PCI\\VEN_8086&DEV_7000"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E97D-E325-11CE-BFC1-08002BE10318}\0022]
+"DriverDate"="8-7-2006"
+"DriverDateData"=hex:00,c0,f6,6c,b4,b9,c6,01
+"DriverDesc"="Intel 82371AB/EB Power Management Controller"
+"DriverVersion"="1.2.0.0"
+"InfPath"="machine.inf"
+"InfSection"="NO_DRV"
+"InfSectionExt"=""
+"MatchingDeviceId"="PCI\\VEN_8086&DEV_7113"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{50127DC3-0F36-415e-A6CC-4CB3BE910B65}\0001]
+"EnumPropPages32"="devcpux.dll,PropSheetExtProc"
+"DriverDate"="9-27-2007"
+"DriverDateData"=hex:00,c0,ce,58,99,00,c8,01
+"DriverDesc"="Intel Pentium III / Celeron / Xeon Processor"
+"DriverVersion"="1.0.0.0"
+"InfPath"="cpu.inf"
+"InfSection"="Processr_Inst"
+"InfSectionExt"=".NT"
+"MatchingDeviceId"="ACPI\\GenuineIntel_-_x86_Family_6_Model_7"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}\0001]
+"DriverDate"="9-10-2008"
+"DriverDateData"=hex:00,80,f9,2a,d8,12,c9,01
+"DriverDesc"="Storage volume"
+"DriverVersion"="1.0.0.0"
+"InfPath"="volume.inf"
+"InfSection"="VolumeInstall"
+"InfSectionExt"=""
+"MatchingDeviceId"="STORAGE\\Volume"
+"ProviderName"="ReactOS Project"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\COM Name Arbiter]
+"ComDB"=hex:03,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceClasses\{65E8773D-8F56-11D0-A3B9-00A0C9223196}\##?#PCI#VEN_8086&DEV_2415&SUBSYS_00008086&REV_02#3&7980b9c0&03#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\#Wave\Device Parameters]
+"CLSID"="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+"FriendlyName"="AC'97 Sound Card"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceClasses\{65E8773E-8F56-11D0-A3B9-00A0C9223196}\##?#PCI#VEN_8086&DEV_2415&SUBSYS_00008086&REV_02#3&7980b9c0&03#{65e8773e-8f56-11d0-a3b9-00a0c9223196}\#Wave\Device Parameters]
+"CLSID"="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+"FriendlyName"="AC'97 Sound Card"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceClasses\{6994AD04-93EF-11D0-A3CC-00A0C9223196}\##?#PCI#VEN_8086&DEV_2415&SUBSYS_00008086&REV_02#3&7980b9c0&03#{6994ad04-93ef-11d0-a3cc-00a0c9223196}\#Topology\Device Parameters]
+"CLSID"="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+"FriendlyName"="AC'97 Mixer"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceClasses\{6994AD04-93EF-11D0-A3CC-00A0C9223196}\##?#PCI#VEN_8086&DEV_2415&SUBSYS_00008086&REV_02#3&7980b9c0&03#{6994ad04-93ef-11d0-a3cc-00a0c9223196}\#Wave\Device Parameters]
+"CLSID"="{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+"FriendlyName"="AC'97 Sound Card"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GroupOrderList]
+"SCSI Miniport"=hex:06,00,00,00,10,00,00,00,20,00,00,00,01,00,00,00,02,00,00,\
+  00,03,00,00,00,04,00,00,00
+"Extended Base"=hex:06,00,00,00,01,00,00,00,02,00,00,00,03,00,00,00,04,00,00,\
+  00,05,00,00,00,06,00,00,00
+"PNP Filter"=hex:02,00,00,00,01,00,00,00,02,00,00,00
+"System Bus Extender"=hex:03,00,00,00,01,00,00,00,02,00,00,00,03,00,00,00
+"Boot Bus Extender"=hex:06,00,00,00,02,00,00,00,01,00,00,00,03,00,00,00,04,00,\
+  00,00,05,00,00,00,06,00,00,00
+"SCSI CDROM Class"=hex:02,00,00,00,01,00,00,00,02,00,00,00
+"Video"=hex:02,00,00,00,01,00,00,00,02,00,00,00
+"NDIS"=hex:02,00,00,00,01,00,00,00,02,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{00DFF077-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Stereo Mix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{00DFF078-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Mix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{02B223C0-C557-11D0-8A2B-00A0C9255AC1}]
+"Name"="Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{070395E2-BE7C-4b4d-B529-40CB9BFCF995}]
+"Name"="Front Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{085AFF00-62CE-11CF-A5D6-28DB04C10000}]
+"Name"="Bridge"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A4252A0-7E70-11D0-A5D6-28DB04C10000}]
+"Name"="Splitter"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A87-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Phone Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A88-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Phone Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A91-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Line In Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A9B-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Main Mix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A9E-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="3D Bypass"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1A9F-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Beep Mix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AA5-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Headphone Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AA6-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Headphone Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AA9-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Mono Out Select"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AAE-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Wave In Select"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AAF-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Wave In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AB0-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Wave In Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AB2-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Mic In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{0A8C1AB3-42B0-11D2-95D2-00C04FB925D3}]
+"Name"="Mic In Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{144981E0-C558-11D0-8A2B-00A0C9255AC1}]
+"Name"="Delay"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE0-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Bass"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE1-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Treble"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE2-9905-11D1-95A9-00C04FB925D3}]
+"Name"="3D Stereo"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE3-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Master Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE4-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Master Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE5-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Wave Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE6-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Wave Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE7-9905-11D1-95A9-00C04FB925D3}]
+"Name"="MIDI Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE8-9905-11D1-95A9-00C04FB925D3}]
+"Name"="MIDI Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDE9-9905-11D1-95A9-00C04FB925D3}]
+"Name"="CD Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDEA-9905-11D1-95A9-00C04FB925D3}]
+"Name"="CD Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDEB-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Line Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDEC-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Line Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDED-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Mic Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDEE-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Mic Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDEF-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Recording Source"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF0-9905-11D1-95A9-00C04FB925D3}]
+"Name"="PC Speaker Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF1-9905-11D1-95A9-00C04FB925D3}]
+"Name"="PC Speaker Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF2-9905-11D1-95A9-00C04FB925D3}]
+"Name"="MIDI In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF3-9905-11D1-95A9-00C04FB925D3}]
+"Name"="CD In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF4-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Line In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF5-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Mic In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF6-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Wave In Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF7-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Volume Control"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF8-9905-11D1-95A9-00C04FB925D3}]
+"Name"="MIDI"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDF9-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Line In"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFA-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Recording Control"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFB-9905-11D1-95A9-00C04FB925D3}]
+"Name"="CD Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFC-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Aux Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFD-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Aux Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFE-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Aux"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEDFF-9905-11D1-95A9-00C04FB925D3}]
+"Name"="PC Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{185FEE00-9905-11D1-95A9-00C04FB925D3}]
+"Name"="Wave Out Mix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{1AD247EB-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Out Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{1AD247EC-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Out Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{1AD247ED-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Stereo Mix Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{1E84C900-7E70-11D0-A5D6-28DB04C10000}]
+"Name"="Compressor"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{20173F20-C559-11D0-8A2B-00A0C9255AC1}]
+"Name"="Chorus"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{22654FBC-AC8F-4224-B19F-D858D2E10BDD}]
+"Name"="Rear Speaker Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{22B0EAFD-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Stereo Mix Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{22B0EAFE-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Mix Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2721AE20-7E70-11D0-A5D6-28DB04C10000}]
+"Name"="Decompressor"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2BC31D69-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Mix Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2BC31D6A-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Microphone Boost"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2BC31D6B-96E3-11d2-AC4C-00C04F8EFB68}]
+"Name"="Alternate Microphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2CEAF780-C556-11D0-8A2B-00A0C9255AC1}]
+"Name"="Mux"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2D97372F-9CF6-4fd6-9E56-C68BACDF360D}]
+"Name"="Center"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{2EB07EA0-7E70-11D0-A5D6-28DB04C10000}]
+"Name"="Data Transform"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{3A5ACC00-C557-11D0-8A2B-00A0C9255AC1}]
+"Name"="Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{41887440-C558-11D0-8A2B-00A0C9255AC1}]
+"Name"="Loudness"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{423274A0-8B81-11D1-A050-0000F8004788}]
+"Name"="SW Synth"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{455FA6F2-21EC-4df4-B1E4-3155209797F3}]
+"Name"="Subwoofer Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{4A4D9210-C780-4768-BFD2-525FDBF4FCB4}]
+"Name"="Subwoofer Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{4D837FE0-C555-11D0-8A2B-00A0C9255AC1}]
+"Name"="ADC"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{507AE360-C554-11D0-8A2B-00A0C9255AC1}]
+"Name"="DAC"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{55515860-C559-11D0-8A2B-00A0C9255AC1}]
+"Name"="3D Effects"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{57E24340-FC5B-4612-A562-72B11A29DFAE}]
+"Name"="Peakmeter"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{63FF5747-991F-11d2-AC4D-00C04F8EFB68}]
+"Name"="3D Depth"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{65E8773D-8F56-11D0-A3B9-00A0C9223196}]
+"Name"="Capture"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{65e8773e-8f56-11d0-a3b9-00a0c9223196}]
+"Name"="Render"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{7607E580-C557-11D0-8A2B-00A0C9255AC1}]
+"Name"="Tone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{766DB5A4-6E94-11D2-9ADE-00C04F8EFB68}]
+"Name"="3D Enable"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{81FBB14B-1BEE-4bf5-92EE-FFC4F75F326D}]
+"Name"="Rear Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{831C2C80-C558-11D0-8A2B-00A0C9255AC1}]
+"Name"="Dolby ProLogic Decoder"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{915DAEC4-A434-11d2-AC52-00C04F8EFB68}]
+"Name"="Video"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{941C7AC0-C559-11D0-8A2B-00A0C9255AC1}]
+"Name"="Device Specific"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9B0F1946-ABD2-47a8-A778-BB86CDE1A167}]
+"Name"="Center Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9B46E708-992A-11d2-AC4D-00C04F8EFB68}]
+"Name"="Video Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9B46E709-992A-11d2-AC4D-00C04F8EFB68}]
+"Name"="Video Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9D41B4A0-C557-11D0-8A2B-00A0C9255AC1}]
+"Name"="Equalizer"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9DB7B9E0-C555-11D0-8A2B-00A0C9255AC1}]
+"Name"="Sample Rate Converter"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9F0670B4-991F-11d2-AC4D-00C04F8EFB68}]
+"Name"="3D Center"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{9F4801BD-F746-4c7a-8A9D-F6E99004CC98}]
+"Name"="Front Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{A4B68BA4-6958-4ab4-BB01-E23C6F027C88}]
+"Name"="Rear Speaker Volume"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{A9E69800-C558-11D0-8A2B-00A0C9255AC1}]
+"Name"="Stereo Wide"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{AD809C00-7B88-11D0-A5D6-28DB04C10000}]
+"Name"="Mixer"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{AF6878AC-E83F-11D0-958A-00C04FB925D3}]
+"Name"="Stereo Enhance"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{B3AD50B5-3849-4983-ADD7-25E6268F912D}]
+"Name"="Simulated Stereo"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{B60C4274-3BFD-430b-8364-D947E7D304B1}]
+"Name"="Subwoofer"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{BEEF51ED-1041-43f8-9B96-5863D0A9342D}]
+"Name"="Center Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{BF963D80-C559-11D0-8A2B-00A0C9255AC1}]
+"Name"="Acoustic Echo Cancelation"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{C0EB67D4-E807-11D0-958A-00C04FB925D3}]
+"Name"="Demux"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{C8E03B2A-EBD9-4554-A750-8E4472750A5B}]
+"Name"="Front Mute"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{CB9BEFA0-A251-11D1-A050-0000F8004788}]
+"Name"="ReactOS GS Wavetable SW Synth"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{CF1DDA2C-9743-11D0-A3EE-00A0C9223196}]
+"Name"="Communication Transform"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{CF1DDA2D-9743-11D0-A3EE-00A0C9223196}]
+"Name"="Interface Transform"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{CF1DDA2E-9743-11D0-A3EE-00A0C9223196}]
+"Name"="Medium Transform"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DA441A60-C556-11D0-8A2B-00A0C9255AC1}]
+"Name"="Sum"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Microphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Desktop Microphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Personal Microphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE4-F70F-11D0-B917-00A0C9223196}]
+"Name"="Omni-Directional Microphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE5-F70F-11D0-B917-00A0C9223196}]
+"Name"="Microphone Array"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21BE6-F70F-11D0-B917-00A0C9223196}]
+"Name"="Microphone Array"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Headphones"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Head Mounted Display Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE4-F70F-11D0-B917-00A0C9223196}]
+"Name"="Desktop Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE5-F70F-11D0-B917-00A0C9223196}]
+"Name"="Room Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE6-F70F-11D0-B917-00A0C9223196}]
+"Name"="Communications Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21CE7-F70F-11D0-B917-00A0C9223196}]
+"Name"="Low Frequency Effects Speaker"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21DE1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Handset"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21DE2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Headset"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21DE3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Speakerphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21DE4-F70F-11D0-B917-00A0C9223196}]
+"Name"="Echo Suppressing Speakerphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21DE5-F70F-11D0-B917-00A0C9223196}]
+"Name"="Echo Cancelling Speakerphone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21EE1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Phone Line"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21EE2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Telephone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21EE3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Down Line Phone"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Analog Connector"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Digital Audio Interface"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Line"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE4-F70F-11D0-B917-00A0C9223196}]
+"Name"="Wave"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE5-F70F-11D0-B917-00A0C9223196}]
+"Name"="SPDIF Interface"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE6-F70F-11D0-B917-00A0C9223196}]
+"Name"="1394 Digital Audio Stream"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF21FE7-F70F-11D0-B917-00A0C9223196}]
+"Name"="1394 Digital Video Soundtrack"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Level Calibration Noise Source"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Equalization Noise"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E3-F70F-11D0-B917-00A0C9223196}]
+"Name"="CD Player"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E4-F70F-11D0-B917-00A0C9223196}]
+"Name"="Digital Audio Tape (DAT)"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E5-F70F-11D0-B917-00A0C9223196}]
+"Name"="Digital Compact Cassette (DCC)"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E6-F70F-11D0-B917-00A0C9223196}]
+"Name"="Minidisk"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E7-F70F-11D0-B917-00A0C9223196}]
+"Name"="AnalogTape"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E8-F70F-11D0-B917-00A0C9223196}]
+"Name"="Phonograph"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220E9-F70F-11D0-B917-00A0C9223196}]
+"Name"="VCR Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220EA-F70F-11D0-B917-00A0C9223196}]
+"Name"="Video Disk Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220EB-F70F-11D0-B917-00A0C9223196}]
+"Name"="DVD Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220EC-F70F-11D0-B917-00A0C9223196}]
+"Name"="TV Tuner Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220ED-F70F-11D0-B917-00A0C9223196}]
+"Name"="Satellite Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220EE-F70F-11D0-B917-00A0C9223196}]
+"Name"="Cable Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220EF-F70F-11D0-B917-00A0C9223196}]
+"Name"="DSS Audio"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220F0-F70F-11D0-B917-00A0C9223196}]
+"Name"="Radio Receiver"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220F1-F70F-11D0-B917-00A0C9223196}]
+"Name"="Radio Transmitter"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220F2-F70F-11D0-B917-00A0C9223196}]
+"Name"="Multitrack Recorder"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{DFF220F3-F70F-11D0-B917-00A0C9223196}]
+"Name"="Synthesizer"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{E573ADC0-C555-11D0-8A2B-00A0C9255AC1}]
+"Name"="SuperMix"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{E88C9BA0-C557-11D0-8A2B-00A0C9255AC1}]
+"Name"="AGC"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{EF0328E0-C558-11D0-8A2B-00A0C9255AC1}]
+"Name"="Reverb"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaCategories\{F9B41DC3-96E2-11d2-AC4C-00C04F8EFB68}]
+"Name"="Mono Out"
+"Display"=hex:00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaInterfaces]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaInterfaces\{BC29A660-30E3-11d0-9E69-00C04FD7C15B}]
+@="WDM Streaming VPE Property Set Interface Handler"
+"IID"=hex:60,a6,29,bc,e3,30,d0,11,9e,69,00,c0,4f,d7,c1,5b
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\MediaInterfaces\{EC529B00-1A1F-11D1-BAD9-00609744111A}]
+@="WDM Streaming VPE VBI Property Set Interface Handler"
+"IID"=hex:00,9b,52,ec,1f,1a,d1,11,ba,d9,00,60,97,44,11,1a
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Network\{4D36E972-E325-11CE-BFC1-08002BE10318}\{8fb472e0-9e50-4a7b-9506-ee0294a09620}]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Network\{4D36E972-E325-11CE-BFC1-08002BE10318}\{8fb472e0-9e50-4a7b-9506-ee0294a09620}\Connection]
+"Name"="Network Connection"
+"PnpInstanceID"="PCI\\VEN_10EC&DEV_8029&SUBSYS_11001AF4&REV_00\\3&7980b9c0&05"
+"ShowIcon"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Video\{3c39cb41-eb04-11f1-bb1f-806e6f6e6963}]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Video\{3c39cb41-eb04-11f1-bb1f-806e6f6e6963}\0000]
+"Device Description"="Bochs Graphics Adapter"
+"InstalledDisplayDrivers"=hex(7):66,00,72,00,61,00,6d,00,65,00,62,00,75,00,66,\
+  00,00,00,00,00
+"VgaCompatible"=dword:00000000
+"DefaultSettings.XResolution"=dword:00000400
+"DefaultSettings.YResolution"=dword:00000300
+"HardwareInformation.ChipType"=hex:42,00,30,00,43,00,35,00,00,00
+"HardwareInformation.MemorySize"=hex:00,00,00,01
+"DefaultSettings.BitsPerPel"=dword:00000020
+"DefaultSettings.VRefresh"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\GenuineIntel_-_x86_Family_6_Model_7]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\GenuineIntel_-_x86_Family_6_Model_7\_0]
+"HardwareID"=hex(7):41,00,43,00,50,00,49,00,5c,00,47,00,65,00,6e,00,75,00,69,\
+  00,6e,00,65,00,49,00,6e,00,74,00,65,00,6c,00,5f,00,2d,00,5f,00,78,00,38,00,\
+  36,00,5f,00,46,00,61,00,6d,00,69,00,6c,00,79,00,5f,00,36,00,5f,00,4d,00,6f,\
+  00,64,00,65,00,6c,00,5f,00,37,00,00,00,2a,00,47,00,65,00,6e,00,75,00,69,00,\
+  6e,00,65,00,49,00,6e,00,74,00,65,00,6c,00,5f,00,2d,00,5f,00,78,00,38,00,36,\
+  00,5f,00,46,00,61,00,6d,00,69,00,6c,00,79,00,5f,00,36,00,5f,00,4d,00,6f,00,\
+  64,00,65,00,6c,00,5f,00,37,00,00,00,41,00,43,00,50,00,49,00,5c,00,47,00,65,\
+  00,6e,00,75,00,69,00,6e,00,65,00,49,00,6e,00,74,00,65,00,6c,00,5f,00,2d,00,\
+  5f,00,78,00,38,00,36,00,5f,00,46,00,61,00,6d,00,69,00,6c,00,79,00,5f,00,36,\
+  00,00,00,2a,00,47,00,65,00,6e,00,75,00,69,00,6e,00,65,00,49,00,6e,00,74,00,\
+  65,00,6c,00,5f,00,2d,00,5f,00,78,00,38,00,36,00,5f,00,46,00,61,00,6d,00,69,\
+  00,6c,00,79,00,5f,00,36,00,00,00,41,00,43,00,50,00,49,00,5c,00,47,00,65,00,\
+  6e,00,75,00,69,00,6e,00,65,00,49,00,6e,00,74,00,65,00,6c,00,5f,00,2d,00,5f,\
+  00,78,00,38,00,36,00,00,00,2a,00,47,00,65,00,6e,00,75,00,69,00,6e,00,65,00,\
+  49,00,6e,00,74,00,65,00,6c,00,5f,00,2d,00,5f,00,78,00,38,00,36,00,00,00,00,\
+  00
+"CompatibleIDs"=hex(7):41,00,43,00,50,00,49,00,5c,00,50,00,72,00,6f,00,63,00,\
+  65,00,73,00,73,00,6f,00,72,00,00,00,2a,00,50,00,72,00,6f,00,63,00,65,00,73,\
+  00,73,00,6f,00,72,00,00,00,00,00
+"DeviceDesc"="Intel Pentium III / Celeron / Xeon Processor"
+"ConfigFlags"=dword:00000000
+"Capabilities"=dword:00000052
+"Driver"="{50127dc3-0f36-415e-a6cc-4cb3be910b65}\\0001"
+"Service"="Processor"
+"Class"="Processor"
+"ClassGUID"="{50127dc3-0f36-415e-a6cc-4cb3be910b65}"
+"Mfg"="Intel"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\GenuineIntel_-_x86_Family_6_Model_7\_0\Device Parameters]
+"FirmwareIdentified"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0400\2&ccb86d17&0]
+"HardwareID"=hex(7):41,00,43,00,50,00,49,00,5c,00,50,00,4e,00,50,00,30,00,34,\
+  00,30,00,30,00,00,00,2a,00,50,00,4e,00,50,00,30,00,34,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="Standard LPT printer port"
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e978-e325-11ce-bfc1-08002be10318}\\0002"
+"Service"="parport"
+"Class"="Ports"
+"ClassGUID"="{4d36e978-e325-11ce-bfc1-08002be10318}"
+"Mfg"="(Standard ports)"
+"Capabilities"=dword:00000000
+"FriendlyName"="Standard LPT printer port (LPT1)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0400\2&ccb86d17&0\Device Parameters]
+"FirmwareIdentified"=dword:00000001
+"PortName"="LPT1"
+"FilterResourceMethod"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0501\2]
+"HardwareID"=hex(7):41,00,43,00,50,00,49,00,5c,00,50,00,4e,00,50,00,30,00,35,\
+  00,30,00,31,00,00,00,2a,00,50,00,4e,00,50,00,30,00,35,00,30,00,31,00,00,00,\
+  00,00
+"DeviceDesc"="Serial communication port"
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e978-e325-11ce-bfc1-08002be10318}\\0003"
+"Service"="serial"
+"Class"="Ports"
+"ClassGUID"="{4d36e978-e325-11ce-bfc1-08002be10318}"
+"Mfg"="(Standard ports)"
+"Capabilities"=dword:00000010
+"FriendlyName"="Serial communication port (COM2)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0501\2\Device Parameters]
+"FirmwareIdentified"=dword:00000001
+"PortName"="COM2"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0A03\1]
+"HardwareID"=hex(7):41,00,43,00,50,00,49,00,5c,00,50,00,4e,00,50,00,30,00,41,\
+  00,30,00,33,00,00,00,2a,00,50,00,4e,00,50,00,30,00,41,00,30,00,33,00,00,00,\
+  00,00
+"DeviceDesc"="PCI bus"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e97d-e325-11ce-bfc1-08002be10318}"
+"Service"="pci"
+"Capabilities"=dword:00000010
+"ParentIdPrefix"="3&7980b9c0"
+"Driver"="{4d36e97d-e325-11ce-bfc1-08002be10318}\\0018"
+"Class"="System"
+"Mfg"="(Generic system devices)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\ACPI\PNP0A03\1\Device Parameters]
+"FirmwareIdentified"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY\Default_Monitor]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY\Default_Monitor\4&aa934f53&1]
+"HardwareID"=hex(7):4d,00,4f,00,4e,00,49,00,54,00,4f,00,52,00,5c,00,44,00,65,\
+  00,66,00,61,00,75,00,6c,00,74,00,5f,00,4d,00,6f,00,6e,00,69,00,74,00,6f,00,\
+  72,00,00,00,00,00
+"DeviceDesc"="Default Monitor"
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e96e-e325-11ce-bfc1-08002be10318}\\0001"
+"Class"="Monitor"
+"ClassGUID"="{4d36e96e-e325-11ce-bfc1-08002be10318}"
+"Mfg"="(Standard monitor types)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY\Default_Monitor\4&aa934f53&1\Device Parameters]
+"BAD_EDID"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\CdRomSONY_CD-ROM_CDU-1000____________________1.1a____]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\CdRomSONY_CD-ROM_CDU-1000____________________1.1a____\5&f2cd9d61&1.0.0]
+"HardwareID"=hex(7):49,00,44,00,45,00,5c,00,43,00,64,00,52,00,6f,00,6d,00,53,\
+  00,4f,00,4e,00,59,00,5f,00,43,00,44,00,2d,00,52,00,4f,00,4d,00,5f,00,43,00,\
+  44,00,55,00,2d,00,31,00,30,00,30,00,30,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,31,00,2e,00,31,00,61,00,5f,00,5f,00,5f,00,5f,00,00,00,49,00,44,\
+  00,45,00,5c,00,53,00,4f,00,4e,00,59,00,5f,00,43,00,44,00,2d,00,52,00,4f,00,\
+  4d,00,5f,00,43,00,44,00,55,00,2d,00,31,00,30,00,30,00,30,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,31,00,2e,00,31,00,61,00,5f,00,5f,00,5f,00,5f,\
+  00,00,00,49,00,44,00,45,00,5c,00,43,00,64,00,52,00,6f,00,6d,00,53,00,4f,00,\
+  4e,00,59,00,5f,00,43,00,44,00,2d,00,52,00,4f,00,4d,00,5f,00,43,00,44,00,55,\
+  00,2d,00,31,00,30,00,30,00,30,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,00,00,53,00,4f,00,4e,00,59,00,5f,00,43,00,44,00,2d,00,52,00,4f,00,4d,00,\
+  5f,00,43,00,44,00,55,00,2d,00,31,00,30,00,30,00,30,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,31,00,2e,00,31,00,61,00,5f,00,5f,00,5f,00,5f,00,00,\
+  00,47,00,65,00,6e,00,43,00,64,00,52,00,6f,00,6d,00,00,00,00,00
+"CompatibleIDs"=hex(7):47,00,65,00,6e,00,43,00,64,00,52,00,6f,00,6d,00,00,00,\
+  00,00
+"DeviceDesc"="CD-ROM Drive"
+"LocationInformation"="Channel 1, Target 0, Lun 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e965-e325-11ce-bfc1-08002be10318}"
+"Service"="cdrom"
+"Capabilities"=dword:00000000
+"UINumber"=dword:00000000
+"Driver"="{4d36e965-e325-11ce-bfc1-08002be10318}\\0001"
+"DefaultRequestFlags"=dword:00000008
+"Class"="CDROM"
+"Mfg"="(Standard CD-ROM drives)"
+"FriendlyName"="SONY CD-ROM CDU-1000"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\CdRomSONY_CD-ROM_CDU-1000____________________1.1a____\5&f2cd9d61&1.0.0\Device Parameters]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\CdRomSONY_CD-ROM_CDU-1000____________________1.1a____\5&f2cd9d61&1.0.0\Storport]
+"MinimumIdleTimeoutInMS"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\Diskv86_ATA_HD______________________________1.00____]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\Diskv86_ATA_HD______________________________1.00____\5&ebd6ac20&0.0.0]
+"HardwareID"=hex(7):49,00,44,00,45,00,5c,00,44,00,69,00,73,00,6b,00,76,00,38,\
+  00,36,00,5f,00,41,00,54,00,41,00,5f,00,48,00,44,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,31,00,2e,00,30,00,30,00,5f,00,5f,00,5f,00,5f,00,00,00,49,00,44,00,45,\
+  00,5c,00,76,00,38,00,36,00,5f,00,41,00,54,00,41,00,5f,00,48,00,44,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,31,00,2e,00,30,00,30,00,5f,00,5f,00,5f,00,5f,00,00,\
+  00,49,00,44,00,45,00,5c,00,44,00,69,00,73,00,6b,00,76,00,38,00,36,00,5f,00,\
+  41,00,54,00,41,00,5f,00,48,00,44,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,00,00,76,\
+  00,38,00,36,00,5f,00,41,00,54,00,41,00,5f,00,48,00,44,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,\
+  00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,5f,00,\
+  5f,00,5f,00,31,00,2e,00,30,00,30,00,5f,00,5f,00,5f,00,5f,00,00,00,47,00,65,\
+  00,6e,00,44,00,69,00,73,00,6b,00,00,00,00,00
+"CompatibleIDs"=hex(7):47,00,65,00,6e,00,44,00,69,00,73,00,6b,00,00,00,00,00
+"DeviceDesc"="Disk drive"
+"LocationInformation"="Channel 0, Target 0, Lun 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e967-e325-11ce-bfc1-08002be10318}"
+"Service"="disk"
+"Capabilities"=dword:00000000
+"UINumber"=dword:00000000
+"ParentIdPrefix"="6&5b061b81"
+"Driver"="{4d36e967-e325-11ce-bfc1-08002be10318}\\0001"
+"Class"="DiskDrive"
+"Mfg"="(Standard disk drives)"
+"FriendlyName"="v86 ATA HD"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\IDE\Diskv86_ATA_HD______________________________1.00____\5&ebd6ac20&0.0.0\Device Parameters]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_10EC&DEV_8029&SUBSYS_11001AF4&REV_00]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_10EC&DEV_8029&SUBSYS_11001AF4&REV_00\3&7980b9c0&05]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,30,\
+  00,45,00,43,00,26,00,44,00,45,00,56,00,5f,00,38,00,30,00,32,00,39,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,31,00,31,00,30,00,30,00,31,00,41,\
+  00,46,00,34,00,26,00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,30,00,45,00,43,00,26,00,44,00,45,\
+  00,56,00,5f,00,38,00,30,00,32,00,39,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,31,00,31,00,30,00,30,00,31,00,41,00,46,00,34,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,30,00,45,00,43,00,26,00,44,00,\
+  45,00,56,00,5f,00,38,00,30,00,32,00,39,00,26,00,43,00,43,00,5f,00,30,00,32,\
+  00,30,00,30,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,31,00,30,00,45,00,43,00,26,00,44,00,45,00,56,00,5f,00,38,00,30,00,32,\
+  00,39,00,26,00,43,00,43,00,5f,00,30,00,32,00,30,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,\
+  30,00,45,00,43,00,26,00,44,00,45,00,56,00,5f,00,38,00,30,00,32,00,39,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,31,00,30,00,45,00,43,00,26,00,44,00,45,00,56,00,5f,00,38,\
+  00,30,00,32,00,39,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  31,00,30,00,45,00,43,00,26,00,43,00,43,00,5f,00,30,00,32,00,30,00,30,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,30,00,\
+  45,00,43,00,26,00,43,00,43,00,5f,00,30,00,32,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,30,00,45,00,43,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,32,00,30,00,30,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,32,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="Realtek RTL8029 PCI Ethernet Adapter"
+"LocationInformation"="PCI-Bus 0, Device 5, Function 0"
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e972-e325-11ce-bfc1-08002be10318}\\0001"
+"Service"="ne2000"
+"Class"="Net"
+"ClassGUID"="{4d36e972-e325-11ce-bfc1-08002be10318}"
+"Mfg"="Realtek"
+"Capabilities"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1234&DEV_1111&SUBSYS_11001AF4&REV_00]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1234&DEV_1111&SUBSYS_11001AF4&REV_00\3&7980b9c0&12]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,32,\
+  00,33,00,34,00,26,00,44,00,45,00,56,00,5f,00,31,00,31,00,31,00,31,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,31,00,31,00,30,00,30,00,31,00,41,\
+  00,46,00,34,00,26,00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,32,00,33,00,34,00,26,00,44,00,45,\
+  00,56,00,5f,00,31,00,31,00,31,00,31,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,31,00,31,00,30,00,30,00,31,00,41,00,46,00,34,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,32,00,33,00,34,00,26,00,44,00,\
+  45,00,56,00,5f,00,31,00,31,00,31,00,31,00,26,00,43,00,43,00,5f,00,30,00,33,\
+  00,30,00,30,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,31,00,32,00,33,00,34,00,26,00,44,00,45,00,56,00,5f,00,31,00,31,00,31,\
+  00,31,00,26,00,43,00,43,00,5f,00,30,00,33,00,30,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,\
+  32,00,33,00,34,00,26,00,44,00,45,00,56,00,5f,00,31,00,31,00,31,00,31,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,31,00,32,00,33,00,34,00,26,00,44,00,45,00,56,00,5f,00,31,\
+  00,31,00,31,00,31,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  31,00,32,00,33,00,34,00,26,00,43,00,43,00,5f,00,30,00,33,00,30,00,30,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,32,00,\
+  33,00,34,00,26,00,43,00,43,00,5f,00,30,00,33,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,31,00,32,00,33,00,34,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,33,00,30,00,30,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,33,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="Bochs Graphics Adapter"
+"LocationInformation"="PCI-Bus 0, Device 18, Function 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e968-e325-11ce-bfc1-08002be10318}"
+"Service"="bochsmp"
+"Capabilities"=dword:00000000
+"ParentIdPrefix"="4&aa934f53"
+"Driver"="{4d36e968-e325-11ce-bfc1-08002be10318}\\0001"
+"Class"="Display"
+"Mfg"="Bochs"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1234&DEV_1111&SUBSYS_11001AF4&REV_00\3&7980b9c0&12\Device Parameters]
+"VideoId"="{3c39cb41-eb04-11f1-bb1f-806e6f6e6963"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_1237&SUBSYS_00000000&REV_02]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_1237&SUBSYS_00000000&REV_02\3&7980b9c0&00]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,\
+  00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,31,00,32,00,33,00,37,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,\
+  00,30,00,30,00,26,00,52,00,45,00,56,00,5f,00,30,00,32,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,\
+  00,56,00,5f,00,31,00,32,00,33,00,37,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,\
+  45,00,56,00,5f,00,31,00,32,00,33,00,37,00,26,00,43,00,43,00,5f,00,30,00,36,\
+  00,30,00,30,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,31,00,32,00,33,\
+  00,37,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,\
+  30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,31,00,32,00,33,00,37,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,32,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,31,\
+  00,32,00,33,00,37,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  38,00,30,00,38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,30,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,\
+  38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,30,00,30,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="Intel 440FX - 82441FX PMC [Natoma]"
+"LocationInformation"="PCI-Bus 0, Device 0, Function 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e97d-e325-11ce-bfc1-08002be10318}"
+"Driver"="{4d36e97d-e325-11ce-bfc1-08002be10318}\\0019"
+"Class"="System"
+"Mfg"="Intel"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_2415&SUBSYS_00008086&REV_02]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_2415&SUBSYS_00008086&REV_02\3&7980b9c0&03]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,\
+  00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,32,00,34,00,31,00,35,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,30,00,30,00,30,00,30,00,38,00,30,\
+  00,38,00,36,00,26,00,52,00,45,00,56,00,5f,00,30,00,32,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,\
+  00,56,00,5f,00,32,00,34,00,31,00,35,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,30,00,30,00,30,00,30,00,38,00,30,00,38,00,36,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,\
+  45,00,56,00,5f,00,32,00,34,00,31,00,35,00,26,00,43,00,43,00,5f,00,30,00,34,\
+  00,30,00,31,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,32,00,34,00,31,\
+  00,35,00,26,00,43,00,43,00,5f,00,30,00,34,00,30,00,31,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,\
+  30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,32,00,34,00,31,00,35,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,32,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,32,\
+  00,34,00,31,00,35,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  38,00,30,00,38,00,36,00,26,00,43,00,43,00,5f,00,30,00,34,00,30,00,31,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,\
+  38,00,36,00,26,00,43,00,43,00,5f,00,30,00,34,00,30,00,31,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,34,00,30,00,31,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,34,00,30,00,31,00,00,00,\
+  00,00
+"DeviceDesc"="Intel 82801AA AC'97 Audio Controller"
+"LocationInformation"="PCI-Bus 0, Device 3, Function 0"
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e96c-e325-11ce-bfc1-08002be10318}\\0000"
+"Service"="ac97"
+"Class"="MEDIA"
+"ClassGUID"="{4d36e96c-e325-11ce-bfc1-08002be10318}"
+"Mfg"="Intel"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7000&SUBSYS_00000000&REV_00]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7000&SUBSYS_00000000&REV_00\3&7980b9c0&01]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,\
+  00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,30,00,30,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,\
+  00,30,00,30,00,26,00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,\
+  00,56,00,5f,00,37,00,30,00,30,00,30,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,\
+  45,00,56,00,5f,00,37,00,30,00,30,00,30,00,26,00,43,00,43,00,5f,00,30,00,36,\
+  00,30,00,31,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,30,\
+  00,30,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,31,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,\
+  30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,30,00,30,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,\
+  00,30,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  38,00,30,00,38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,31,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,\
+  38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,30,00,31,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,30,00,31,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,30,00,31,00,00,00,\
+  00,00
+"DeviceDesc"="Intel 82371SB PIIX3 PCI to ISA Bridge"
+"LocationInformation"="PCI-Bus 0, Device 1, Function 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e97d-e325-11ce-bfc1-08002be10318}"
+"Service"="isapnp"
+"Capabilities"=dword:00000000
+"Driver"="{4d36e97d-e325-11ce-bfc1-08002be10318}\\0021"
+"Class"="System"
+"Mfg"="Intel"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7010&SUBSYS_82D41043&REV_00]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7010&SUBSYS_82D41043&REV_00\3&7980b9c0&1E]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,\
+  00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,31,00,30,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,38,00,32,00,44,00,34,00,31,00,30,\
+  00,34,00,33,00,26,00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,\
+  00,56,00,5f,00,37,00,30,00,31,00,30,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,38,00,32,00,44,00,34,00,31,00,30,00,34,00,33,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,\
+  45,00,56,00,5f,00,37,00,30,00,31,00,30,00,26,00,43,00,43,00,5f,00,30,00,31,\
+  00,30,00,31,00,38,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,31,\
+  00,30,00,26,00,43,00,43,00,5f,00,30,00,31,00,30,00,31,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,\
+  30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,30,00,31,00,30,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,\
+  00,30,00,31,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  38,00,30,00,38,00,36,00,26,00,43,00,43,00,5f,00,30,00,31,00,30,00,31,00,38,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,\
+  38,00,36,00,26,00,43,00,43,00,5f,00,30,00,31,00,30,00,31,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,31,00,30,00,31,00,38,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,31,00,30,00,31,00,00,00,\
+  00,00
+"DeviceDesc"="Intel PIIX3 IDE DMA controller"
+"LocationInformation"="PCI-Bus 0, Device 30, Function 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e96a-e325-11ce-bfc1-08002be10318}"
+"Service"="pciide"
+"Capabilities"=dword:00000000
+"ParentIdPrefix"="4&e055bfc2"
+"Driver"="{4d36e96a-e325-11ce-bfc1-08002be10318}\\0003"
+"Class"="hdc"
+"Mfg"="(Generic hard disk controllers)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7113&SUBSYS_00000000&REV_08]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCI\VEN_8086&DEV_7113&SUBSYS_00000000&REV_08\3&7980b9c0&07]
+"HardwareID"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,\
+  00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,31,00,31,00,33,00,26,00,\
+  53,00,55,00,42,00,53,00,59,00,53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,\
+  00,30,00,30,00,26,00,52,00,45,00,56,00,5f,00,30,00,38,00,00,00,50,00,43,00,\
+  49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,\
+  00,56,00,5f,00,37,00,31,00,31,00,33,00,26,00,53,00,55,00,42,00,53,00,59,00,\
+  53,00,5f,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,\
+  45,00,56,00,5f,00,37,00,31,00,31,00,33,00,26,00,43,00,43,00,5f,00,30,00,36,\
+  00,38,00,30,00,30,00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,\
+  5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,31,00,31,\
+  00,33,00,26,00,43,00,43,00,5f,00,30,00,36,00,38,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,\
+  30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,00,31,00,31,00,33,00,26,\
+  00,52,00,45,00,56,00,5f,00,30,00,38,00,00,00,50,00,43,00,49,00,5c,00,56,00,\
+  45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,26,00,44,00,45,00,56,00,5f,00,37,\
+  00,31,00,31,00,33,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,\
+  38,00,30,00,38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,38,00,30,00,30,\
+  00,30,00,00,00,50,00,43,00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,\
+  38,00,36,00,26,00,43,00,43,00,5f,00,30,00,36,00,38,00,30,00,00,00,50,00,43,\
+  00,49,00,5c,00,56,00,45,00,4e,00,5f,00,38,00,30,00,38,00,36,00,00,00,50,00,\
+  43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,38,00,30,00,30,00,30,00,00,\
+  00,50,00,43,00,49,00,5c,00,43,00,43,00,5f,00,30,00,36,00,38,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="Intel 82371AB/EB Power Management Controller"
+"LocationInformation"="PCI-Bus 0, Device 7, Function 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e97d-e325-11ce-bfc1-08002be10318}"
+"Driver"="{4d36e97d-e325-11ce-bfc1-08002be10318}\\0022"
+"Class"="System"
+"Mfg"="Intel"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&0]
+"HardwareID"=hex(7):49,00,6e,00,74,00,65,00,6c,00,2d,00,50,00,49,00,49,00,58,\
+  00,33,00,00,00,49,00,6e,00,74,00,65,00,72,00,6e,00,61,00,6c,00,5f,00,49,00,\
+  44,00,45,00,5f,00,43,00,68,00,61,00,6e,00,6e,00,65,00,6c,00,00,00,2a,00,50,\
+  00,4e,00,50,00,30,00,36,00,30,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):2a,00,50,00,4e,00,50,00,30,00,36,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="ATA Channel"
+"LocationInformation"="Channel 0"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e96a-e325-11ce-bfc1-08002be10318}"
+"Service"="atapi"
+"Capabilities"=dword:00000000
+"ParentIdPrefix"="5&ebd6ac20"
+"Driver"="{4d36e96a-e325-11ce-bfc1-08002be10318}\\0004"
+"Class"="hdc"
+"Mfg"="(Generic hard disk controllers)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&0\Device Parameters]
+"MaxTargetId"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&0\Device Parameters\Target0]
+"DeviceType"=dword:00000001
+"ScsiDeviceType"=dword:00000000
+"DeviceTimingModeSupported"=dword:00000000
+"DeviceTimingMode"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&0\Device Parameters\Target1]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&1]
+"HardwareID"=hex(7):49,00,6e,00,74,00,65,00,6c,00,2d,00,50,00,49,00,49,00,58,\
+  00,33,00,00,00,49,00,6e,00,74,00,65,00,72,00,6e,00,61,00,6c,00,5f,00,49,00,\
+  44,00,45,00,5f,00,43,00,68,00,61,00,6e,00,6e,00,65,00,6c,00,00,00,2a,00,50,\
+  00,4e,00,50,00,30,00,36,00,30,00,30,00,00,00,00,00
+"CompatibleIDs"=hex(7):2a,00,50,00,4e,00,50,00,30,00,36,00,30,00,30,00,00,00,\
+  00,00
+"DeviceDesc"="ATA Channel"
+"LocationInformation"="Channel 1"
+"ConfigFlags"=dword:00000000
+"ClassGUID"="{4d36e96a-e325-11ce-bfc1-08002be10318}"
+"Service"="atapi"
+"Capabilities"=dword:00000000
+"ParentIdPrefix"="5&f2cd9d61"
+"Driver"="{4d36e96a-e325-11ce-bfc1-08002be10318}\\0005"
+"Class"="hdc"
+"Mfg"="(Generic hard disk controllers)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&1\Device Parameters]
+"MaxTargetId"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&1\Device Parameters\Target0]
+"DeviceType"=dword:00000002
+"ScsiDeviceType"=dword:00000005
+"DeviceTimingModeSupported"=dword:00000000
+"DeviceTimingMode"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\PCIIDE\IDEChannel\4&e055bfc2&1\Device Parameters\Target1]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\Root\System]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\Root\System\0000]
+"HardwareID"=hex(7):52,00,4f,00,4f,00,54,00,5c,00,53,00,57,00,45,00,4e,00,55,\
+  00,4d,00,00,00,00,00
+"ConfigFlags"=dword:00000000
+"Driver"="{4d36e97d-e325-11ce-bfc1-08002be10318}\\0020"
+"Service"="swenum"
+"Class"="System"
+"ClassGUID"="{4d36e97d-e325-11ce-bfc1-08002be10318}"
+"DeviceDesc"="Plug & Play Software Bus Enumerator"
+"Mfg"="(Generic system devices)"
+"Capabilities"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\STORAGE\Partition\6&5b061b81&S8f1624f3_O100000_Lffefc000]
+"HardwareID"=hex(7):53,00,54,00,4f,00,52,00,41,00,47,00,45,00,5c,00,56,00,6f,\
+  00,6c,00,75,00,6d,00,65,00,00,00,00,00
+"DeviceDesc"="Storage volume"
+"ConfigFlags"=dword:00000000
+"Capabilities"=dword:00000060
+"Driver"="{71a27cdd-812a-11d0-bec7-08002be2092f}\\0001"
+"Class"="Volume"
+"ClassGUID"="{71a27cdd-812a-11d0-bec7-08002be2092f}"
+"Mfg"="(Generic storage volumes)"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\ac97]
+"DisplayName"="Service for AC'97 Driver (WDM)"
+"Type"=dword:00000001
+"Start"=dword:00000003
+"ErrorControl"=dword:00000001
+"ImagePath"=hex(2):73,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,61,00,63,00,39,00,37,00,2e,00,73,\
+  00,79,00,73,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\atapi]
+"Tag"=dword:00000004
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\AudioSrv]
+"Start"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bochsmp]
+"Tag"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bochsmp\Device0]
+"HardwareInformation.MemorySize"=hex:00,00,80,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bochsmp\Device3]
+"InstalledDisplayDrivers"=hex(7):66,00,72,00,61,00,6d,00,65,00,62,00,75,00,66,\
+  00,00,00,00,00
+"VgaCompatible"=dword:00000000
+"Device Description"="Bochs Graphics Adapter"
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\cdrom]
+"Tag"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\isapnp]
+"Tag"=dword:00000006
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\kmixer]
+"Type"=dword:00000001
+"Start"=dword:00000003
+"ErrorControl"=dword:00000000
+"ImagePath"=hex(2):53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,6b,00,6d,00,69,00,78,00,65,00,72,\
+  00,2e,00,73,00,79,00,73,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\ne2000]
+"Type"=dword:00000001
+"Start"=dword:00000003
+"ErrorControl"=dword:00000001
+"ImagePath"=hex(2):53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,6e,00,65,00,32,00,30,00,30,00,30,\
+  00,2e,00,73,00,79,00,73,00,00,00
+"Group"="NDIS"
+"Tag"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\parport]
+"Tag"=dword:00000005
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Pci]
+"Tag"=dword:00000004
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\pciide]
+"Tag"=dword:00000003
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Processor]
+"Tag"=dword:00000004
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\serenum]
+"Tag"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\serial]
+"Tag"=dword:00000006
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\swenum]
+"ErrorControl"=dword:00000003
+"ImagePath"=hex(2):53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,73,00,77,00,65,00,6e,00,75,00,6d,\
+  00,2e,00,73,00,79,00,73,00,00,00
+"Group"="Boot Bus Extender"
+"Tag"=dword:00000005
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\swenum\Devices]
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\sysaudio]
+"Type"=dword:00000001
+"Start"=dword:00000003
+"ErrorControl"=dword:00000000
+"ImagePath"=hex(2):53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,73,00,79,00,73,00,61,00,75,00,64,\
+  00,69,00,6f,00,2e,00,73,00,79,00,73,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Linkage]
+"Bind"=hex(7):5c,00,44,00,65,00,76,00,69,00,63,00,65,00,5c,00,7b,00,38,00,66,\
+  00,62,00,34,00,37,00,32,00,65,00,30,00,2d,00,39,00,65,00,35,00,30,00,2d,00,\
+  34,00,61,00,37,00,62,00,2d,00,39,00,35,00,30,00,36,00,2d,00,65,00,65,00,30,\
+  00,32,00,39,00,34,00,61,00,30,00,39,00,36,00,32,00,30,00,7d,00,00,00,00,00
+"Export"=hex(7):5c,00,44,00,65,00,76,00,69,00,63,00,65,00,5c,00,54,00,63,00,70,\
+  00,69,00,70,00,5f,00,7b,00,38,00,66,00,62,00,34,00,37,00,32,00,65,00,30,00,\
+  2d,00,39,00,65,00,35,00,30,00,2d,00,34,00,61,00,37,00,62,00,2d,00,39,00,35,\
+  00,30,00,36,00,2d,00,65,00,65,00,30,00,32,00,39,00,34,00,61,00,30,00,39,00,\
+  36,00,32,00,30,00,7d,00,00,00,00,00
+"Route"=hex(7):7b,00,38,00,66,00,62,00,34,00,37,00,32,00,65,00,30,00,2d,00,39,\
+  00,65,00,35,00,30,00,2d,00,34,00,61,00,37,00,62,00,2d,00,39,00,35,00,30,00,\
+  36,00,2d,00,65,00,65,00,30,00,32,00,39,00,34,00,61,00,30,00,39,00,36,00,32,\
+  00,30,00,7d,00,00,00,00,00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{8fb472e0-9e50-4a7b-9506-ee0294a09620}]
+"DefaultGateway"=hex(7):30,00,2e,00,30,00,2e,00,30,00,2e,00,30,00,00,00,00,00
+"IPAddress"=hex(7):30,00,2e,00,30,00,2e,00,30,00,2e,00,30,00,00,00,00,00
+"SubnetMask"=hex(7):30,00,2e,00,30,00,2e,00,30,00,2e,00,30,00,00,00,00,00
+"EnableDHCP"=dword:00000001
+"DhcpIPAddress"="169.254.1.208"
+"DhcpSubnetMask"="255.255.0.0"
+"DhcpServer"="255.255.255.255"
+"IPAutoconfigurationAddress"="169.254.1.208"
+"IPAutoconfigurationMask"="255.255.0.0"
+"Lease"=dword:00000000
+"LeaseObtainedTime"=dword:6b0a8cbd
+"LeaseTerminatesTime"=dword:7fffffff
+"T1"=dword:6b0a8cbd
+"T2"=dword:6b0a8cbd
+"AddressType"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wdmaud]
+"Type"=dword:00000001
+"Start"=dword:00000003
+"ErrorControl"=dword:00000000
+"ImagePath"=hex(2):53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,\
+  72,00,69,00,76,00,65,00,72,00,73,00,5c,00,77,00,64,00,6d,00,61,00,75,00,64,\
+  00,2e,00,73,00,79,00,73,00,00,00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{17CCA71B-ECD7-11D0-B908-00A0C9223196}]
+@="Generic WDM Filter Proxy"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{17CCA71B-ECD7-11D0-B908-00A0C9223196}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{1A8766A0-62CE-11CF-A5D6-28DB04C10000}]
+@="WDM Streaming Standard Interface Handler"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{1A8766A0-62CE-11CF-A5D6-28DB04C10000}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{73647561-0000-0010-8000-00aa00389b71}]
+@="WDM Streaming Standard Data Type Handler"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{73647561-0000-0010-8000-00aa00389b71}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{877E4351-6FEA-11d0-B863-00AA00A216A1}]
+@="Plug In Distributor: IKsClock"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{877E4351-6FEA-11d0-B863-00AA00A216A1}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{b9f8ac3e-0f71-11d2-b72c-00c04fb6bd3d}]
+@="%PlugIn_IBasicAudio%"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{b9f8ac3e-0f71-11d2-b72c-00c04fb6bd3d}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{BC29A660-30E3-11d0-9E69-00C04FD7C15B}]
+@="WDM Streaming VPE Property Set Interface Handler"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{BC29A660-30E3-11d0-9E69-00C04FD7C15B}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{E05592E4-C0B5-11D0-A439-00A0C9223196}]
+@="Plug In Distributor: IKsQualityForwarder"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{E05592E4-C0B5-11D0-A439-00A0C9223196}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{EC529B00-1A1F-11D1-BAD9-00609744111A}]
+@="WDM Streaming VPE VBI Property Set Interface Handler"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{EC529B00-1A1F-11D1-BAD9-00609744111A}\InprocServer32]
+@="ksproxy.ax"
+"ThreadingModel"="Both"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Interface\{877E4352-6FEA-11d0-B863-00AA00A216A1}]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Interface\{877E4352-6FEA-11d0-B863-00AA00A216A1}\Distributor]
+@="{877E4351-6FEA-11d0-B863-00AA00A216A1}"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Interface\{97EBAACB-95BD-11D0-A3EA-00A0C9223196}]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Interface\{97EBAACB-95BD-11D0-A3EA-00A0C9223196}\Distributor]
+@="{E05592E4-C0B5-11D0-A439-00A0C9223196}"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Drivers32]
+"wave1"="C:\\ReactOS\\System32\\wdmaud.drv"
