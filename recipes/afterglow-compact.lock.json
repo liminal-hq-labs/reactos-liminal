@@ -25,7 +25,7 @@
 	},
 	"answers_sha256": "5d21e2cf6c563931101f548ae31d48a3d4155c77c27021d2e6655c1200605dd5",
 	"trim_lists": {
-		"profile:base": "76912938a108fa43bcd973cf28ed38a6ef933c8c37564431a61d4e98fd0efbf1",
+		"profile:base": "b61ef0d0b9542bd6cbaad7377448a03c03873801fa676a50c60e7a40118dc51e",
 		"extra:afterglow-compact-trim.txt": "cb6b2904bf8b283480985c9461825920bb40d4847b45be1ae5f46365eed4ced9"
 	},
 	"files": {
@@ -34,6 +34,11 @@
 		"../guest/cmd/fastfetch.cmd": "323b0f6515dd8daa3f89f3ff7a4dd88eb310da81fc5af6e21a51c83df27ddcc2",
 		"../guest/cmd/screenfetch.cmd": "8c7a9aae4d8dc6c8b7402866e749e337ca866e128ea93980546bb9adad4ed69f",
 		"../guest/cmd/winfetch.cmd": "07e6410464e584fe4fa6658fc0ab8632e4372e92856d335fdb60d75fb110267d"
+	},
+	"sounds": {
+		"scheme": true,
+		"samples": true,
+		"pins_sha256": "ee6be406c4a042719901bc7fd1165eefe9856c2e9d6663e44cc0d82e08f1fd01"
 	},
 	"builds": {
 		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2",

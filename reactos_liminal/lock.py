@@ -17,6 +17,7 @@ from .fetch import sha256_file
 from .install import golden_key, golden_path, render_unattend
 from .recipe import Recipe, is_reg_path, is_remote_build
 from .rustbuild import tar_path
+from .sounds import PINS_FILE as SOUND_PINS_FILE
 from .trim import PROFILES_DIR
 from .wallpaper import STOCK_LIST, load_pins, scenes
 
@@ -83,6 +84,8 @@ def build_lock(recipe: Recipe) -> dict:
 		wallpapers["scenes"] = {name: pins.get(name) for name in scenes(recipe)}
 	if recipe.section("wallpapers", "replace_stock"):
 		wallpapers["stock_list"] = sha256_file(STOCK_LIST)
+	sound_switches = recipe.section("sounds")
+	sound_lock = {**sound_switches, "pins_sha256": sha256_file(SOUND_PINS_FILE)} if any(sound_switches.values()) else {}
 	return {
 		"schema": LOCK_SCHEMA,
 		"recipe": recipe.name,
@@ -92,6 +95,7 @@ def build_lock(recipe: Recipe) -> dict:
 		"trim_lists": trim_lists,
 		"files": files,
 		**({"wallpapers": wallpapers} if wallpapers else {}),
+		**({"sounds": sound_lock} if sound_lock else {}),
 		**({"reg_files": reg_files} if reg_files else {}),
 		**({"builds": builds} if builds else {}),
 	}

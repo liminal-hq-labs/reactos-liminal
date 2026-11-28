@@ -1,0 +1,22 @@
+{
+	"sha256": {
+		"Afterglow_Asterisk.wav": "ef622dc49ad952f4a2b7fba411268470cf062549b56c15948869ef0289f2e06b",
+		"Afterglow_Close.wav": "8a515aa2fa45f123df5a93db1b7e5a6d7b5c9010ce1fbbded58aa32ac53fb9e7",
+		"Afterglow_Critical_Stop.wav": "cd037b52c12a1bbe5a77a5195cf4626fc2adaad68e707afdae4cafb600229d02",
+		"Afterglow_Default.wav": "b97a2def8f5d00bde4caf9987b78c0e5ec63128611df3e76c4aa830c891fff31",
+		"Afterglow_Exclamation.wav": "481f21e79a7183bd10261f087727dceb160392aafc9532e4c8a7f8ef3f7dd7ba",
+		"Afterglow_Logoff.wav": "249329b61ecf3a5ce2113072ff3fef74ee4084588cefda5c517bbcf4002088bb",
+		"Afterglow_Logon.wav": "ea9c5e59bd15b1059f689fb897f568598cac56a18b985361792e2e01a5f459da",
+		"Afterglow_Maximize.wav": "52234b2fafc959c26fe9b0ebb4b8a2732053ca4599ba9da10251c0bdd9baa588",
+		"Afterglow_Menu_Command.wav": "6eb16a79e7f29b8c6a9c8fab7f73c8204366149ba216e3a833b0ea2a5eedcab5",
+		"Afterglow_Minimize.wav": "86e893abb20e6b5c293c5b3c867f7f963347f8025bdd785e5beb401cb47637d4",
+		"Afterglow_Open.wav": "7357b7dbb79c16dcb0c6f848760dd1f9667f9b364a85f7628e6b676de2462108",
+		"Afterglow_Question.wav": "bcac03d53e4e2d9ce3d47bbfb90c4383e7d616cabfb5c8f82f78c5b1ebb7dee8",
+		"Afterglow_Recycle.wav": "9903a9bd15aa3a6ceb8cd60c22a8b51c3e9753e98a2d68f9c90ebed15294207c",
+		"Afterglow_Shutdown.wav": "1aaaaa6928c17f0ac2523ed645345bb07721708f7f9e8e5c106016a4ffd18873",
+		"Afterglow_Start.wav": "03e63f8f3583e43990a08d418c1fd0328181a93eb066582f499e0c7ca7f9d02b",
+		"Afterglow_Startup.wav": "d8074d7485445f910c3e4a3378d14ab5c42bc84084aadefcd97f7e30acc59911",
+		"Dusk melody.wav": "dd645082c0c3c3bcb27929279ad343408b301d467fa371ebd25d864063907405",
+		"Left and right.wav": "de08c8f14dad75de31c6fff4ddee8a5c028c239ed91b79892136d575d062fb34"
+	}
+}

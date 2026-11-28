@@ -414,6 +414,10 @@ SCHEMA: dict[str, Any] = {
 		"scenes": (_scene_set, []),
 		"replace_stock": (_bool, False),
 	},
+	"sounds": {
+		"scheme": (_bool, False),
+		"samples": (_bool, False),
+	},
 	"trim": {
 		"profile": (_choice(*TRIM_PROFILES), "none"),
 		"extra": (_str_list, []),

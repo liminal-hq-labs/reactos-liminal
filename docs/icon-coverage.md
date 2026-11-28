@@ -248,7 +248,7 @@ Every resource Afterglow's `map.json` names, and what the icon patchers did with
 | `mouse-trails` | `main.cpl` | group 600 | source+binary | patched | `ReactOS/system32/main.cpl` | kept |  |
 | `mouse-wheel` | `main.cpl` | group 603 | source+binary | patched | `ReactOS/system32/main.cpl` | kept |  |
 | `move` | `browseui.dll` | cell 44 | source+binary | patched | `ReactOS/system32/browseui.dll` | kept |  |
-| `mplay32` | `mplay32.exe` | group 10 | source+binary | patched | `ReactOS/system32/mplay32.exe` | removed by trim |  |
+| `mplay32` | `mplay32.exe` | group 10 | source+binary | patched | `ReactOS/system32/mplay32.exe` | kept |  |
 | `msconfig` | `msconfig.exe` | group 3001 | source+binary | patched | `ReactOS/system32/msconfig.exe` | kept |  |
 | `mstsc` | `mstsc.exe` | group 2000 | source+binary | patched | `ReactOS/system32/mstsc.exe` | removed by trim |  |
 | `mycomputer` | `shell32.dll` | group 16 | source+binary | patched | `ReactOS/system32/shell32.dll` | kept |  |
@@ -379,7 +379,7 @@ Every resource Afterglow's `map.json` names, and what the icon patchers did with
 | `shutdown` | `msgina.dll` | group 22 | source+binary | patched | `ReactOS/system32/msgina.dll`<br>`ReactOS/system32/agmsgina.dll` | kept |  |
 | `sleep` | `powercfg.cpl` | group 104 | source+binary | patched | `ReactOS/system32/powercfg.cpl` | kept |  |
 | `snapshot` | `screenshot.exe` | group 1 | source+binary | patched | `ReactOS/system32/screenshot.exe` | removed by trim |  |
-| `sndrec32` | `sndrec32.exe` | group 107 | source+binary | patched | `ReactOS/system32/sndrec32.exe` | removed by trim |  |
+| `sndrec32` | `sndrec32.exe` | group 107 | source+binary | patched | `ReactOS/system32/sndrec32.exe` | kept |  |
 | `sol` | `sol.exe` | group 100 | source+binary | patched | `ReactOS/system32/sol.exe` | removed by trim |  |
 | `sol` | `rapps.exe` | group 56 | source+binary | patched | `ReactOS/system32/rapps.exe` | kept |  |
 | `sortname` | - | - | - | unverified | - | - | the map names no verified ReactOS resource for this icon |

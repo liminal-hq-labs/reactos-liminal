@@ -59,6 +59,11 @@
 		},
 		"stock_list": "87e25ea7f861dbb68d68072833e8183bd37cf10510099b43abb62f3969f4a3a4"
 	},
+	"sounds": {
+		"scheme": true,
+		"samples": true,
+		"pins_sha256": "ee6be406c4a042719901bc7fd1165eefe9856c2e9d6663e44cc0d82e08f1fd01"
+	},
 	"builds": {
 		"afterfetch": "63d628cb4eecd0c5734a5c504bfd97ca2ec307c412fd2f8f10aae13f2fd5d4a2",
 		"afterglow-savers": {

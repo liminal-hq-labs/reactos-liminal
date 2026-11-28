@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from . import __version__, doctor
+from . import sounds as sounds_module
 from .afterglow import fetch_afterglow
 from .audit import audit_image, expected_savers
 from .fetch import FetchError, fetch_iso
@@ -207,6 +208,27 @@ def _cmd_trim(args: argparse.Namespace) -> int:
 		print(f"extra trim list {name}: {count} entries")
 	for entry in report.missing:
 		print(f"missing: {entry.kind} {entry.path}", file=sys.stderr)
+	return 0
+
+
+def _cmd_sounds(args: argparse.Namespace) -> int:
+	rendered = sounds_module.render_all()
+	if args.write_pins:
+		sounds_module.write_pins(rendered)
+		print(f"wrote {sounds_module.PINS_FILE}: {len(rendered)} sums")
+	try:
+		sounds_module.check_pins(rendered)
+	except sounds_module.SoundError as error:
+		print(f"sounds: {error}", file=sys.stderr)
+		return 1
+	if args.out:
+		out = Path(args.out)
+		out.mkdir(parents=True, exist_ok=True)
+		for name, data in rendered.items():
+			(out / name).write_bytes(data)
+		print(f"wrote {len(rendered)} files ({sum(map(len, rendered.values()))} bytes) to {out}")
+	else:
+		print(f"{len(rendered)} sounds match {sounds_module.PINS_FILE.name}")
 	return 0
 
 
@@ -427,6 +449,11 @@ def build_parser() -> argparse.ArgumentParser:
 	sub.add_argument("--savers-tarball", metavar="FILE", help="use a local .tar.gz of the pinned commit instead of downloading it")
 	_add_work(sub)
 	sub.set_defaults(func=_cmd_build)
+
+	sub = commands.add_parser("sounds", help="make the Afterglow sounds and check them against pins/afterglow-sounds.json")
+	sub.add_argument("--out", metavar="DIR", help="write the WAV files to this folder (a folder to listen from, never the repository)")
+	sub.add_argument("--write-pins", action="store_true", help="write the sums of the sounds as made now to the pins file, then check")
+	sub.set_defaults(func=_cmd_sounds)
 
 	sub = commands.add_parser("trim", help=f"trim a working copy of a disk with a profile ({', '.join(profile_names())})")
 	sub.add_argument("recipe", help="recipe TOML file (supplies the default profile)")
