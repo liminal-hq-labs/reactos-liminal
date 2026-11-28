@@ -345,3 +345,63 @@ def test_a_taskbar_preview_over_an_8_bit_stock_bitmap_goes_in_a_copy_an_earlier_
 		patched = run_patchers(["afterglow.dialog-bitmaps"], fat, tree, tmp_path, scratch)
 	new = patched[0].local_file.read_bytes()
 	assert new[0x90] == earlier_bytes[0x90] and bitmap_of(new, 54) == dib24(0x44) and bitmap_of(new, 53) == dib8(1)
+
+
+# A bitmap the program draws with GdiTransparentBlt keys on exactly 255, 0, 255 (desk.cpl's monitor, MONITOR_ALPHA 0xFF00FF). Art that
+# was resampled or quantised has its key at 254, 0, 255, which shows as a solid magenta box.
+
+
+def keyed_dib8(width: int = WIDTH, height: int = HEIGHT) -> bytes:
+	"""An 8-bit stock DIB whose colour table holds magenta (entry 0, BGRX) and grey (entry 1)."""
+	stride = (width + 3) // 4 * 4
+	pixels = bytes([0]) * stride * height
+	table = bytes([255, 0, 255, 0, 128, 128, 128, 0]) + bytes(1016)
+	return struct.pack("<IiiHHIIiiII", 40, width, height, 1, 8, 0, len(pixels), 0, 0, 256, 0) + table + pixels
+
+
+def art24(pixels: list[tuple[int, int, int]]) -> bytes:
+	"""A WIDTH x HEIGHT bottom-up 24-bit .bmp of the pixels (R, G, B), row by row from the top."""
+	stride = (WIDTH * 3 + 3) // 4 * 4
+	rows = []
+	for row in range(HEIGHT):
+		line = b"".join(bytes([b, g, r]) for r, g, b in pixels[row * WIDTH : (row + 1) * WIDTH])
+		rows.append(line + bytes(stride - len(line)))
+	body = b"".join(reversed(rows))
+	dib = struct.pack("<IiiHHIIiiII", 40, WIDTH, HEIGHT, 1, 24, 0, len(body), 0, 0, 0, 0) + body
+	return b"BM" + struct.pack("<IHHI", 14 + len(dib), 0, 0, 54) + dib
+
+
+def pixels_of(dib: bytes) -> list[tuple[int, int, int]]:
+	stride = (WIDTH * 3 + 3) // 4 * 4
+	out = []
+	for row in range(HEIGHT - 1, -1, -1):
+		start = 40 + row * stride
+		out += [(dib[start + 3 * c + 2], dib[start + 3 * c + 1], dib[start + 3 * c]) for c in range(WIDTH)]
+	return out
+
+
+KEY_RESOURCE = {"bitmap": "m.bmp", "module": "keyed.dll", "resource": 7, "name": "IDC_MONITOR", "size": [WIDTH, HEIGHT], "bits": 8}
+
+
+def test_art_on_a_key_that_is_a_shade_off_gets_the_exact_key_where_the_stock_bitmap_is_keyed():
+	grey = (26, 24, 40)
+	pixels = [(254, 0, 255)] * 4 + [(240, 25, 244)] * 2 + [grey] * (WIDTH * HEIGHT - 6)
+	stock = make_dll({}, {}, bitmaps={7: keyed_dib8()})
+	data, report = patch_dialog_bitmaps.write_bitmaps(stock, [KEY_RESOURCE], {"m.bmp": (art24(pixels), "x")})
+	written = pixels_of(bitmap_of(data, 7))
+	assert written[:6] == [(255, 0, 255)] * 6 and written[6:] == [grey] * (WIDTH * HEIGHT - 6)
+	assert "key snapped to 255, 0, 255 (6)" in report[0]
+
+
+def test_art_over_a_stock_bitmap_with_no_key_is_not_touched():
+	pixels = [(254, 0, 255)] * WIDTH * HEIGHT
+	stock = make_dll({}, {}, bitmaps={7: dib8(1)})
+	data, report = patch_dialog_bitmaps.write_bitmaps(stock, [KEY_RESOURCE], {"m.bmp": (art24(pixels), "x")})
+	assert pixels_of(bitmap_of(data, 7)) == pixels and "key" not in report[0]
+
+
+def test_an_exact_key_is_kept_and_reported():
+	pixels = [(255, 0, 255)] * WIDTH * HEIGHT
+	stock = make_dll({}, {}, bitmaps={7: keyed_dib8()})
+	data, report = patch_dialog_bitmaps.write_bitmaps(stock, [KEY_RESOURCE], {"m.bmp": (art24(pixels), "x")})
+	assert pixels_of(bitmap_of(data, 7)) == pixels and report[0].endswith("exact key")
