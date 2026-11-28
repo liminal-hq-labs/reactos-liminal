@@ -26,7 +26,7 @@ from .patch_base import PatchedFile, PatchError, is_trimmed, latest_patched, ren
 from .patch_bitmaps import PINS_FILE
 from .patch_family import module_name
 from .patch_icons import icon_set_digest, require_pin, settle_result
-from .pe_resource import PeError, PeFile, dib_from_bmp, dib_info, replace_bitmap
+from .pe_resource import PeError, PeFile, dib_from_bmp, dib_info, has_exact_key, replace_bitmap, snap_key
 
 SPEC_FILE = Path(__file__).resolve().parent / "dialog_bitmaps.json"
 FAMILY = "dialog-bitmaps"
@@ -86,14 +86,18 @@ def write_bitmaps(stock: bytes, resources: list[dict], rendered: dict[str, tuple
 					f"bitmap {resource['resource']} ({resource['name']}) is {old.width} x {old.height} at {old.bits_per_pixel} bits "
 					f"in the file; the map says {width} x {height} at {resource['bits']}"
 				)
+			keyed = ""
+			if has_exact_key(data[slot.data_offset : slot.data_offset + slot.size]):
+				dib, snapped = snap_key(dib)
+				keyed = f", key snapped to 255, 0, 255 ({snapped})" if snapped else ", exact key"
 			if info.bits_per_pixel == resource["bits"]:
 				data = replace_bitmap(data, resource["resource"], dib, same_size=True)
-				report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}")
+				report.append(f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}{keyed}")
 			else:
 				grown.append((resource["resource"], dib))
 				report.append(
 					f"bitmap {resource['resource']} ({resource['name']}): {resource['bitmap']}, {info.bits_per_pixel}-bit over the "
-					f"stock {old.bits_per_pixel}-bit one, in a new section"
+					f"stock {old.bits_per_pixel}-bit one, in a new section{keyed}"
 				)
 		if grown:
 			data = _write_grown(data, grown)
