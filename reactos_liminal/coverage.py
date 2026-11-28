@@ -13,8 +13,9 @@
   holds no stock SHA-256 for it, so nothing may be written to it.
 
 A resource the repository's own tables add (a group the map does not name) is listed after the map's rows with its evidence `table`.
-The compact column says whether the `base` trim keeps the patched file; a patcher leaves a removed file alone, so the full and the
-compact image have one patch list. The report is written to `docs/icon-coverage.md` by `rl pin` and checked by `rl pin --check`."""
+The compact column says whether the compact image's trim (the `base` profile and the compact recipe's own list) keeps the
+patched file; a patcher leaves a removed file alone, so the full and the compact image have one patch list. The report is written
+to `docs/icon-coverage.md` by `rl pin` and checked by `rl pin --check`."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -183,7 +184,7 @@ def render(
 		f"- **Resources:** {len(rows)} rows for {len(icons)} icons: {total[PATCHED]} patched, {total[SKIPPED]} skipped, "
 		f"{total[UNVERIFIED]} unverified.",
 		f"- **Icons with no ReactOS resource in the map:** {', '.join(f'`{icon}`' for icon in unmapped) or 'none'}.",
-		"- **Compact:** the `base` trim removes the file, so the compact image leaves it alone and the full image carries the icon.",
+		"- **Compact:** the compact trim removes the file, so the compact image leaves it alone and the full image carries the icon.",
 		"",
 		"| Icon | Module | Resource | Evidence | Status | Files | Compact | Note |",
 		"|---|---|---|---|---|---|---|---|",

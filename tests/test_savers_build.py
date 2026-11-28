@@ -324,6 +324,43 @@ def test_no_registry_file_selects_a_saver():
 	assert '"ScreenSaveActive"="0"' in quiet
 
 
+def test_ask_for_password_on_resume_is_cleared_in_every_recipe_that_applies_quiet(base_recipe_path, compact_recipe_path):
+	from reactos_liminal.paths import REPO
+
+	quiet = (REPO / "guest" / "reg" / "quiet.reg").read_text(errors="replace")
+	desktop = quiet.split("[HKEY_CURRENT_USER\\Control Panel\\Desktop]")[1]
+	assert '"ScreenSaverIsSecure"="0"' in desktop and '"ScreenSaveActive"="0"' in desktop
+	for path in (base_recipe_path, compact_recipe_path):
+		assert "quiet" in load(path).section("settings", "reg_files")
+	assert "ScreenSaverIsSecure" not in "".join(
+		reg.read_text(errors="replace") for reg in (REPO / "guest" / "reg").glob("*.reg") if reg.name != "quiet.reg"
+	)
+
+
+def test_the_compact_trim_drops_the_logon_saver_and_keeps_blank_screen_while_the_full_image_keeps_both(
+	base_recipe_path, compact_recipe_path
+):
+	from reactos_liminal.trim import build_profile, removes
+
+	def trim_of(path):
+		recipe = load(path)
+		return build_profile(recipe.section("trim", "profile"), recipe.section("trim", "extra"))
+
+	compact = trim_of(compact_recipe_path)
+	assert removes(compact, "ReactOS/system32/logon.scr")
+	assert not removes(compact, "ReactOS/system32/blankscr.scr")
+	assert removes(compact, "ReactOS/system32/mazescr.scr")
+	full = trim_of(base_recipe_path)
+	assert not removes(full, "ReactOS/system32/logon.scr") and not removes(full, "ReactOS/system32/blankscr.scr")
+	assert not removes(load_profile_named("base"), "ReactOS/system32/logon.scr"), "the shared base profile must not name logon.scr"
+
+
+def load_profile_named(name):
+	from reactos_liminal.trim import load_profile
+
+	return load_profile(name)
+
+
 def test_the_pin_is_a_full_commit_with_a_sum_for_each_output(base_recipe_path):
 	table = load(base_recipe_path).section("builds", "afterglow-savers")
 	assert len(table["commit"]) == 40 and set(table["commit"]) != {"0"}
@@ -334,6 +371,8 @@ def test_the_locks_hold_the_savers_pin(base_recipe_path, compact_recipe_path):
 	for path, lock_name in ((base_recipe_path, "afterglow.lock.json"), (compact_recipe_path, "afterglow-compact.lock.json")):
 		lock = json.loads((path.parent / lock_name).read_text())
 		assert lock["builds"]["afterglow-savers"] == build_lock(load(path))["builds"]["afterglow-savers"]
+		assert lock["trim_lists"] == build_lock(load(path))["trim_lists"]
+		assert not any(key.startswith("extra:/") for key in lock["trim_lists"]), "a lock holds nothing machine-specific"
 
 
 def test_the_licences_and_notice_name_the_savers_only_for_a_recipe_that_builds_them(base_recipe_path, pack):
@@ -381,3 +420,14 @@ def test_the_audit_fails_when_a_saver_the_recipe_writes_is_not_on_the_disk(tmp_p
 	assert [finding.target for finding in report.findings if finding.kind == "screensaver" and finding.status == DEAD] == ["AGCOLLCT.SCR"]
 	put(fat, tmp_path, "ReactOS/system32/AGCOLLCT.SCR")
 	assert main(["audit", str(fat.image), "--recipe", str(base_recipe_path)]) == 0
+
+
+@needs_mtools
+def test_the_compact_image_lists_the_five_and_blank_screen_and_not_the_logon_saver(tmp_path, compact_recipe_path):
+	fat = make_fat_image(tmp_path / "disk.img")
+	for name in (*SAVERS, "blankscr.scr"):
+		put(fat, tmp_path, f"ReactOS/system32/{name}")
+	report = audit_image(fat, expected_savers(load(compact_recipe_path)))
+	listed = sorted(finding.target.lower() for finding in report.findings if finding.kind == "screensaver" and finding.status == OK)
+	assert listed == sorted([*(name.lower() for name in SAVERS), "blankscr.scr"])
+	assert "logon.scr" not in listed and not report.blocking()

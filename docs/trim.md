@@ -5,7 +5,7 @@ A trim profile is a list of files and folders that `rl image` and `rl trim` remo
 | Profile | What it removes |
 |---|---|
 | `none` | Nothing: the disk as installed. The base recipe (`recipes/afterglow.toml`) uses it, so the Afterglow remaster is the full ReactOS |
-| `base` | The compact trim, selected by `recipes/afterglow-compact.toml` (the profile keeps its file name, `profiles/base.txt`): Gecko (57 MB) and the installer folder, the games, screensavers, the DirectX helper libraries, the wallpapers, apps and applets a kiosk does not use, 26 fonts, the Btrfs, ext2 and NFS drivers, the other visual styles and their Start menu entries. **It keeps the network card drivers and the network stack.** |
+| `base` | The compact trim, selected by `recipes/afterglow-compact.toml` (the profile keeps its file name, `profiles/base.txt`; the recipe adds the Logon ScreenSaver from its own list, `recipes/afterglow-compact-trim.txt`, RL-69): Gecko (57 MB) and the installer folder, the games, screensavers, the DirectX helper libraries, the wallpapers, apps and applets a kiosk does not use, 26 fonts, the Btrfs, ext2 and NFS drivers, the other visual styles and their Start menu entries. **It keeps the network card drivers and the network stack.** |
 
 The trim is not what replaces ReactOS's wallpapers in the full image: that is the `wallpapers.replace_stock` switch, which removes the files in `profiles/wallpapers/stock.txt` and is not a trim profile ([recipes.md](recipes.md#the-wallpaper-list)). The `base` profile removes the same files, so the compact image has no stock wallpapers either way.
 

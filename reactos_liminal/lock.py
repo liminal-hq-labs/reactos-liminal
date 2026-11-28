@@ -64,7 +64,7 @@ def build_lock(recipe: Recipe) -> dict:
 	if profile_file.is_file():
 		trim_lists[f"profile:{profile_name}"] = sha256_file(profile_file)
 	for extra in recipe.section("trim", "extra"):
-		trim_lists[f"extra:{extra}"] = sha256_file(base / extra)
+		trim_lists[f"extra:{os.path.relpath(extra, base).replace(os.sep, '/')}"] = sha256_file(base / extra)
 	reg_files = {
 		f"reg:{os.path.relpath(entry, base).replace(os.sep, '/')}": sha256_file(Path(entry))
 		for entry in recipe.section("settings", "reg_files")

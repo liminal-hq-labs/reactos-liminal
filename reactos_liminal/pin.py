@@ -38,7 +38,7 @@ from .patch_dialog_bitmaps import load_spec as load_dialog_spec
 from .patch_family import load_families, module_name
 from .patch_icons import PINS_FILE as SHELL32_PINS_FILE
 from .patchers import run_patchers
-from .paths import ensure
+from .paths import REPO, ensure
 from .recipe import Recipe, is_remote_build, load
 from .rustbuild import build_program, declaring_file, remote_builds
 from .trim import build_profile
@@ -158,9 +158,15 @@ def icon_coverage_text(tree: Path, golden: Path, recorder) -> str | None:
 		bitmaps = []  # a map from before the dialog art has no `bitmaps` list
 	return render(
 		build_rows(entries, recorder, listed, on_disk, bitmaps),
-		build_profile("base", []),
+		compact_profile(),
 		*bitmap_coverage(bitmaps, recorder),
 	)
+
+
+def compact_profile():
+	"""The trim of the compact image: the `base` profile and the extra lists of `recipes/afterglow-compact.toml`."""
+	compact = load(REPO / "recipes" / "afterglow-compact.toml")
+	return build_profile(compact.section("trim", "profile"), compact.section("trim", "extra"))
 
 
 def bitmap_coverage(bitmaps: list[dict], recorder) -> tuple[list, dict[str, list[str]]]:

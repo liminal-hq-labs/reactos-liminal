@@ -4,7 +4,7 @@ Every resource Afterglow's `map.json` names, and what the icon patchers did with
 
 - **Resources:** 442 rows for 253 icons: 423 patched, 0 skipped, 19 unverified.
 - **Icons with no ReactOS resource in the map:** `cd-disc`, `clock`, `fit`, `floppy-disk`, `minus`, `newfolder`, `pause`, `plus`, `printpreview`, `redo`, `rotccw`, `rotcw`, `showdesk`, `sortname`, `view-large`, `view-list`, `view-small`, `zoomin`, `zoomout`.
-- **Compact:** the `base` trim removes the file, so the compact image leaves it alone and the full image carries the icon.
+- **Compact:** the compact trim removes the file, so the compact image leaves it alone and the full image carries the icon.
 
 | Icon | Module | Resource | Evidence | Status | Files | Compact | Note |
 |---|---|---|---|---|---|---|---|
@@ -356,7 +356,7 @@ Every resource Afterglow's `map.json` names, and what the icon patchers did with
 | `scr-butterflies` | `butterflies.scr` | group 106 | source+binary | patched | `ReactOS/system32/butterflies.scr` | removed by trim |  |
 | `scr-circles` | `circles.scr` | group 101 | source+binary | patched | `ReactOS/system32/circles.scr` | removed by trim |  |
 | `scr-cylfrac` | `cylfrac.scr` | group 101 | source+binary | patched | `ReactOS/system32/cylfrac.scr` | removed by trim |  |
-| `scr-logon` | `logon.scr` | group IDI_ICON | source+binary | patched | `ReactOS/system32/logon.scr` | kept |  |
+| `scr-logon` | `logon.scr` | group IDI_ICON | source+binary | patched | `ReactOS/system32/logon.scr` | removed by trim |  |
 | `scr-matrix` | `matrix.scr` | group 106 | source+binary | patched | `ReactOS/system32/matrix.scr` | removed by trim |  |
 | `scr-maze` | `mazescr.scr` | group 101 | source+binary | patched | `ReactOS/system32/mazescr.scr` | removed by trim |  |
 | `scr-ssstars` | `ssstars.scr` | group 101 | source+binary | patched | `ReactOS/system32/ssstars.scr` | removed by trim |  |

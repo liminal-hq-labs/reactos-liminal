@@ -17,5 +17,7 @@ wallpaper = "C:\\ReactOS\\afterglow-wallpaper.bmp"
 scenes = []
 replace_stock = false
 
+# The base profile, then the compact image's own list: ReactOS's Logon ScreenSaver (`logon.scr`) goes, Blank screen stays (RL-69).
 [trim]
 profile = "base"
+extra = ["afterglow-compact-trim.txt"]
