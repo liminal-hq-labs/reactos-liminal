@@ -37,7 +37,7 @@ On Linux with Python 3.12 and QEMU, mtools, xorriso, zstd and an ISO writer (`ge
 ./rl install recipes/afterglow.toml          # unattended install in a private QEMU; minutes with KVM
 ./rl pin recipes/afterglow.toml --afterglow REF   # move the Afterglow pin and refresh its hashes
 ./rl image recipes/afterglow.toml            # patch, dress and configure a copy of the golden disk: the full ReactOS
-./rl image recipes/afterglow-compact.toml    # the same with the compact trim (no Gecko, games or screensavers)
+./rl image recipes/afterglow-compact.toml    # the same with the compact trim (no Gecko or games; the five Afterglow savers and Blank screen)
 ./rl parts recipes/afterglow.toml ~/.cache/reactos-liminal/images/afterglow.img   # v86 disk parts and manifest.json
 ./rl manifest recipes/afterglow.toml ~/.cache/reactos-liminal/dist               # build-manifest.json
 ./rl verify recipes/afterglow.toml           # re-check every pin and the lock file; `./rl lock RECIPE` rewrites a lock

@@ -1,6 +1,7 @@
 Windows Registry Editor Version 5.00
 
-; No crash or error-reporting prompts, no balloon notifications, no screensaver or display power-off.
+; No crash or error-reporting prompts, no balloon notifications, no screensaver or display power-off, and "Ask for password on resume"
+; cleared in Display Properties > Screen Saver (ScreenSaverIsSecure), so a saver a person picks ends on a key press as on a kiosk.
 ; Applied once, inside the guest, by apply-settings.cmd.
 ;
 ; (c) Copyright 2026 Liminal HQ, Scott Morris
@@ -21,5 +22,6 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Control Panel\Desktop]
 "ScreenSaveActive"="0"
 "ScreenSaveTimeOut"="0"
+"ScreenSaverIsSecure"="0"
 "PowerOffActive"="0"
 "LowPowerActive"="0"

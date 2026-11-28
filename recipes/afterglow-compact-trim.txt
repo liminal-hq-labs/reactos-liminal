@@ -1,0 +1,8 @@
+# The compact image's own removals, on top of the `base` profile (docs/trim.md): the Logon ScreenSaver, ReactOS's `logon.scr`. The compact
+# Screen Saver list is the five Afterglow savers and ReactOS's own Blank screen (`blankscr.scr`, which stays); the full image keeps all of
+# ReactOS's own savers, so this is not in the shared profile (RL-69).
+#
+# (c) Copyright 2026 Liminal HQ, Scott Morris
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+f ReactOS/system32/logon.scr
