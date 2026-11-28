@@ -107,6 +107,27 @@ def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[
 	return files
 
 
+def preinstalled_devices(reg_text: str) -> list[str]:
+	"""What a registry file installs ahead of plug and play, for `CHANGES.txt`: each device under `Enum\\PCI` as
+	`PCI\\VEN_..&DEV_..&SUBSYS_..&REV_..` with the driver service its instance names, and each driver service that file adds."""
+	devices = []
+	services = []
+	instance = re.compile(r"^\[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Enum\\PCI\\([^\\\]]+)\\[^\\\]]+\]$")
+	service_key = re.compile(r"^\[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\([^\\\]]+)\]$")
+	current = None
+	for line in reg_text.splitlines():
+		line = line.strip()
+		if matched := instance.match(line):
+			current = matched.group(1)
+		elif matched := service_key.match(line):
+			services.append(matched.group(1))
+			current = None
+		elif current and line.startswith('"Service"='):
+			devices.append(f"PCI\\{current} (driver service {line.split('=', 1)[1].strip(chr(34))})")
+			current = None
+	return [*devices, *(f"service {name}" for name in services)]
+
+
 def cd_file_name(index: int, name: str) -> str:
 	stem = re.sub(r"[^A-Za-z0-9]", "", name)[:5].upper()
 	return f"{index:02d}_{stem}.REG"

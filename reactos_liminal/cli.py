@@ -11,7 +11,7 @@ from pathlib import Path
 from . import __version__, doctor
 from . import sounds as sounds_module
 from .afterglow import fetch_afterglow
-from .audit import audit_image, expected_savers
+from .audit import audit_image, expected_devices, expected_savers
 from .fetch import FetchError, fetch_iso
 from .hashing import SumsError, check_sums, sums_text
 from .image import ImageError, build_image, plan_image, trim_image
@@ -274,8 +274,8 @@ def _cmd_audit(args: argparse.Namespace) -> int:
 	if not image.is_file():
 		print(f"rl: no such image: {image}", file=sys.stderr)
 		return 2
-	savers = expected_savers(load(args.recipe)) if args.recipe else ()
-	report = audit_image(FatImage(image), savers)
+	recipe = load(args.recipe) if args.recipe else None
+	report = audit_image(FatImage(image), expected_savers(recipe) if recipe else (), expected_devices(recipe) if recipe else ())
 	text = report.render(f"Shortcut and registry audit of {image.name}")
 	if args.out:
 		Path(args.out).write_text(text)

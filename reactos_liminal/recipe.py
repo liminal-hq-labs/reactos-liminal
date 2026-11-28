@@ -59,6 +59,8 @@ REG_FILES = (
 	"afterglow-logon",
 	"regional-canada",
 	"pointer-defaults",
+	"ac97-preinstall",
+	"ac97-volume-control",
 )
 TRIM_PROFILES = ("none", "base")
 

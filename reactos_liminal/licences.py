@@ -14,6 +14,7 @@ from .fetch import sha256_file
 from .mtools import FatImage
 from .paths import REPO
 from .recipe import Recipe, is_reg_path
+from .settings import REG_DIR, preinstalled_devices
 from .trim import TrimReport
 
 PRODUCT = "Afterglow for ReactOS — unofficial remaster by Liminal HQ Labs"
@@ -328,6 +329,9 @@ def changes_text(recipe: Recipe, record: ChangeRecord) -> bytes:
 		]
 		if settings.get("wallpaper"):
 			lines.append(f"  wallpaper {settings['wallpaper']}.")
+		if "ac97-preinstall" in settings["reg_files"]:
+			lines.append("  devices installed ahead of plug and play (guest/reg/ac97-preinstall.reg):")
+			lines += [f"    {entry}" for entry in preinstalled_devices((REG_DIR / "ac97-preinstall.reg").read_text(encoding="utf-8"))]
 	else:
 		lines.append("  not applied in this build.")
 	return _crlf("\n".join(lines) + "\n")

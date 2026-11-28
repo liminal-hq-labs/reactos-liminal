@@ -1,0 +1,28 @@
+Windows Registry Editor Version 5.00
+
+; What Volume Control (sndvol32) shows by default for the demo's AC'97 card. ReactOS's Volume Control shows only the lines that its
+; saved choice lists, and a fresh user has none, so its window opens empty although the card has eight lines. These are the choices
+; Options > Properties would save: the master volume on the Playback side, and the Microphone on the Recording side. The card's other
+; lines (Aux, Video, CD Audio, Line In, Phone Line and PC Speaker, and the microphone's playback monitor) connect to nothing in the
+; virtual card, so they stay hidden, which is what the Volume Control does with a line it has no choice for. Each value is a list of
+; records: a DWORD of flags (0 shows the line, 4 hides it) and the line's name as 64 UTF-16 characters. The key names are the mixer's
+; product name and the destination line's name.
+;
+; (c) Copyright 2026 Liminal HQ, Scott Morris
+; SPDX-License-Identifier: Apache-2.0 OR MIT
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Volume Control\AC'97 Sound Card\Volume Control]
+"LineStates"=hex:00,00,00,00,56,00,6f,00,6c,00,75,00,6d,00,65,00,20,00,43,00,\
+  6f,00,6e,00,74,00,72,00,6f,00,6c,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Volume Control\AC'97 Sound Card\Recording Control]
+"LineStates"=hex:00,00,00,00,4d,00,69,00,63,00,72,00,6f,00,70,00,68,00,6f,00,\
+  6e,00,65,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00,00,00,00,00

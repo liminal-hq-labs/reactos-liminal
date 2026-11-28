@@ -191,3 +191,52 @@ def test_the_command_fails_on_a_dead_shortcut_and_passes_on_a_clean_image(disk, 
 def test_the_command_refuses_a_missing_image(tmp_path, capsys):
 	assert main(["audit", str(tmp_path / "none.img")]) == 2
 	assert "no such image" in capsys.readouterr().err
+
+
+def _system_hive(bound=True, image_path="system32\\drivers\\ac97.sys"):
+	device = {"Service": sz("ac97"), "Class": sz("MEDIA")} if bound else {"Class": sz("MEDIA")}
+	pci = key({}, {"VEN_8086&DEV_2415&SUBSYS_00008086&REV_02": key({}, {"3&609b8881&03": key(device)})})
+	return build_hive(
+		{
+			"ControlSet001": key(
+				{},
+				{
+					"Enum": key({}, {"PCI": pci}),
+					"Services": key({}, {"ac97": key({"ImagePath": expand(image_path)})}),
+				},
+			)
+		}
+	)
+
+
+def test_a_pre_installed_device_with_its_driver_on_the_disk_is_ok(disk, tmp_path):
+	put(disk, tmp_path, "ReactOS/system32/drivers/ac97.sys", b"MZ")
+	put(disk, tmp_path, "ReactOS/system32/config/SYSTEM", _system_hive())
+	report = audit_image(disk, expected_devices=("PCI\\VEN_8086&DEV_2415",))
+	assert statuses(report, "device") == [OK]
+	assert statuses(report, "preinstalled device") == []
+	assert not report.blocking()
+
+
+def test_a_device_whose_driver_was_trimmed_is_dead_but_not_blocking_unless_expected(disk, tmp_path):
+	put(disk, tmp_path, "ReactOS/system32/config/SYSTEM", _system_hive())
+	report = audit_image(disk)
+	assert statuses(report, "device") == [DEAD]
+	assert not report.blocking() and report.blocking(strict=True)
+
+
+def test_an_expected_device_that_is_not_bound_fails_the_audit(disk, tmp_path):
+	put(disk, tmp_path, "ReactOS/system32/config/SYSTEM", _system_hive(bound=False))
+	report = audit_image(disk, expected_devices=("PCI\\VEN_8086&DEV_2415",))
+	assert statuses(report, "preinstalled device") == [DEAD]
+	assert report.blocking()
+
+
+def test_the_recipe_that_lists_the_pre_install_expects_the_card(base_recipe_path):
+	from reactos_liminal.audit import expected_devices
+	from reactos_liminal.recipe import load
+
+	recipe = load(base_recipe_path)
+	assert expected_devices(recipe) == ()
+	recipe.data["settings"]["reg_files"] = [*recipe.data["settings"]["reg_files"], "ac97-preinstall"]
+	assert expected_devices(recipe) == ("PCI\\VEN_8086&DEV_2415",)
