@@ -13,6 +13,7 @@ from pathlib import Path
 from .log import log
 from .paths import REPO
 from .recipe import REG_FILES, Recipe, is_reg_path
+from .sounds import scheme_reg
 from .vm import PrivateVm, VmError, VmSpec, default_accel
 
 REG_DIR = REPO / "guest" / "reg"
@@ -94,6 +95,8 @@ def settings_files(recipe: Recipe, afterglow_files: Path | None = None) -> dict[
 			files[_own_reg_key(Path(name), files)] = Path(name).read_text(encoding="utf-8-sig")
 			continue
 		files[name] = (REG_DIR / f"{name}.reg").read_text(encoding="utf-8")
+	if recipe.section("sounds", "scheme"):
+		files["afterglow-sounds"] = scheme_reg()
 	if "afterglow.start" in recipe.section("patchers", "list"):
 		files["shell-agexplorer"] = (REG_DIR / "shell-agexplorer.reg").read_text(encoding="utf-8")
 	if afterglow_files is not None:

@@ -9,6 +9,8 @@ A trim profile is a list of files and folders that `rl image` and `rl trim` remo
 
 The trim is not what replaces ReactOS's wallpapers in the full image: that is the `wallpapers.replace_stock` switch, which removes the files in `profiles/wallpapers/stock.txt` and is not a trim profile ([recipes.md](recipes.md#the-wallpaper-list)). The `base` profile removes the same files, so the compact image has no stock wallpapers either way.
 
+`base` keeps `mplay32.exe` (Multimedia Player) and `sndrec32.exe` (Sound Recorder), with their Entertainment shortcuts, so the compact image can play and record a sound ([sounds.md](sounds.md), RL-72.2).
+
 `base` is a complete list in its own right and keeps WineVDM (`Program Files/otvdm`), which the Windows 3.x programs need. It also keeps `Program Files/Internet Explorer/iexplore.exe` (75 KB): the Internet Browser desktop item and the web protocol handlers run it, and with it missing a double-click did nothing and said nothing. Without Gecko its window opens blank; the compact image leaves Gecko out (RL-40), and the full image keeps it, so the browser works there when there is a network (RL-48). It keeps `ReactOS/system32/rapps.exe` (1.7 MB), the Applications Manager that the desktop shortcut and the Start menu entry run (RL-42); only its console twin `rapps.com` is removed. With no network the Manager opens its Updating Database box and then says "Unable to download the package! Check Internet Connection!", so it fails with a message and does not hang; with a network it works as in stock ReactOS.
 
 ## Order and protection

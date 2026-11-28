@@ -269,7 +269,7 @@ Explorer's file views draw a program's file icon from the first icon group in th
 | | 7 | My Computer: System Registry, and registry keys | `regkey` | source, binary |
 | | 8 | A registry value | `regbinary` | source, binary |
 
-The `base` trim removes most of these files (Calculator, Paint, WordPad, Character Map, the games, Remote Desktop, Media Player, Sound Recorder, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`). A patcher leaves alone a file the trim removes (RL-53.3), so the compact image keeps the same list and a downstream recipe that keeps one of them gets the Afterglow icon. A resource verified from the source alone is checked in the stock file at build: it is patched when the group is there with frames of its own, and skipped (logged and listed in the report) when it is not. Today both source-only groups (`spider.exe` 100, `sndrec32.exe` 107) are in the stock file and are patched.
+The `base` trim removes most of these files (Calculator, Paint, WordPad, Character Map, the games, Remote Desktop, On-Screen Keyboard, Magnifier, DirectX Diagnostic, `joy.cpl`, `telephon.cpl` and `usrmgr.cpl`). A patcher leaves alone a file the trim removes (RL-53.3), so the compact image keeps the same list and a downstream recipe that keeps one of them gets the Afterglow icon. A resource verified from the source alone is checked in the stock file at build: it is patched when the group is there with frames of its own, and skipped (logged and listed in the report) when it is not. Today both source-only groups (`spider.exe` 100, `sndrec32.exe` 107) are in the stock file and are patched.
 
 ### The round-2 files, the Show Desktop button, the cards and the felt
 

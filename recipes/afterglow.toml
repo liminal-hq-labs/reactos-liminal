@@ -66,6 +66,15 @@ reg_files = ["display", "quiet", "watermark-off", "afterglow-logon", "regional-c
 scenes = "all"
 replace_stock = true
 
+# The Afterglow sound scheme: original sounds synthesized by `rl image` itself (reactos_liminal/sounds.py, pinned by SHA-256 in
+# `pins/afterglow-sounds.json`) and written to `C:\ReactOS\Media`, and the registry that adds the scheme to Control Panel, Sounds and Audio
+# Devices, selects it and makes it the current sounds (so the startup chime plays at the first logon of a boot, and the system plays the
+# rest). `samples` also writes the `C:\Sounds` folder, with a five-second tune and a stereo check, for Media
+# Player's File, Open. Both are off by default; every image from this recipe has both (docs/sounds.md).
+[sounds]
+scheme = true
+samples = true
+
 # Which files the trim removes: none, or base (the compact trim; keeps the network drivers and stack). This recipe is the full
 # ReactOS and removes nothing; afterglow-compact.toml extends it with the base profile. A downstream recipe adds its own removals with
 # `extra`, a list of trim files beside that recipe.
@@ -169,6 +178,14 @@ destination = "ReactOS/system32/AGINK.SCR"
 [[files]]
 source = "built:afterglow-savers/AGCOLLCT.SCR"
 destination = "ReactOS/system32/AGCOLLCT.SCR"
+
+# "Sound test" on the desktop opens Media Player on the five-second tune, so a sound check is one double-click.
+[[shortcuts]]
+name = "Sound test"
+target = 'C:\ReactOS\system32\mplay32.exe'
+arguments = '"C:\Sounds\Dusk melody.wav"'
+working_dir = 'C:\Sounds'
+description = "Plays a short tune in Media Player to check the sound"
 
 [outputs.disk]
 zero_free = true

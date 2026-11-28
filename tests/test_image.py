@@ -63,7 +63,7 @@ def test_the_plan_lists_the_steps_in_order_and_runs_nothing(compact_recipe_path,
 	plan = plan_image(recipe_module.load(compact_recipe_path), tmp_path / "work")
 	text = plan.describe()
 	assert text.index("patchers:") < text.index("trim profile") < text.index("files:") < text.index("settings:")
-	assert "afterglow.pointers" in text and "128 entries" in text
+	assert "afterglow.pointers" in text and "126 entries" in text
 	assert "regional-canada" in text and "pointer-defaults" in text
 	assert "skipped" in plan_image(recipe_module.load(compact_recipe_path), tmp_path / "work", with_settings=False).describe()
 

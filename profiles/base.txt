@@ -26,8 +26,6 @@ f ReactOS/system32/starfield.scr
 f ReactOS/system32/mspaint.exe
 f ReactOS/system32/wordpad.exe
 f ReactOS/system32/write.exe
-f ReactOS/system32/mplay32.exe
-f ReactOS/system32/sndrec32.exe
 f ReactOS/system32/dxdiag.exe
 f ReactOS/system32/mstsc.exe
 f ReactOS/system32/rapps.com

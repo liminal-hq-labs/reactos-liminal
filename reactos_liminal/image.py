@@ -34,6 +34,8 @@ from .patchers import run_patchers
 from .paths import ensure
 from .recipe import Recipe
 from .rustbuild import BUILT_PREFIX, build_programs, built_file, used_builds
+from .sounds import describe as describe_sounds
+from .sounds import disk_files
 from .trim import LICENCE_PATHS, SHORTCUTS_SOURCE, TrimReport, apply_profile, build_profile, check_profile, removes
 from .vm import PrivateVm
 from .wallpaper import FOLDER as wallpaper_folder_path
@@ -86,6 +88,8 @@ def plan_image(recipe: Recipe, work: Path, golden: Path | None = None, out: Path
 		)
 	extras = [f"{len(recipe.data['files'])} files", f"{len(recipe.data['shortcuts'])} shortcuts"]
 	extras.append("the Afterglow style and pointers")
+	if sounds := describe_sounds(recipe.section("sounds", "scheme"), recipe.section("sounds", "samples")):
+		extras.append(sounds)
 	if wanted(recipe) and _wallpaper_file_entry(recipe):
 		extras.append(f"the wallpaper {recipe.section('settings', 'wallpaper')} comes from [[files]] (no scene rendered)")
 	elif wanted(recipe):
@@ -182,6 +186,20 @@ def _write_wallpaper_set(recipe: Recipe, disk: FatImage, source_tree: Path | Non
 		disk.copy_in(bitmaps[name], set_destination(name))
 
 
+def _sound_files(recipe: Recipe) -> dict[str, bytes]:
+	"""The synthesized sounds the recipe asks for, by their path on the disk."""
+	return disk_files(recipe.section("sounds", "scheme"), recipe.section("sounds", "samples"))
+
+
+def _write_sounds(recipe: Recipe, disk: FatImage, scratch: Path) -> None:
+	"""Write the sound files. A `[[files]]` entry for the same path is written after these and replaces the sound."""
+	for path, data in _sound_files(recipe).items():
+		_make_path(disk, path.rsplit("/", 1)[0])
+		local = scratch / "sound.wav"
+		local.write_bytes(data)
+		disk.copy_in(local, path)
+
+
 def _write_payload(
 	recipe: Recipe,
 	disk: FatImage,
@@ -193,6 +211,7 @@ def _write_payload(
 	base = recipe.chain[0].parent
 	_write_wallpaper(recipe, disk, source_tree, scratch)
 	_write_wallpaper_set(recipe, disk, source_tree, scratch)
+	_write_sounds(recipe, disk, scratch)
 	for entry in recipe.data["files"]:
 		if entry["source"].startswith(BUILT_PREFIX):
 			source = built_file(built or {}, entry["source"])
@@ -233,7 +252,7 @@ def _write_payload(
 
 def _written_paths(recipe: Recipe, afterglow_files: Path | None) -> list[str]:
 	"""The paths the files step added, for `CHANGES.txt`."""
-	paths = [entry["destination"] for entry in recipe.data["files"]]
+	paths = [*_sound_files(recipe), *(entry["destination"] for entry in recipe.data["files"])]
 	if afterglow_files is not None:
 		if wanted(recipe) and not _wallpaper_file_entry(recipe):
 			paths.append(image_path(recipe.section("settings", "wallpaper")))
